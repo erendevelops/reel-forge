@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { run } from '../../lib/media/run';
 import { makeClip } from '../helpers/media';
-import { npx } from '../helpers/npx';
+import { npx } from '../../lib/media/npx';
 import { validatePlan, type Plan } from '../../lib/plan';
 import { compile } from '../../lib/compile';
 import { cardRegistry } from '../../lib/compile/cards';

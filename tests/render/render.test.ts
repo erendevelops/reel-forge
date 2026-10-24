@@ -1,0 +1,55 @@
+import { describe, it, expect } from 'vitest';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import { run } from '../../lib/media/run';
+import { prepareClip, finishLoudness } from '../../lib/media/prepare';
+import { makeClip } from '../helpers/media';
+import { validatePlan } from '../../lib/plan';
+import { compile } from '../../lib/compile';
+import { render } from '../../lib/render/render';
+import { qa, writeQa } from '../../lib/render/qa';
+
+describe('render + qa', () => {
+  it('renders a 3 s synthetic plan and passes QA', async () => {
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'render-'));
+    try {
+      const assets = path.join(tmp, 'media');
+      await fs.mkdir(assets);
+      const raw = await makeClip(assets, { w: 540, h: 960, fps: 30, seconds: 4 });
+      const clip = path.join(assets, 'shot.mp4');
+      await prepareClip(raw, clip, { from: 0, duration: 3, width: 1080, height: 1920, fps: 60 });
+      await run('ffmpeg', ['-y', '-v', 'error', '-f', 'lavfi', '-i', 'sine=frequency=220:sample_rate=48000:duration=3', path.join(assets, 'vo.wav')]);
+      const v = validatePlan({
+        version: 1, mode: 'reel', fps: 60, duration: 3, ratios: ['9:16'],
+        selection: { captions: 'none', layouts: ['broll'], cards: ['title-card'], sfx: false, music: false, punchIns: false, thumbnail: false },
+        scenes: [{
+          id: 's1', start: 0, end: 3, say: 'x', why: 'x', layout: 'broll',
+          shots: [{ src: 'shot.mp4', from: 0, to: 3, at: 0 }],
+          cards: [{ type: 'title-card', start: 1.5, end: 2.8, params: { n: 1, name: 'Test' } }],
+        }],
+        captions: { style: 'none', groups: [] }, sfx: [], voice: { src: 'vo.wav' },
+      });
+      if (!v.ok) throw new Error(v.errors.join('\n'));
+      const proj = path.join(tmp, 'proj');
+      await compile(v.plan, { outDir: proj, assetsDir: assets, ratio: '9:16' });
+      const rendered = path.join(tmp, 'rendered.mp4');
+      await render(proj, rendered, { fps: 60 });
+      const rawTags = (await run('ffprobe', ['-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=pix_fmt,color_range,color_space,color_transfer,color_primaries', '-of', 'csv=p=0', rendered])).stdout.trim();
+      expect(rawTags).toBe('yuv420p,tv,bt709,bt709,bt709'); // hyperframes output needs no remux
+      const final = path.join(tmp, 'final.mp4');
+      await finishLoudness(rendered, final, { I: -14, TP: -1.5 });
+      const report = await qa(final, {
+        fps: 60, frames: 180, width: 1080, height: 1920, lufs: -14,
+        lumaRefs: [{ src: clip, srcT: 1.0, outT: 1.0 }],
+      });
+      await writeQa(tmp, report);
+      expect(report.checks.map((c) => c.name)).toEqual(['format', 'loudness', 'luma', 'contactSheet']);
+      expect(report.pass).toBe(true);
+      await expect(fs.stat(`${final}.sheet.jpg`)).resolves.toBeTruthy();
+      await expect(fs.stat(path.join(tmp, 'qa.json'))).resolves.toBeTruthy();
+    } finally {
+      await fs.rm(tmp, { recursive: true, force: true });
+    }
+  }, 600000);
+});
