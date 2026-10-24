@@ -1,4 +1,5 @@
 import { run } from './run';
+import { probe } from './probe';
 
 export interface PrepareClipOpts {
   from: number;
@@ -39,8 +40,14 @@ export async function finishLoudness(
   out: string,
   target: { I: number; TP: number },
 ): Promise<void> {
+  // Measured: a 3.0 s render came out 3.1 s after this pass (audio stream 3.1 s, video 3.0 s).
+  // Cause: loudnorm resamples internally and emits trailing samples (plus AAC encoder padding),
+  // so the audio runs ~0.1 s past the video. Bounding the output to the source length with -t
+  // keeps the deliverable exactly as long as the render. Video is stream-copied, never re-encoded.
+  const { duration } = await probe(src);
   await run('ffmpeg', [
     '-y', '-v', 'error', '-i', src,
+    '-t', String(duration),
     '-c:v', 'copy',
     '-af', `loudnorm=I=${target.I}:TP=${target.TP}:LRA=11`,
     '-ar', '48000', '-c:a', 'aac', '-b:a', '320k',

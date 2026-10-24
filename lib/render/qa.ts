@@ -7,6 +7,8 @@ import { probe } from '../media/probe';
 export interface QaExpect {
   fps: number;
   frames: number;
+  /** Plan duration in seconds; container and every stream must match within one frame. */
+  duration: number;
   width: number;
   height: number;
   lufs?: number;
@@ -17,17 +19,22 @@ export interface QaReport { pass: boolean; checks: QaCheck[] }
 
 async function formatCheck(file: string, e: QaExpect): Promise<QaCheck> {
   const { stdout } = await run('ffprobe', [
-    '-v', 'error', '-count_frames', '-select_streams', 'v:0', '-print_format', 'json', '-show_streams', file,
+    '-v', 'error', '-count_frames', '-select_streams', 'v:0', '-print_format', 'json', '-show_streams', '-show_format', file,
   ]);
-  const v = JSON.parse(stdout).streams[0];
+  const j = JSON.parse(stdout);
+  const v = j.streams.find((s: any) => s.codec_type === 'video');
+  const a = j.streams.find((s: any) => s.codec_type === 'audio');
+  const tol = 1 / e.fps + 1e-6;
+  const dur = { container: Number(j.format.duration), video: Number(v.duration), audio: a ? Number(a.duration) : undefined };
+  const durOk = [dur.container, dur.video, ...(dur.audio === undefined ? [] : [dur.audio])].every((d) => Math.abs(d - e.duration) <= tol);
   const [n, d] = String(v.r_frame_rate).split('/').map(Number);
   const fps = d ? n / d : n;
   const frames = Number(v.nb_read_frames);
   const got = {
     fps: Number(fps.toFixed(3)), frames, w: v.width, h: v.height, range: v.color_range,
-    primaries: v.color_primaries, space: v.color_space, trc: v.color_transfer, pix: v.pix_fmt,
+    dur, primaries: v.color_primaries, space: v.color_space, trc: v.color_transfer, pix: v.pix_fmt,
   };
-  const pass = Math.abs(fps - e.fps) < 0.01 && frames === e.frames && v.width === e.width && v.height === e.height
+  const pass = durOk && Math.abs(fps - e.fps) < 0.01 && frames === e.frames && v.width === e.width && v.height === e.height
     && v.color_range === 'tv' && v.color_primaries === 'bt709' && v.color_space === 'bt709' && v.color_transfer === 'bt709'
     && v.pix_fmt === 'yuv420p';
   return { name: 'format', pass, detail: JSON.stringify(got) };

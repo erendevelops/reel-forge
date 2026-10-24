@@ -40,12 +40,17 @@ describe('render + qa', () => {
       const final = path.join(tmp, 'final.mp4');
       await finishLoudness(rendered, final, { I: -14, TP: -1.5 });
       const report = await qa(final, {
-        fps: 60, frames: 180, width: 1080, height: 1920, lufs: -14,
+        fps: 60, frames: 180, duration: 3, width: 1080, height: 1920, lufs: -14,
         lumaRefs: [{ src: clip, srcT: 1.0, outT: 1.0 }],
       });
       await writeQa(tmp, report);
       expect(report.checks.map((c) => c.name)).toEqual(['format', 'loudness', 'luma', 'contactSheet']);
       expect(report.pass).toBe(true);
+      expect(report.checks[0].detail).toContain('"dur"');
+      // a plan-duration mismatch must fail the format gate
+      const bad = await qa(final, { fps: 60, frames: 180, duration: 3.5, width: 1080, height: 1920 });
+      expect(bad.checks[0].pass).toBe(false);
+      expect(bad.pass).toBe(false);
       await expect(fs.stat(`${final}.sheet.jpg`)).resolves.toBeTruthy();
       await expect(fs.stat(path.join(tmp, 'qa.json'))).resolves.toBeTruthy();
     } finally {
