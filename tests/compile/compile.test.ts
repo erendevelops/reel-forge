@@ -171,15 +171,50 @@ describe('compile', () => {
   });
 
   it('numbered list: latest highlighted, none at CTA', () => {
-    expect(html).toMatch(/id="voicestudio-numbered-list-1-i5"[^>]*color: #FFD21F/);
-    expect(html).toMatch(/id="voicestudio-numbered-list-1-i4"[^>]*color: #FFFFFF/);
-    expect(html).toMatch(/id="cta-numbered-list-1-i5"[^>]*color: #FFFFFF/);
+    // i5 lands exactly at the card start (24.4667): it starts hidden and slides in; i4 is the
+    // latest already-landed item until then, and hands the highlight over at the card start.
+    expect(html).toMatch(/id="voicestudio-numbered-list-1-i5"[^>]*opacity: 0; color: #FFFFFF/);
+    expect(html).toMatch(/id="voicestudio-numbered-list-1-i4"[^>]*opacity: 1; color: #FFD21F/);
+    const tl = timeline(html);
+    expect(tl).toMatch(/tl\.fromTo\("#voicestudio-numbered-list-1-i5", \{ opacity: 0, x: -60 \}, \{ opacity: 1, x: 0, [^}]*\}, 24\.467\);/);
+    expect(tl).toContain('tl.set("#voicestudio-numbered-list-1-i5", { color: "#FFD21F" }, 24.467);');
+    expect(tl).toContain('tl.set("#voicestudio-numbered-list-1-i4", { color: "#FFFFFF" }, 24.467);');
+    // CTA: every item landed before the card start, highlight none → all white, nothing slides
+    expect(html).toMatch(/id="cta-numbered-list-1-i5"[^>]*opacity: 1; color: #FFFFFF/);
+    expect(tl).not.toContain('#cta-numbered-list-1-');
     expect(html).toMatch(/left: 100px; top: 200px/);
+  });
+
+  it('fixture list rows slide in at their card start', () => {
+    const tl = timeline(html);
+    for (const scene of plan.scenes) {
+      scene.cards.forEach((card) => {
+        if (card.type !== 'numbered-list') return;
+        const items = (card.params as { items: { at: number }[] }).items;
+        items.forEach((it, i) => {
+          if (it.at !== card.start) return;
+          const sel = `#${scene.id}-numbered-list-1-i${i + 1}`;
+          expect(tl).toContain(`tl.fromTo("${sel}", { opacity: 0, x: -60 }, { opacity: 1, x: 0, duration: 0.5, ease: "back.out(1.2)" }, ${r3(card.start)});`);
+        });
+      });
+    }
+    expect(tl).toContain('tl.fromTo("#fooocus-numbered-list-1-i1", { opacity: 0, x: -60 }');
+  });
+
+  it('title card uses v5 Remotion geometry (margin-top -260 in a flex-centred box)', () => {
+    expect(html).toMatch(/id="fooocus-title-card-1"[^>]*><div class="tc-inner" style="margin-top: -260px;/);
+    expect(html).toMatch(/\.title-card \{[^}]*display: flex; align-items: center; justify-content: center;/);
   });
 
   it('numbered list slides in items that land after card start', () => {
     const card = { type: 'numbered-list' as const, start: 10, end: 14, params: {
       items: [{ n: 1, name: 'A', at: 8 }, { n: 2, name: 'B', at: 12 }], highlight: 'latest' } };
+    // at === start is not landed yet: it slides in at the card start
+    const atStart = cardRegistry['numbered-list'].render(
+      { ...card, params: { items: [{ n: 1, name: 'A', at: 10 }], highlight: 'latest' } }, 'nz',
+      { width: 1080, height: 1920, fps: 60, ratio: '9:16' as const, assetsUrl: (p: string) => p });
+    expect(atStart.timeline).toContain('tl.fromTo("#nz-i1", { opacity: 0, x: -60 }, { opacity: 1, x: 0,');
+    expect(atStart.timeline).toContain('tl.set("#nz-i1", { color: "#FFD21F" }, 10);');
     const ctx = { width: 1080, height: 1920, fps: 60, ratio: '9:16' as const, assetsUrl: (p: string) => `assets/${p}` };
     const f = cardRegistry['numbered-list'].render(card, 'nl', ctx);
     expect(f.timeline).toContain('tl.fromTo("#nl-i2", { opacity: 0, x: -60 }, { opacity: 1, x: 0,');

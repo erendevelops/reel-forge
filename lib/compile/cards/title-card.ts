@@ -15,7 +15,8 @@ const OUT = 0.17;
 
 /**
  * Tool title card (reel doc §7.3): 140 px logo tile with a 64 px yellow number badge, the name in
- * Inter 900 at 118 px (100 px past 9 characters), letter-spacing −3, 260 px above centre.
+ * Inter 900 at 118 px (100 px past 9 characters), letter-spacing −3, `margin-top: -260` inside a flex-centred box
+ * (v5 Remotion geometry: the visual centre sits ≈130 px above frame centre).
  */
 export const titleCard: CardTemplate = {
   type: 'title-card',
@@ -25,7 +26,7 @@ export const titleCard: CardTemplate = {
     const fontPx = p.name.length > 9 ? 100 : 118;
     const badge = sz(ctx, 64);
     const inner =
-      `<div class="tc-inner" style="top: ${num(-fy(ctx, 260))}px; gap: ${num(sz(ctx, 26))}px;">` +
+      `<div class="tc-inner" style="margin-top: ${num(-fy(ctx, 260))}px; gap: ${num(sz(ctx, 26))}px;">` +
       `<div class="tc-icon">${toolIcon(ctx, p.logo, sz(ctx, 140), p.name)}` +
       `<div class="tc-badge" style="left: ${num(-sz(ctx, 22))}px; top: ${num(-sz(ctx, 22))}px; width: ${num(badge)}px; height: ${num(badge)}px; border-radius: ${num(badge / 2)}px; font-size: ${num(sz(ctx, 40))}px;">${p.n}</div></div>` +
       `<div class="tc-name" style="letter-spacing: ${num(-sz(ctx, 3))}px; font-size: ${num(sz(ctx, fontPx))}px;">${esc(p.name)}</div>` +

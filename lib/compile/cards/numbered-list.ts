@@ -19,7 +19,7 @@ const SLIDE = { duration: 0.5, ease: 'back.out(1.2)' };
 
 /**
  * Top-left numbered list (reel doc §7.3): `left: 100, top: 200`, 46 px logo + "N. Name" in Inter 800
- * at 42 px. Items with `at <= card.start` render already landed; later ones slide in from −60 px at
+ * at 42 px. Items with `at < card.start` render already landed; the rest (including `at == start`) slide in from −60 px at
  * `at`. `highlight: 'latest'` keeps the most recently landed item yellow; `'none'` is all white.
  */
 export const numberedList: CardTemplate = {
@@ -28,7 +28,7 @@ export const numberedList: CardTemplate = {
   render(card: Card, id: string, ctx: CompileContext) {
     const p = Params.parse(card.params);
     const rowId = (i: number) => `${id}-i${i + 1}`;
-    const landed = (i: number) => p.items[i].at <= card.start;
+    const landed = (i: number) => p.items[i].at < card.start;
     // landing order: by time, ties by list order
     const order = p.items.map((_, i) => i).sort((a, b) => p.items[a].at - p.items[b].at || a - b);
     const initiallyLanded = order.filter(landed);
