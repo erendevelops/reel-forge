@@ -20,6 +20,8 @@ export async function prepareClip(src: string, out: string, o: PrepareClipOpts):
     '-vf', vf,
     '-c:v', 'libx264', '-preset', 'slow', '-crf', '4', '-g', '30',
     '-color_range', 'tv', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-colorspace', 'bt709',
+    // this ffmpeg build's libx264 drops -color_primaries/-color_trc; the x264 VUI params carry them
+    '-x264-params', 'colorprim=bt709:transfer=bt709:colormatrix=bt709',
     out,
   ]);
 }

@@ -25,6 +25,8 @@ describe('prepareClip', () => {
     const p = await probe(out);
     expect(p.colorRange).toBe('tv');
     expect(p.colorSpace).toBe('bt709');
+    expect(p.colorPrimaries).toBe('bt709');
+    expect(p.colorTransfer).toBe('bt709');
     expect(p.fps).toBe(60);
     expect(p.width).toBe(1080);
     expect(p.height).toBe(1920);

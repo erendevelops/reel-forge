@@ -12,6 +12,8 @@ export interface Probe {
   pixFmt: string;
   colorRange: 'tv' | 'pc' | 'unknown';
   colorSpace: string;
+  colorPrimaries: string;
+  colorTransfer: string;
   hasAudio: boolean;
 }
 
@@ -60,6 +62,8 @@ export async function probe(file: string): Promise<Probe> {
     pixFmt: v.pix_fmt ?? '',
     colorRange: range,
     colorSpace: v.color_space ?? '',
+    colorPrimaries: v.color_primaries ?? '',
+    colorTransfer: v.color_transfer ?? '',
     hasAudio,
   };
 }

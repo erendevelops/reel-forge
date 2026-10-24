@@ -14,6 +14,13 @@ const PUNCH = { scale: 1.08, duration: 1.2 };
 
 const TV_TAGS = ['-color_range', 'tv', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-colorspace', 'bt709', '-x264-params', 'colorprim=bt709:transfer=bt709:colormatrix=bt709'];
 
+/*
+ * Root cause of the old -1.9 luma shift (bisected: already present in the lossless base): the lavfi `color`
+ * source is untagged, and this ffmpeg's overlay negotiates the colour space of both inputs, silently converting
+ * the BT.709 footage to the untagged (BT.601) matrix. Tagging every compositing input BT.709/TV removes it.
+ */
+const BT709_TV = 'setparams=range=tv:colorspace=bt709:color_primaries=bt709:color_trc=bt709';
+
 function n(x: number): string { return Number(x.toFixed(6)).toString(); }
 
 function resolveAsset(assetsDir: string, rel: string): string {
@@ -39,7 +46,7 @@ function shotChain(idx: number, label: string, sh: Plan['scenes'][number]['shots
 /** Base track: shots on black at their `at` times, no colour filters, working-clip encode rules. */
 async function buildBase(plan: Plan, o: LayeredOpts, w: number, h: number, out: string): Promise<void> {
   const shots = allShots(plan);
-  const args = ['-y', '-v', 'error', '-f', 'lavfi', '-i', `color=c=black:s=${w}x${h}:r=${plan.fps}:d=${n(plan.duration)},format=yuv420p`];
+  const args = ['-y', '-v', 'error', '-f', 'lavfi', '-i', `color=c=black:s=${w}x${h}:r=${plan.fps}:d=${n(plan.duration)},format=yuv420p,${BT709_TV}`];
   for (const sh of shots) args.push('-i', resolveAsset(o.assetsDir, sh.src));
   const parts: string[] = [];
   let cur = '0:v';
@@ -54,7 +61,7 @@ async function buildBase(plan: Plan, o: LayeredOpts, w: number, h: number, out: 
   if (!shots.length) parts.push('[0:v]null[vout]');
   args.push(
     '-filter_complex', parts.join(';'), '-map', '[vout]', '-an', '-t', n(plan.duration),
-    '-c:v', 'libx264', '-preset', 'slow', '-crf', '4', '-g', '30', '-pix_fmt', 'yuv420p', ...TV_TAGS, out,
+    '-c:v', 'ffv1', '-level', '3', '-pix_fmt', 'yuv420p', ...TV_TAGS, out,
   );
   await run('ffmpeg', args, { timeoutMs: 30 * 60 * 1000 });
 }
@@ -99,7 +106,7 @@ async function buildAudio(plan: Plan, o: LayeredOpts, out: string): Promise<void
 export async function renderLayered(plan: Plan, o: LayeredOpts): Promise<void> {
   const [w, h] = RATIO_SIZE[o.ratio];
   await fs.mkdir(o.workDir, { recursive: true });
-  const base = path.join(o.workDir, 'base.mp4');
+  const base = path.join(o.workDir, 'base.mkv');
   const mix = path.join(o.workDir, 'mix.wav');
   const proj = path.join(o.workDir, 'overlay-proj');
   const ovl = path.join(o.workDir, 'overlay.mov');
@@ -114,7 +121,7 @@ export async function renderLayered(plan: Plan, o: LayeredOpts): Promise<void> {
 
   await run('ffmpeg', [
     '-y', '-v', 'error', '-i', base, '-i', ovl, '-i', mix,
-    '-filter_complex', '[0:v][1:v]overlay=format=auto:eof_action=pass,format=yuv420p,scale=out_range=tv:flags=bicubic[v]',
+    '-filter_complex', `[1:v]${BT709_TV},format=yuva420p[ov];`+'[0:v][ov]overlay=format=auto:eof_action=pass,format=yuv420p[v]',
     '-map', '[v]', '-map', '2:a', '-t', n(plan.duration),
     '-c:v', 'libx264', '-preset', 'slow', '-crf', '4', '-g', '30', '-pix_fmt', 'yuv420p', ...TV_TAGS,
     '-c:a', 'pcm_s16le', comp,
