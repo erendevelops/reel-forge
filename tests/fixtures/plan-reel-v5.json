@@ -13,7 +13,8 @@
     ],
     "cards": [
       "logo-pop",
-      "title-card"
+      "title-card",
+      "numbered-list"
     ],
     "sfx": true,
     "music": false,
@@ -121,6 +122,22 @@
             "name": "Fooocus",
             "logo": "ext/fooocus.png"
           }
+        },
+        {
+          "type": "numbered-list",
+          "start": 7.4667,
+          "end": 10.66,
+          "params": {
+            "items": [
+              {
+                "n": 1,
+                "name": "Fooocus",
+                "logo": "ext/fooocus.png",
+                "at": 7.4667
+              }
+            ],
+            "highlight": "latest"
+          }
         }
       ]
     },
@@ -148,6 +165,28 @@
             "n": 2,
             "name": "Whisper",
             "logo": "ext/whisper.png"
+          }
+        },
+        {
+          "type": "numbered-list",
+          "start": 11.9167,
+          "end": 14.2,
+          "params": {
+            "items": [
+              {
+                "n": 1,
+                "name": "Fooocus",
+                "logo": "ext/fooocus.png",
+                "at": 7.4667
+              },
+              {
+                "n": 2,
+                "name": "Whisper",
+                "logo": "ext/whisper.png",
+                "at": 11.9167
+              }
+            ],
+            "highlight": "latest"
           }
         }
       ]
@@ -183,6 +222,34 @@
             "name": "Upscayl",
             "logo": "ext/upscayl.png"
           }
+        },
+        {
+          "type": "numbered-list",
+          "start": 15.4667,
+          "end": 18.02,
+          "params": {
+            "items": [
+              {
+                "n": 1,
+                "name": "Fooocus",
+                "logo": "ext/fooocus.png",
+                "at": 7.4667
+              },
+              {
+                "n": 2,
+                "name": "Whisper",
+                "logo": "ext/whisper.png",
+                "at": 11.9167
+              },
+              {
+                "n": 3,
+                "name": "Upscayl",
+                "logo": "ext/upscayl.png",
+                "at": 15.4667
+              }
+            ],
+            "highlight": "latest"
+          }
         }
       ]
     },
@@ -216,6 +283,40 @@
             "n": 4,
             "name": "Browser Use",
             "logo": "ext/browser-use.png"
+          }
+        },
+        {
+          "type": "numbered-list",
+          "start": 19.4667,
+          "end": 22.7,
+          "params": {
+            "items": [
+              {
+                "n": 1,
+                "name": "Fooocus",
+                "logo": "ext/fooocus.png",
+                "at": 7.4667
+              },
+              {
+                "n": 2,
+                "name": "Whisper",
+                "logo": "ext/whisper.png",
+                "at": 11.9167
+              },
+              {
+                "n": 3,
+                "name": "Upscayl",
+                "logo": "ext/upscayl.png",
+                "at": 15.4667
+              },
+              {
+                "n": 4,
+                "name": "Browser Use",
+                "logo": "ext/browser-use.png",
+                "at": 19.4667
+              }
+            ],
+            "highlight": "latest"
           }
         }
       ]
@@ -252,6 +353,46 @@
             "name": "VoiceStudio",
             "logo": "ext/voicestudio.png"
           }
+        },
+        {
+          "type": "numbered-list",
+          "start": 24.4667,
+          "end": 28.2,
+          "params": {
+            "items": [
+              {
+                "n": 1,
+                "name": "Fooocus",
+                "logo": "ext/fooocus.png",
+                "at": 7.4667
+              },
+              {
+                "n": 2,
+                "name": "Whisper",
+                "logo": "ext/whisper.png",
+                "at": 11.9167
+              },
+              {
+                "n": 3,
+                "name": "Upscayl",
+                "logo": "ext/upscayl.png",
+                "at": 15.4667
+              },
+              {
+                "n": 4,
+                "name": "Browser Use",
+                "logo": "ext/browser-use.png",
+                "at": 19.4667
+              },
+              {
+                "n": 5,
+                "name": "VoiceStudio",
+                "logo": "ext/voicestudio.png",
+                "at": 24.4667
+              }
+            ],
+            "highlight": "latest"
+          }
         }
       ]
     },
@@ -270,7 +411,48 @@
           "at": 28.2
         }
       ],
-      "cards": []
+      "cards": [
+        {
+          "type": "numbered-list",
+          "start": 28.2,
+          "end": 32,
+          "params": {
+            "items": [
+              {
+                "n": 1,
+                "name": "Fooocus",
+                "logo": "ext/fooocus.png",
+                "at": 7.4667
+              },
+              {
+                "n": 2,
+                "name": "Whisper",
+                "logo": "ext/whisper.png",
+                "at": 11.9167
+              },
+              {
+                "n": 3,
+                "name": "Upscayl",
+                "logo": "ext/upscayl.png",
+                "at": 15.4667
+              },
+              {
+                "n": 4,
+                "name": "Browser Use",
+                "logo": "ext/browser-use.png",
+                "at": 19.4667
+              },
+              {
+                "n": 5,
+                "name": "VoiceStudio",
+                "logo": "ext/voicestudio.png",
+                "at": 24.4667
+              }
+            ],
+            "highlight": "none"
+          }
+        }
+      ]
     }
   ],
   "captions": {
@@ -740,6 +922,31 @@
       "file": "sfx/maximize_006.wav",
       "at": 23.54,
       "volume": 0.3
+    },
+    {
+      "file": "sfx/pluck_002.wav",
+      "at": 7.4667,
+      "volume": 0.35
+    },
+    {
+      "file": "sfx/pluck_002.wav",
+      "at": 11.9167,
+      "volume": 0.35
+    },
+    {
+      "file": "sfx/pluck_002.wav",
+      "at": 15.4667,
+      "volume": 0.35
+    },
+    {
+      "file": "sfx/pluck_002.wav",
+      "at": 19.4667,
+      "volume": 0.35
+    },
+    {
+      "file": "sfx/pluck_002.wav",
+      "at": 24.4667,
+      "volume": 0.35
     }
   ],
   "voice": {

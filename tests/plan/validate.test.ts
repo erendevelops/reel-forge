@@ -48,13 +48,19 @@ describe('validatePlan', () => {
     const p = load();
     p.selection.music = false;
     p.music = { src: 'music.mp3', mediaStart: 0, volume: 0.2, fadeOut: 1 };
-    expect(validatePlan(p).ok).toBe(false);
+    const r = validatePlan(p);
+    expect(r.ok).toBe(false);
+    if (r.ok) return;
+    expect(r.errors.join(', ')).toContain('music');
   });
 
   it('rejects card outside its scene', () => {
     const p = load();
     p.scenes[1].cards[0].start = p.scenes[1].start - 0.2;
-    expect(validatePlan(p).ok).toBe(false);
+    const r = validatePlan(p);
+    expect(r.ok).toBe(false);
+    if (r.ok) return;
+    expect(r.errors.join(', ')).toContain('outside');
   });
 
   it('reports schema errors as path: message', () => {
