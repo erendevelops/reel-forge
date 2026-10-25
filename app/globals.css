@@ -1,0 +1,107 @@
+@import 'tailwindcss';
+
+/* erens.website light theme. Light only: no dark mode, no dot pattern. */
+:root {
+  --bg: #f7fbf9;
+  --ink: #111827;
+  --muted: #6b7280;
+  --line: #e8ecea;
+  --brand: #3ecf8e;
+  --brand-d: #1f9d6e;
+  --soft: #f1f5f3;
+  --bar: rgba(31, 157, 110, 0.94);
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+
+.font-px {
+  font-family: var(--font-px), monospace;
+  letter-spacing: 0.02em;
+}
+.font-mono {
+  font-family: var(--font-mono), monospace;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 12px 22px;
+  background: var(--bar);
+  color: #fff;
+}
+.topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 15px;
+}
+.topbar-logo {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--brand-d);
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+}
+.topbar-nav {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  opacity: 0.85;
+}
+.topbar-spacer {
+  flex: 1;
+}
+.lang-switch {
+  font-family: var(--font-mono), monospace;
+  font-size: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  padding: 7px 10px;
+  color: rgba(255, 255, 255, 0.55);
+}
+.lang-switch button {
+  color: inherit;
+  cursor: pointer;
+}
+.lang-switch button[aria-current='true'] {
+  color: #fff;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+.btn {
+  font-family: var(--font-mono), monospace;
+  font-size: 12px;
+  border-radius: 10px;
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  background: #fff;
+  cursor: pointer;
+}
+.btn-primary {
+  background: var(--brand-d);
+  border-color: var(--brand-d);
+  color: #fff;
+}
+.meta {
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  color: #9ca3af;
+}
+.page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 28px 26px 60px;
+}

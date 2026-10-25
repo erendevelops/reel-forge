@@ -1,0 +1,68 @@
+import type { Dictionary } from './tr';
+
+export const en: Dictionary = {
+  brand: 'REELFORGE',
+  nav: { projects: 'Projects', setup: 'Setup' },
+  guard: {
+    host: 'Access through this address is not allowed.',
+    crossSite: 'Request from another site was refused.',
+  },
+  claude: {
+    missing:
+      'Claude Code is not installed, or the terminal that started this app cannot see it. After installing, open a new terminal and restart the app, or enter the full path to claude in Settings.',
+    loggedOut: 'Claude Code is installed but not logged in. Run "claude" in a terminal, sign in with your Pro or Max account, then check again.',
+    noResponse: 'Claude Code was found but did not respond. Run "claude" once in a terminal and finish its first-run questions.',
+    ok: 'logged in',
+  },
+  setup: {
+    title: 'SETUP',
+    recheck: 'Check again',
+    copy: 'Copy',
+    downloadFaceModel: 'Download face model (230 KB)',
+    checks: {
+      node: 'Node.js 20+',
+      claude: 'Claude Code',
+      ffmpeg: 'FFmpeg',
+      python: 'Python 3.10+',
+      whisper: 'faster-whisper',
+      mediapipe: 'MediaPipe',
+      'face-model': 'Face detection model',
+      chrome: 'Chrome (for rendering)',
+    },
+  },
+  projects: {
+    title: 'PROJECTS',
+    empty: 'No projects yet.',
+    new: 'New project',
+    versions: 'Versions',
+    noVersions: 'No versions yet.',
+    renderDraft: 'Render draft',
+    renderFinal: 'Render final',
+  },
+  newProject: {
+    title: 'NEW PROJECT',
+    name: 'Project name',
+    presets: {
+      faceless: 'Faceless reel',
+      'talking-head': 'Talking head',
+      'app-video': 'App video',
+    },
+    ratios: 'Ratios',
+    language: 'Language',
+    inputs: 'Input folders or files',
+    addInput: 'Add another',
+    create: 'Create',
+    errors: { name: 'Project name is required.' },
+  },
+  jobs: {
+    running: 'Running',
+    done: 'Done',
+    failed: 'Failed',
+    cancelled: 'Cancelled',
+    pausedLimit: 'Claude usage limit reached',
+    resetsAt: 'Resets',
+    resume: 'Resume',
+    cancel: 'Cancel',
+    restarted: 'server restarted',
+  },
+};

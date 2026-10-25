@@ -4,3 +4,6 @@ out/
 *.mp4
 !tests/fixtures/*.mp4
 tools/models/
+.next/
+workspace/
+next-env.d.ts
