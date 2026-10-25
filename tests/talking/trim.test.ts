@@ -6,7 +6,7 @@ import { makeClip } from '../helpers/media';
 import { probe } from '../../lib/media/probe';
 import type { Transcript } from '../../lib/media/transcribe';
 import { run } from '../../lib/media/run';
-import { planTrims, remapTimes, renderTrimmedTake, snapSegments } from '../../lib/talking/trim';
+import { planTrims, quietCuts, remapTimes, renderTrimmedTake, snapSegments } from '../../lib/talking/trim';
 
 const tr = (ws: [number, number][]): Transcript => ({
   language: 'en',
@@ -121,4 +121,45 @@ describe('renderTrimmedTake', () => {
     expect(m.start).toBeCloseTo(before + 0.2, 6);
     expect(m.end).toBeLessThanOrEqual(v + 1e-6);
   }, 120000);
+});
+
+describe('quietCuts', () => {
+  let dir: string;
+  beforeAll(async () => {
+    dir = await fs.mkdtemp(path.join(os.tmpdir(), 'quiet-'));
+  });
+  afterAll(async () => {
+    await fs.rm(dir, { recursive: true, force: true });
+  });
+
+  it('moves boundaries out of a word tail into the nearby silence, on the frame grid', async () => {
+    // tone 0–1.05 s, silence 1.05–1.35 s, tone 1.35–2.5 s (a word whose tail outlasts the transcript's end time)
+    const wav = path.join(dir, 'tone-gap.wav');
+    await run('ffmpeg', ['-y', '-v', 'error', '-f', 'lavfi', '-i', 'sine=frequency=300:sample_rate=48000:duration=2.5',
+      '-af', "volume='if(between(t,1.05,1.35),0,1)':eval=frame", wav]);
+    // transcript-only boundaries: the first range ends at 1.0 (inside the tone), the next starts at 1.40 (inside it too)
+    const segs = await quietCuts(wav, [{ from: 0, to: 1.0 }, { from: 1.4, to: 2.5 }], { fps: 25 });
+    expect(segs[0].to).toBeGreaterThanOrEqual(1.08);
+    expect(segs[0].to).toBeLessThanOrEqual(1.32);
+    expect(segs[1].from).toBeGreaterThanOrEqual(1.08);
+    expect(segs[1].from).toBeLessThanOrEqual(1.32);
+    expect(segs[0].to).toBeLessThanOrEqual(segs[1].from);
+    for (const s of segs) for (const b of [s.from, s.to]) expect(Math.abs(b * 25 - Math.round(b * 25))).toBeLessThan(1e-6);
+  });
+
+  it('leaves a boundary alone when there is no quieter point nearby', async () => {
+    const wav = path.join(dir, 'flat.wav');
+    await run('ffmpeg', ['-y', '-v', 'error', '-f', 'lavfi', '-i', 'anoisesrc=d=2:c=white:a=0.3:seed=1:r=48000', wav]);
+    const segs = await quietCuts(wav, [{ from: 0.4, to: 1.6 }], { fps: 25, search: 0, inward: 0 });
+    expect(segs).toEqual([{ from: 0.4, to: 1.6 }]);
+  });
+
+  it('moves inward at most `inward` (a quiet closure inside the word never wins)', async () => {
+    // silence 0.60–0.70 inside the kept words, tone elsewhere: the planned end 1.0 must not jump back to 0.64
+    const wav = path.join(dir, 'closure.wav');
+    await run('ffmpeg', ['-y', '-v', 'error', '-f', 'lavfi', '-i', 'sine=frequency=300:sample_rate=48000:duration=2',
+      '-af', "volume='if(between(t,0.6,0.7),0,1)':eval=frame", wav]);
+    const [s] = await quietCuts(wav, [{ from: 0, to: 1.0 }], { fps: 25, search: 0.12, inward: 0.08 });
+    expect(s.to).toBeGreaterThanOrEqual(0.92);
+  });
 });

@@ -1,3 +1,6 @@
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
 import { run } from '../media/run';
 import { probe } from '../media/probe';
 import type { Transcript } from '../media/transcribe';
@@ -127,4 +130,76 @@ export async function renderTrimmedTake(src: string, segsIn: Segment[], out: str
     out,
   ], { timeoutMs: 30 * 60 * 1000 });
   return segs;
+}
+
+export interface QuietCutOpts {
+  /** Frame rate of the take: candidate cut points are on its grid (k / fps), as `renderTrimmedTake` snaps them. */
+  fps: number;
+  /** How far a boundary may move outward, into the pause (seconds). Default 0.12. */
+  search?: number;
+  /**
+   * How far a boundary may move inward, toward its own words (seconds). Default 0.08 (planTrims' pad), so a cut
+   * never moves past the transcript's word edge, where a quiet stop-consonant closure could otherwise win.
+   */
+  inward?: number;
+  /** RMS window centred on each candidate (seconds). Default 0.02. */
+  win?: number;
+}
+
+/**
+ * Moves every kept-range boundary to the quietest frame-grid point near it (up to `search` outward into the pause,
+ * `inward` toward its words). Whisper word times are
+ * typically 30–150 ms off the audio (word ends early, pauses absorbed into the next word), so a transcript-only
+ * cut can land in a decaying word tail or a breath; the quietest grid point nearby is the cleanest join.
+ * A boundary never crosses its neighbours: `from` stays below its own `to` and at or after the previous `to`.
+ * Returns ranges already on the frame grid.
+ */
+export async function quietCuts(audio: string, segs: Segment[], o: QuietCutOpts): Promise<Segment[]> {
+  if (!segs.length) return [];
+  const search = o.search ?? 0.12;
+  const inward = o.inward ?? 0.08;
+  const win = o.win ?? 0.02;
+  const SR = 16000;
+  const t0 = Math.max(0, segs[0].from - search - win);
+  const t1 = segs[segs.length - 1].to + search + win;
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'tbd-quiet-'));
+  let buf: Buffer;
+  try {
+    const raw = path.join(dir, 'a.f32');
+    await run('ffmpeg', ['-y', '-v', 'error', '-ss', n(t0), '-i', audio, '-t', n(t1 - t0), '-vn', '-ac', '1', '-ar', String(SR), '-f', 'f32le', raw]);
+    buf = await fs.readFile(raw);
+  } finally {
+    await fs.rm(dir, { recursive: true, force: true });
+  }
+  const x = new Float32Array(buf.buffer, buf.byteOffset, Math.floor(buf.byteLength / 4));
+  const half = Math.round((win * SR) / 2);
+  const energy = (t: number) => {
+    const c = Math.round((t - t0) * SR);
+    let s = 0;
+    let k = 0;
+    for (let i = Math.max(0, c - half); i < Math.min(x.length, c + half); i++, k++) s += x[i] * x[i];
+    return k ? s / k : Infinity;
+  };
+  const quietest = (b: number, lo: number, hi: number) => {
+    let best = Math.min(Math.max(Math.round(b * o.fps), Math.ceil(lo * o.fps - 1e-9)), Math.floor(hi * o.fps + 1e-9));
+    let bestE = energy(best / o.fps);
+    for (let k = Math.ceil(lo * o.fps - 1e-9); k / o.fps <= hi + 1e-9; k++) {
+      const e = energy(k / o.fps);
+      // prefer the quietest; on a tie stay closest to the planned boundary
+      if (e < bestE - 1e-12 || (Math.abs(e - bestE) <= 1e-12 && Math.abs(k / o.fps - b) < Math.abs(best / o.fps - b))) {
+        best = k;
+        bestE = e;
+      }
+    }
+    return best / o.fps;
+  };
+  const out: Segment[] = [];
+  segs.forEach((s, i) => {
+    const prevTo = out[i - 1]?.to ?? 0;
+    const from = quietest(s.from, Math.max(prevTo, s.from - search), Math.min(s.to - 1 / o.fps, s.from + inward));
+    const nextFrom = segs[i + 1]?.from ?? Infinity;
+    const to = quietest(s.to, Math.max(from + 1 / o.fps, s.to - inward), Math.min(nextFrom, s.to + search));
+    out.push({ from: r6(from), to: r6(to) });
+  });
+  return out;
 }

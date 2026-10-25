@@ -15,22 +15,40 @@ const FACE_WIDTH = 0.7;
 const LAYOUT_TWEEN = { duration: 0.4, ease: 'expo.out' };
 
 /** Position is a transform (x/y: sub-pixel, no layout snapping under frame seeking); size is width/height. */
-type FaceState = { x: number; y: number; width: number; height: number; borderRadius: number; opacity: number };
+export type FaceState = { x: number; y: number; width: number; height: number; borderRadius: number; opacity: number };
 
 const sceneLayout = (s: Scene): Layout => s.layout ?? 'full-face';
 
 /** Graphics region of a layout: `split` keeps graphics in the top 50%; every other layout uses the whole frame. */
 export function layoutRegion(layout: Layout | undefined, ctx: CompileContext): Region {
-  return layout === 'split' ? { x: 0, y: 0, w: ctx.width, h: ctx.height / 2 } : { x: 0, y: 0, w: ctx.width, h: ctx.height };
+  if (layout === 'split') return { x: 0, y: 0, w: ctx.width, h: ctx.height / 2 };
+  // explicit full-face: cards sit in the band below the captions so they never cover the face
+  if (layout === 'full-face') {
+    const top = Math.round(FULL_FACE_CARD_TOP * ctx.height);
+    return { x: 0, y: top, w: ctx.width, h: ctx.height - top };
+  }
+  return { x: 0, y: 0, w: ctx.width, h: ctx.height };
+}
+
+/** Top of the full-face card band as a fraction of height (below the caption block at 0.677). */
+export const FULL_FACE_CARD_TOP = 0.78;
+
+/** The face card rectangle (px) of a layout in a W×H frame: `split` is the rounded card in the bottom half, else full frame. */
+export function faceRect(layout: Layout, width: number, height: number): { x: number; y: number; w: number; h: number } {
+  if (layout === 'split') {
+    const gap = (40 * Math.min(width, height)) / 1080;
+    const w = FACE_WIDTH * width;
+    return { x: (width - w) / 2, y: height / 2 + gap, w, h: height / 2 - 2 * gap };
+  }
+  return { x: 0, y: 0, w: width, h: height };
 }
 
 /** `prev` is the face geometry before this layout; `full-graphics` keeps it and only hides the face. */
-function faceState(layout: Layout, ctx: CompileContext, prev: FaceState | undefined): FaceState {
+export function faceState(layout: Layout, ctx: { width: number; height: number }, prev: FaceState | undefined): FaceState {
   const full = { x: 0, y: 0, width: ctx.width, height: ctx.height, borderRadius: 0, opacity: 1 };
   if (layout === 'split') {
-    const gap = sz(ctx, 40);
-    const w = FACE_WIDTH * ctx.width;
-    return { x: (ctx.width - w) / 2, y: ctx.height / 2 + gap, width: w, height: ctx.height / 2 - 2 * gap, borderRadius: FACE_RADIUS, opacity: 1 };
+    const r = faceRect('split', ctx.width, ctx.height);
+    return { x: r.x, y: r.y, width: r.w, height: r.h, borderRadius: FACE_RADIUS, opacity: 1 };
   }
   if (layout === 'full-graphics') return { ...(prev ?? full), opacity: 0 };
   return full;
@@ -69,6 +87,53 @@ function renderLayouts(plan: Plan, ctx: CompileContext): { faceStyle: string; bg
       usesPanel ? `#layout-bg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; z-index: 0; background: ${LAYOUT_BG}; }` : '',
     ].filter(Boolean).join('\n'),
     timeline: tl.join('\n'),
+  };
+}
+
+/** Face geometry over a scene: `from` (previous scene's state) tweens to `to` over LAYOUT_TWEEN from `start`. */
+export type SceneFace = { start: number; from: FaceState; to: FaceState };
+export const LAYOUT_TWEEN_S = LAYOUT_TWEEN.duration;
+const NL = String.fromCharCode(10);
+
+/** Per-scene face geometry in a W×H frame, exactly as `renderLayouts` tweens `#face` (first scene: no tween). */
+export function sceneFaces(plan: Plan, width: number, height: number): SceneFace[] {
+  const out: SceneFace[] = [];
+  let face: FaceState | undefined;
+  for (const s of plan.scenes) {
+    const next = faceState(sceneLayout(s), { width, height }, face);
+    out.push({ start: s.start, from: face ?? next, to: next });
+    face = next;
+  }
+  return out;
+}
+
+/**
+ * Layered path, overlay side of the layouts: the footage (base track) is scaled/placed into the face rect by
+ * ffmpeg, and the overlay draws everything around it: `#face-hole` follows the face rect (same tween as `#face`)
+ * and paints the beige panel outside its rounded corners via a large box-shadow spread; `#layout-cover` fades the
+ * panel over the whole frame while the face is hidden (full-graphics). Full-face scenes leave the frame transparent.
+ */
+export function renderLayoutMask(plan: Plan, ctx: CompileContext): Fragment {
+  if (!plan.scenes.some((s) => sceneLayout(s) === 'split' || sceneLayout(s) === 'full-graphics')) return { html: '', css: '', timeline: '' };
+  const faces = sceneFaces(plan, ctx.width, ctx.height);
+  const geo = (f: FaceState) => ({ x: f.x, y: f.y, width: f.width, height: f.height, borderRadius: f.borderRadius });
+  const tl: string[] = [];
+  for (const f of faces.slice(1)) {
+    if (!same({ ...f.from, opacity: 0 }, { ...f.to, opacity: 0 })) tl.push(tlFromTo('#face-hole', geo(f.from), { ...geo(f.to), ...LAYOUT_TWEEN, immediateRender: false }, f.start));
+    if (f.from.opacity !== f.to.opacity) tl.push(tlFromTo('#layout-cover', { opacity: 1 - f.from.opacity }, { opacity: 1 - f.to.opacity, ...LAYOUT_TWEEN, immediateRender: false }, f.start));
+  }
+  const i = faces[0].to;
+  const spread = 2 * Math.max(ctx.width, ctx.height);
+  return {
+    html: [
+      `<div id="face-hole" style="transform: translate(${num(i.x)}px, ${num(i.y)}px); width: ${num(i.width)}px; height: ${num(i.height)}px; border-radius: ${num(i.borderRadius)}px;"></div>`,
+      `<div id="layout-cover" style="opacity: ${num(1 - i.opacity)};"></div>`,
+    ].join(NL),
+    css: [
+      `#face-hole { position: absolute; left: 0; top: 0; z-index: 2; box-shadow: 0 0 0 ${spread}px ${LAYOUT_BG}; }`,
+      `#layout-cover { position: absolute; left: 0; top: 0; width: 100%; height: 100%; z-index: 2; background: ${LAYOUT_BG}; }`,
+    ].join(NL),
+    timeline: tl.join(NL),
   };
 }
 

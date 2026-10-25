@@ -1,9 +1,11 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { run } from '../media/run';
 import { finishLoudness } from '../media/prepare';
 import { compile, RATIO_SIZE } from '../compile';
-import { allShots } from '../compile/layers';
+import { LAYOUT_TWEEN_S, sceneFaces, type FaceState } from '../compile/layers';
 import { punchScaleExpr } from '../compile/punch';
 import type { Plan, Ratio } from '../plan';
 import { render } from './render';
@@ -35,12 +37,42 @@ const BT709_TV = 'setparams=range=tv:colorspace=bt709:color_primaries=bt709:colo
 
 function n(x: number): string { return Number(x.toFixed(6)).toString(); }
 
+/** Bundled assets (CC0 SFX) in the repo's `assets/`: a plan's `sfx/...` resolves there if `assetsDir` lacks it, as in compile. */
+const BUNDLED_ASSETS = fileURLToPath(new URL('../../assets/', import.meta.url));
+
 function resolveAsset(assetsDir: string, rel: string): string {
-  return path.join(assetsDir, ...rel.split(/[\\/]/));
+  const parts = rel.split(/[\\/]/);
+  const own = path.join(assetsDir, ...parts);
+  if (existsSync(own)) return own;
+  const bundled = path.join(BUNDLED_ASSETS, ...parts);
+  return existsSync(bundled) ? bundled : own;
 }
 
-/** Per-shot filter chain: trim, optional per-frame scale+crop punch-in (no zoompan), shift to timeline. */
-function shotChain(idx: number, label: string, sh: Plan['scenes'][number]['shots'][number], w: number, h: number): string {
+type ShotPlace = { face: { start: number; from: FaceState; to: FaceState }; facePos: { x: number; y: number } };
+
+const isFull = (f: FaceState, w: number, h: number) => f.x === 0 && f.y === 0 && f.width === w && f.height === h;
+
+/**
+ * Layout placement (the HTML `#face` + `object-fit: cover; object-position: facePos`), per frame in timeline time t:
+ * the face rect tweens from → to with GSAP expo.out over the layout tween, the footage is cover-scaled into it and
+ * positioned by facePos. Returns the scale filter and the overlay x/y expressions, or none for a full-frame face.
+ */
+function placement(p: ShotPlace, W: number, H: number): { scale: string; x: string; y: string } | undefined {
+  const { from: a, to: b, start } = p.face;
+  if (isFull(a, W, H) && isFull(b, W, H)) return undefined;
+  const e = `if(gte(t-${n(start)},${LAYOUT_TWEEN_S}),1,if(lte(t,${n(start)}),0,1-pow(2,-10*(t-${n(start)})/${LAYOUT_TWEEN_S})))`;
+  const lerp = (u: number, v: number) => (u === v ? n(u) : `(${n(u)}+(${n(v - u)})*${e})`);
+  const rx = lerp(a.x, b.x), ry = lerp(a.y, b.y), rw = lerp(a.width, b.width), rh = lerp(a.height, b.height);
+  const s = `max(${rw}/${W},${rh}/${H})`;
+  return {
+    scale: `scale=w='trunc(${W}*${s}/2)*2':h='trunc(${H}*${s}/2)*2':eval=frame:flags=lanczos`,
+    x: `${rx}+(${rw}-overlay_w)*${n(p.facePos.x)}`,
+    y: `${ry}+(${rh}-overlay_h)*${n(p.facePos.y)}`,
+  };
+}
+
+/** Per-shot filter chain: trim, optional per-frame scale+crop punch-in (no zoompan), shift to timeline, layout scale. */
+function shotChain(idx: number, label: string, sh: Plan['scenes'][number]['shots'][number], w: number, h: number, place?: { scale: string }): string {
   const dur = sh.to - sh.from;
   const f = [`trim=start=${n(sh.from)}:duration=${n(dur)}`, 'setpts=PTS-STARTPTS'];
   if (sh.punch !== undefined && sh.punch < sh.at + dur) {
@@ -49,21 +81,24 @@ function shotChain(idx: number, label: string, sh: Plan['scenes'][number]['shots
     f.push(`scale=w='trunc(iw*${s}/2)*2':h='trunc(ih*${s}/2)*2':eval=frame:flags=bicubic`, `crop=${w}:${h}`);
   }
   f.push(`setpts=PTS+${n(sh.at)}/TB`);
+  if (place) f.push(place.scale);
   return `[${idx}:v]${f.join(',')}[${label}]`;
 }
 
 /** Base track: shots on black at their `at` times, no colour filters, working-clip encode rules. */
 async function buildBase(plan: Plan, o: LayeredOpts, w: number, h: number, out: string): Promise<void> {
-  const shots = allShots(plan);
+  const faces = sceneFaces(plan, w, h);
+  const shots = plan.scenes.flatMap((sc, si) => sc.shots.map((sh) => ({ ...sh, place: placement({ face: faces[si], facePos: sc.facePos ?? { x: 0.5, y: 0.5 } }, w, h) })));
   const args = ['-y', '-v', 'error', '-f', 'lavfi', '-i', `color=c=black:s=${w}x${h}:r=${plan.fps}:d=${n(plan.duration)},format=yuv420p,${BT709_TV}`];
   for (const sh of shots) args.push('-i', resolveAsset(o.assetsDir, sh.src));
   const parts: string[] = [];
   let cur = '0:v';
   shots.forEach((sh, i) => {
-    parts.push(shotChain(i + 1, `s${i}`, sh, w, h));
+    parts.push(shotChain(i + 1, `s${i}`, sh, w, h, sh.place));
     const last = i === shots.length - 1;
+    const pos = sh.place ? `:x='${sh.place.x}':y='${sh.place.y}':eval=frame` : '';
     parts.push(
-      `[${cur}][s${i}]overlay=eof_action=pass:format=yuv420:enable='between(t,${n(sh.at)},${n(sh.at + sh.to - sh.from)})'${last ? ',format=yuv420p[vout]' : `[o${i}]`}`,
+      `[${cur}][s${i}]overlay=eof_action=pass:format=yuv420${pos}:enable='between(t,${n(sh.at)},${n(sh.at + sh.to - sh.from)})'${last ? ',format=yuv420p[vout]' : `[o${i}]`}`,
     );
     cur = `o${i}`;
   });

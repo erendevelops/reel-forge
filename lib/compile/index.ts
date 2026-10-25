@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import type { Card, CardType, Plan, Ratio } from '../plan';
 import { cardRegistry } from './cards';
 import { renderCaptions } from './captions';
-import { audioDuration, layoutRegion, renderFootage, renderMusic, renderSfx, renderVoice } from './layers';
+import { audioDuration, layoutRegion, renderFootage, renderLayoutMask, renderMusic, renderSfx, renderVoice } from './layers';
 import { type CompileContext, type Fragment, type Region, RATIO_SIZE, num } from './types';
 
 export * from './types';
@@ -99,7 +99,8 @@ export async function compile(plan: Plan, o: CompileOptions): Promise<{ indexHtm
   };
 
   const frags: Fragment[] = [];
-  if (!o.overlayOnly) frags.push(renderFootage(plan, ctx));
+  // layered path: ffmpeg places the footage in the face rect; the overlay paints the layout panel around it
+  frags.push(o.overlayOnly ? renderLayoutMask(plan, ctx) : renderFootage(plan, ctx));
 
   // cards: stable layer order, then plan order
   const cards: { card: Card; id: string; layer: number; seq: number; region: Region }[] = [];
