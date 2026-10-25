@@ -86,14 +86,22 @@ export function runClaude(o: RunOptions): Promise<{ sessionId: string | null; ok
       if (error) o.onEvent(error);
       resolve({ sessionId, ok });
     };
+    let exited = false;
+    child.on('exit', () => (exited = true));
     const stop = (code: 'timeout' | 'transport', message: string) => {
       killTree(child.pid, () => child.kill());
-      // An orphaned grandchild can hold the pipes open, so 'close' may never come.
-      finish(false, { kind: 'error', code, message });
+      // Wait for the process itself to exit (it holds cwd open on Windows), but not for
+      // 'close': an orphaned grandchild can keep the pipes open forever.
+      const done = () => finish(false, { kind: 'error', code, message });
+      if (exited) return done();
+      const guard = setTimeout(done, 3000);
+      child.once('exit', () => (clearTimeout(guard), done()));
     };
     const onAbort = () => stop('transport', 'cancelled');
-    o.signal?.addEventListener('abort', onAbort);
     const timer = setTimeout(() => stop('timeout', `no result after ${o.timeoutMs} ms`), o.timeoutMs);
+    // A cancel can land before this function runs; an already-aborted signal never fires 'abort'.
+    if (o.signal?.aborted) queueMicrotask(onAbort);
+    else o.signal?.addEventListener('abort', onAbort);
 
     child.stdout.on('data', (chunk: Buffer) => {
       const text = chunk.toString('utf8');

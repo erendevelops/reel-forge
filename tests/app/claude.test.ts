@@ -75,6 +75,16 @@ describe('runClaude', () => {
   });
 });
 
+describe('runClaude cancellation', () => {
+  it('an already-aborted signal stops the run', async () => {
+    const ac = new AbortController();
+    ac.abort();
+    const { res, events } = await collect('hang', { signal: ac.signal });
+    expect(res.ok).toBe(false);
+    expect(events.at(-1)).toMatchObject({ kind: 'error', message: 'cancelled' });
+  });
+});
+
 describe('classifyFailure', () => {
   it('classifies rate limit with reset text', () => {
     expect(classifyFailure('', "You've hit your session limit · resets 2pm (Europe/Istanbul)")).toEqual({
