@@ -74,6 +74,28 @@ describe('skills lint', () => {
     expect(headings.sort()).toEqual([...CARD_TYPES].sort());
   });
 
+  it('reel-faceless mentions the transcript-review step and the 2–4 s shot rule', () => {
+    const t = text('reel-faceless');
+    expect(t).toContain('analysis/transcript-review.json');
+    expect(t).toMatch(/2–4 s/);
+  });
+
+  it('talking-head skill requires rf gaps before save and forbids face zoom', () => {
+    const t = text('reel-talking-head');
+    expect(t).toMatch(/`rf gaps[^`]*`[^\n]*\[\][^\n]*rf save|rf gaps.*before.*rf save/is);
+    expect(t).toMatch(/never (zoom|crop tighter)/i);
+    expect(t).toContain('analysis/topics.json');
+  });
+
+  it('app-video skill rebuilds UI as custom-animation and forbids panning screenshots outside the outro', () => {
+    const t = text('app-video');
+    expect(t).toContain('custom-animation');
+    expect(t).toMatch(/never pan|not pan|no panning/i);
+    expect(t).toMatch(/outro/);
+    expect(t).toContain('look.background');
+    expect(t).toContain('analysis/product.json');
+  });
+
   it('video-core has at least one fragment example and one plan example', () => {
     expect(blocks(text('video-core'), 'fragment-json').length).toBeGreaterThanOrEqual(2);
     expect(blocks(text('video-core'), 'plan-json').length).toBeGreaterThanOrEqual(1);
