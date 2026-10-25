@@ -85,7 +85,7 @@ describe('custom-animation fragment rules', () => {
     ['&# entity hiding javascript:', { html: '<svg><use href="&#106;avascript:x"/></svg>' }, /&#/],
     ['&# entity in text', { html: '<div>&#60;script&#62;</div>' }, /&#/],
     ['backslash in html', { html: '<div class="a\\b"></div>' }, /\\/],
-    ['img (no external media)', { html: '<img src="a.png">' }, /img/],
+    ['img with an external source', { html: '<img src="https://x.test/a.png">' }, /external URL|src must be/],
     ['iframe', { html: '<iframe src="a.html"></iframe>' }, /iframe/],
     ['object', { html: '<object data="a"></object>' }, /object/],
     ['embed', { html: '<embed src="a">' }, /embed/],

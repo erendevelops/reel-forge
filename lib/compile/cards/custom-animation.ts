@@ -15,7 +15,7 @@ export const customAnimation: CardTemplate = {
     const errors = checkFragment(card.params, card.end - card.start);
     if (errors.length) throw new Error(`custom-animation ${id}: ${errors.join('; ')}`);
     const p = FragmentParams.parse(card.params);
-    const f = namespaceFragment(p, id, card.start);
+    const f = namespaceFragment(p, id, card.start, ctx.assetsUrl);
     const label = p.label ? ` data-label="${esc(p.label)}"` : '';
     return {
       html: regionClip(id, card, ctx, 'custom-animation', `<div class="ca-stage"${label}>${f.html}</div>`),

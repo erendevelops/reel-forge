@@ -8,7 +8,7 @@ import { transcribe, type Transcript } from '@/lib/media/transcribe';
 import { motionGaps, validatePlan, RATIOS, type Ratio } from '@/lib/plan';
 import { resolveLogo, logoSvgFile } from '@/lib/assets/logos';
 import { cropPath, faceTrack, type FaceTrack } from '@/lib/talking/reframe';
-import { planTrims } from '@/lib/talking/trim';
+import { planTrims, remapTimes, renderTrimmedTake, type Segment } from '@/lib/talking/trim';
 import { repoPath } from '@/lib/root';
 import { getPreferences, getProject, listVersions, readVersion, saveVersion } from '@/lib/app/workspace/store';
 import { parseArgs, projectId, resolveInProject } from './context';
@@ -110,6 +110,27 @@ export const COMMANDS: Record<string, Command> = {
     const { pos, flags } = parseArgs(args);
     const t = (await readJson(need(pos[0], 'transcript.json'))) as Transcript;
     return { segments: planTrims(t, flags['max-gap'] ? { maxGap: Number(flags['max-gap']) } : {}) };
+  },
+
+  /**
+   * The talking-head take with dead air cut: renders the kept segments (frame-snapped, crossfaded audio joins) and
+   * writes the transcript re-timed onto the trimmed take, so shots and captions both use trimmed time.
+   */
+  async trimtake(args) {
+    const { pos, flags } = parseArgs(args);
+    const src = resolveInProject(need(pos[0], 'take'));
+    const { segments } = (await readJson(need(pos[1], 'trims.json'))) as { segments: Segment[] };
+    const out = resolveInProject(need(pos[2], 'out.mp4'));
+    await mkdir(path.dirname(out), { recursive: true });
+    const snapped = await renderTrimmedTake(src, segments, out);
+    let transcript: string | undefined;
+    if (flags.transcript) {
+      const t = (await readJson(flags.transcript)) as Transcript;
+      transcript = path.join('analysis', 'transcript-trimmed.json');
+      await mkdir(resolveInProject('analysis'), { recursive: true });
+      await writeFile(resolveInProject(transcript), JSON.stringify(remapTimes(t, snapped)));
+    }
+    return { out: pos[2], segments: snapped, duration: (await probe(out)).duration, transcript: transcript?.split(path.sep).join('/') };
   },
 
   async facetrack(args) {

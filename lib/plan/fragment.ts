@@ -210,6 +210,7 @@ const TAGS = new Set([
   'div', 'span', 'p', 'b', 'i', 'strong', 'em', 'br', 'small', 'sup', 'sub',
   'svg', 'g', 'defs', 'path', 'rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon', 'text', 'tspan',
   'lineargradient', 'radialgradient', 'stop', 'clippath', 'mask', 'use', 'symbol', 'marker', 'pattern', 'title',
+  'img',
 ]);
 const ATTRS = new Set([
   'id', 'class', 'style', 'viewbox', 'xmlns', 'xmlns:xlink', 'preserveaspectratio', 'x', 'y', 'x1', 'y1', 'x2', 'y2', 'cx', 'cy',
@@ -219,9 +220,11 @@ const ATTRS = new Set([
   'stop-color', 'stop-opacity', 'gradientunits', 'gradienttransform', 'spreadmethod', 'patternunits', 'clippathunits',
   'maskunits', 'markerwidth', 'markerheight', 'refx', 'refy', 'orient', 'marker-start', 'marker-mid', 'marker-end',
   'text-anchor', 'dominant-baseline', 'font-size', 'font-weight', 'font-family', 'letter-spacing', 'clip-path', 'mask',
-  'href', 'xlink:href', 'aria-hidden', 'role',
+  'href', 'xlink:href', 'aria-hidden', 'role', 'src', 'alt',
 ]);
 const ENTITIES = /&(?!(?:amp|lt|gt|quot|apos|nbsp);)/;
+/** `<img src>`: a relative image under the project inputs (e.g. the outro's real screenshots); never a URL or `..`. */
+const IMG_SRC = /^(?!\/)(?!.*\.\.)[\w./ -]+\.(?:png|jpe?g|webp|svg|gif)$/i;
 
 type HtmlTok =
   | { k: 'text'; v: string }
@@ -307,6 +310,8 @@ function checkHtml(html: string, errors: string[]): HtmlTok[] | undefined {
       if (!ATTRS.has(n)) { errors.push(`${where}: attribute ${name} is not allowed`); continue; }
       if (ENTITIES.test(v)) errors.push(`${where}: entities are not allowed in attribute values`);
       if ((n === 'href' || n === 'xlink:href') && !/^#[-\w]+$/.test(v)) errors.push(`${where}: href must be a local #id reference`);
+      if (n === 'src' && (t.name.toLowerCase() !== 'img' || !IMG_SRC.test(v))) errors.push(`${where}: src must be a relative image path on <img> (png/jpg/webp/svg/gif, no ..)`);
+      if (n === 'alt' && t.name.toLowerCase() !== 'img') errors.push(`${where}: alt is only allowed on <img>`);
       if (n === 'style') checkCssText(v, where, errors);
       else checkUrls(v, where, errors, false);
     }
@@ -397,7 +402,8 @@ const attrEsc = (v: string) => v.replace(/"/g, '&quot;');
  * HTML and timeline are re-emitted from the parsed tokens/literals, never passed through. Throws on a fragment that
  * fails `checkFragment`. Deterministic.
  */
-export function namespaceFragment(params: FragmentParams | Record<string, unknown>, id: string, start: number): { html: string; css: string; timeline: string } {
+/** `assetUrl` maps an `<img src>` to the compiled project's copy (the compiler's resolver also copies the file). */
+export function namespaceFragment(params: FragmentParams | Record<string, unknown>, id: string, start: number, assetUrl: (p: string) => string = (p) => p): { html: string; css: string; timeline: string } {
   const errors = checkFragment(params);
   if (errors.length) throw new Error(`custom-animation ${id}: ${errors.join('; ')}`);
   const p = FragmentParams.parse(params);
@@ -413,6 +419,7 @@ export function namespaceFragment(params: FragmentParams | Record<string, unknow
         if (n === 'id') val = `${prefix}-${v.trim()}`;
         else if (n === 'class') val = v.split(/\s+/).filter(Boolean).map((c) => `${prefix}-${c}`).join(' ');
         else if (n === 'href' || n === 'xlink:href') val = `#${prefix}-${v.slice(1)}`;
+        else if (n === 'src') val = assetUrl(v);
         else val = scopeUrls(v, prefix);
         return ` ${name}="${attrEsc(val)}"`;
       });

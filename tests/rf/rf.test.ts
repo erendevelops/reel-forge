@@ -145,6 +145,21 @@ describe('rf', () => {
     expect(gaps.every((g: number) => Math.abs(g - 0.5) < 0.03)).toBe(true);
   }, 60000);
 
+  it('trimtake renders the kept segments and re-times the transcript', async () => {
+    const p = await project('talking-head');
+    const dir = projectDir(p.id);
+    const clip = await makeClip(dir, { w: 640, h: 360, fps: 30, seconds: 4, audio: true });
+    const t = { language: 'en', words: [{ w: 'one', start: 0.2, end: 0.6 }, { w: 'two', start: 0.8, end: 1.1 }, { w: 'three', start: 3.0, end: 3.5 }] };
+    await writeFile(path.join(dir, 't.json'), JSON.stringify(t));
+    await writeFile(path.join(dir, 'trims.json'), JSON.stringify({ segments: [{ from: 0.1, to: 1.2 }, { from: 2.9, to: 3.6 }] }));
+    const r = await rf(p.id, ['trimtake', path.relative(dir, clip), 'trims.json', 'take.mp4', '--transcript', 't.json']);
+    expect(r.code).toBe(0);
+    expect(r.json.duration).toBeCloseTo(1.8, 1);
+    const re = JSON.parse(await readFile(path.join(dir, r.json.transcript), 'utf8'));
+    expect(re.words.map((w: { w: string }) => w.w)).toEqual(['one', 'two', 'three']);
+    expect(re.words[2].start).toBeCloseTo(1.2, 1); // 3.0 − 2.9 + 1.1 (first segment's length)
+  }, 60000);
+
   it('unknown command exits 1 with the command list', async () => {
     const p = await project();
     const r = await rf(p.id, ['nope']);
