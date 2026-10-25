@@ -71,4 +71,68 @@ describe('validatePlan', () => {
     if (r.ok) return;
     expect(r.errors[0]).toMatch(/^fps: /);
   });
+  it('requires a BCP-47 plan.lang', () => {
+    const p = load();
+    expect(validatePlan(p).ok).toBe(true);
+    expect(p.lang).toBe('tr');
+    delete p.lang;
+    const r = validatePlan(p);
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.errors.join('\n')).toMatch(/^lang: /m);
+    for (const bad of ['Turkish', 'tr_TR', '']) {
+      const q = load();
+      q.lang = bad;
+      expect(validatePlan(q).ok, bad).toBe(false);
+    }
+    for (const good of ['en', 'tr', 'en-US', 'pt-BR']) {
+      const q = load();
+      q.lang = good;
+      expect(validatePlan(q).ok, good).toBe(true);
+    }
+  });
+
+  const errs = (p: unknown): string => {
+    const r = validatePlan(p);
+    return r.ok ? '' : r.errors.join('\n');
+  };
+
+  it("runs each card template's params schema", () => {
+    const p = load();
+    p.scenes[1].cards[0].params = { name: 'Fooocus' }; // title-card without n
+    expect(errs(p)).toMatch(/scene fooocus card\[0\] \(title-card\): params\.n: /);
+    const q = load();
+    q.scenes[0].cards[0].params.bg = 'red; background-image: url(x.png)';
+    expect(errs(q)).toMatch(/scene hook card\[0\] \(logo-pop\): params\.bg: .*hex/);
+    const r = load();
+    r.scenes[1].cards[1].params.highlight = 'all';
+    expect(errs(r)).toMatch(/\(numbered-list\): params\.highlight/);
+  });
+
+  it('rejects shots outside their scene', () => {
+    const p = load();
+    p.scenes[1].shots[1].to += 0.5; // runs 0.5 s into the next scene
+    expect(errs(p)).toMatch(/scene fooocus shot\[1\].*outside the scene/);
+    const q = load();
+    q.scenes[1].shots[0].at = q.scenes[1].start - 0.2;
+    expect(errs(q)).toMatch(/scene fooocus shot\[0\].*outside the scene/);
+  });
+
+  it('rejects a punch outside [at, at + duration)', () => {
+    const p = load();
+    const sh = p.scenes[0].shots[0];
+    sh.punch = sh.at + (sh.to - sh.from); // exactly the shot end: never visible
+    expect(errs(p)).toMatch(/scene hook shot\[0\]: punch .* outside the shot/);
+    const q = load();
+    q.scenes[0].shots[1].punch = q.scenes[0].shots[1].at - 0.1; // before its shot starts
+    expect(errs(q)).toMatch(/punch .* outside the shot/);
+  });
+
+  it('rejects list/checklist items landing after their card ends', () => {
+    const p = load();
+    const list = p.scenes[1].cards[1];
+    list.params.items[0].at = list.end + 0.5;
+    expect(errs(p)).toMatch(/scene fooocus card\[1\] \(numbered-list\): items\[0\]\.at .* after the card ends/);
+    // landing before the card start is the documented "already landed" state of a carried-over list
+    expect(validatePlan(load()).ok).toBe(true);
+  });
 });

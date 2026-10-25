@@ -35,7 +35,7 @@ describe('layered render', () => {
       await run('ffmpeg', ['-y', '-v', 'error', '-f', 'lavfi', '-i', 'sine=frequency=880:sample_rate=48000:duration=0.3', path.join(assets, 'tick.wav')]);
       await run('ffmpeg', ['-y', '-v', 'error', '-f', 'lavfi', '-i', 'sine=frequency=110:sample_rate=48000:duration=4', path.join(assets, 'bed.wav')]);
       const v = validatePlan({
-        version: 1, mode: 'reel', fps: 60, duration: 3, ratios: ['9:16'],
+        version: 1, lang: 'en', mode: 'reel', fps: 60, duration: 3, ratios: ['9:16'],
         selection: { captions: 'none', layouts: ['broll'], cards: ['title-card'], sfx: true, music: true, punchIns: true, thumbnail: false },
         scenes: [{
           id: 's1', start: 0, end: 3, say: 'x', why: 'x', layout: 'broll',
@@ -93,7 +93,7 @@ describe('layered render', () => {
       const box = path.join(assets, 'box.mp4');
       await prepareClip(rawBox, box, { from: 0, duration: 1.5, width: 1080, height: 1920, fps: 60 });
       const v = validatePlan({
-        version: 1, mode: 'reel', fps: 60, duration: 4.5, ratios: ['9:16'],
+        version: 1, lang: 'en', mode: 'reel', fps: 60, duration: 4.5, ratios: ['9:16'],
         selection: { captions: 'none', layouts: ['broll'], cards: [], sfx: false, music: false, punchIns: true, thumbnail: false },
         scenes: [{
           id: 's1', start: 0, end: 4.5, say: 'x', why: 'x', layout: 'broll',

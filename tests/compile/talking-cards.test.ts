@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { makeClip } from '../helpers/media';
 import { run } from '../../lib/media/run';
 import { npx } from '../../lib/media/npx';
@@ -22,6 +23,7 @@ function timeline(src: string): string {
 function talkingPlan(): Plan {
   const v = validatePlan({
     version: 1,
+    lang: 'tr',
     mode: 'reel',
     fps: 60,
     duration: 12,
@@ -39,7 +41,7 @@ function talkingPlan(): Plan {
             params: {
               html: '<svg viewBox="0 0 100 50" class="flow"><circle id="dot" cx="10" cy="25" r="6" fill="#16A34A"/></svg>',
               css: '.flow { width: 70%; }',
-              timeline: 'const d = 0.6;\ntl.fromTo("#dot", { x: 0 }, { x: 80, duration: d, ease: "power2.inOut" }, 0.1);',
+              timeline: 'tl.fromTo("#dot", { x: 0 }, { x: 80, duration: 0.6, ease: "power2.inOut" }, 0.1);',
               label: 'a dot flows right',
             },
           },
@@ -184,7 +186,7 @@ describe('layouts', () => {
 
   it('custom-animation compiles into the page: scoped, offset, valid JS', () => {
     expect(html).toContain('id="steps-custom-animation-1-dot"');
-    expect(tl).toContain('tl.fromTo("#steps-custom-animation-1 #steps-custom-animation-1-dot", { x: 0 }, { x: 80, duration: d, ease: "power2.inOut" }, 4.6);');
+    expect(tl).toContain('tl.fromTo("#steps-custom-animation-1 #steps-custom-animation-1-dot", { x: 0 }, { x: 80, duration: 0.6, ease: "power2.inOut" }, 4.6);');
     const script = /<script>\n([\s\S]*?)<\/script>/.exec(html)![1];
     expect(() => new Function('gsap', script)).not.toThrow();
   });
@@ -199,6 +201,31 @@ describe('layouts', () => {
     const res = await run(cmd, args, { timeoutMs: 120000 });
     expect(res.code).toBe(0);
   }, 130000);
+
+  /** `hyperframes validate` (page load in headless Chrome, no render) of a copy of the project with `extra` before </body>. */
+  async function validate(name: string, extra: string): Promise<{ ok: boolean; errors: { text: string }[]; warnings: { text: string }[] }> {
+    const dir = path.join(tmp, name);
+    await fs.cp(path.join(tmp, 'out'), dir, { recursive: true });
+    const f = path.join(dir, 'index.html');
+    await fs.writeFile(f, (await fs.readFile(f, 'utf8')).replace('</body>', `${extra}\n</body>`));
+    const [cmd, args] = npx(['-y', 'hyperframes@0.8.191', 'validate', '--json', '--no-contrast', '--timeout', '3000', dir]);
+    const res = spawnSync(cmd, args, { encoding: 'utf8', shell: false, windowsHide: true, timeout: 120000 });
+    return JSON.parse(res.stdout.slice(res.stdout.indexOf('{')));
+  }
+
+  it('CSP keeps the HyperFrames runtime and GSAP running, blocks eval and network', async () => {
+    const clean = await validate('csp-clean', '<script>console.warn("TL-DURATION " + window.__timelines.main.duration());</script>');
+    expect(clean.errors, JSON.stringify(clean.errors)).toEqual([]);
+    expect(clean.warnings.map((w) => w.text).join('\n')).toMatch(/TL-DURATION 12/);
+    const bad = await validate('csp-bad',
+      '<img src="https://example.com/x.png"><script>try { new Function("return 1")(); console.warn("EVAL-RAN"); } catch (e) { console.warn("EVAL-BLOCKED " + e.name); }' +
+      'fetch("x.json").then(() => console.warn("FETCH-RAN"), () => console.warn("FETCH-BLOCKED"));</script>');
+    const text = [...bad.errors, ...bad.warnings].map((e) => e.text).join('\n');
+    expect(text).toMatch(/EVAL-BLOCKED EvalError/);
+    expect(text).not.toMatch(/EVAL-RAN|FETCH-RAN/);
+    expect(text).toMatch(/connect-src 'none'/);
+    expect(text).toMatch(/example\.com\/x\.png' violates/);
+  }, 260000);
 
   it('is deterministic', async () => {
     const again = await compile(talkingPlan(), { outDir: path.join(tmp, 'out2'), assetsDir, ratio: '9:16' });

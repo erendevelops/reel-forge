@@ -1,11 +1,9 @@
-import { z } from 'zod';
 import type { Card } from '../../plan';
+import { BarChartParams } from '../../plan/card-params';
 import { type CardTemplate, type CompileContext, esc, num, regionOf, sz, tlFromTo } from '../types';
 import { INK, MUTED, cardInOut, regionClip, talkingCss } from './talking';
 
-const Params = z.object({
-  bars: z.array(z.object({ label: z.string().min(1), value: z.number().finite().nonnegative() })).min(1),
-});
+const Params = BarChartParams;
 
 const GROW = { duration: 0.7, ease: 'expo.out' };
 const LEAD = 0.15;

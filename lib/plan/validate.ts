@@ -1,5 +1,6 @@
 import { PlanSchema, type Card, type Plan } from './schema';
 import { checkFragment } from './fragment';
+import { CARD_PARAMS } from './card-params';
 import { logoRef, resolveLogo } from '../assets/logos';
 
 const TOL = 1e-3;
@@ -73,13 +74,37 @@ export function validatePlan(input: unknown): ValidationResult {
     else if (d > TOL) errors.push(`gap of ${d.toFixed(3)}s between scenes ${prev.id} and ${cur.id}`);
   }
 
-  // 3. cards inside their scene
+  // 3. cards inside their scene, params valid for their template, list/checklist items not after the card
   for (const scene of scenes) {
     scene.cards.forEach((card, ci) => {
+      const at = `scene ${scene.id} card[${ci}] (${card.type})`;
       if (card.start < scene.start - TOL || card.end > scene.end + TOL) {
-        errors.push(
-          `scene ${scene.id} card[${ci}] (${card.type}) ${card.start}-${card.end} is outside the scene ${scene.start}-${scene.end}`,
-        );
+        errors.push(`${at} ${card.start}-${card.end} is outside the scene ${scene.start}-${scene.end}`);
+      }
+      // custom-animation params are reported by checkFragment above
+      if (card.type !== 'custom-animation') {
+        const p = CARD_PARAMS[card.type].safeParse(card.params);
+        if (!p.success) for (const i of p.error.issues) errors.push(`${at}: params.${i.path.join('.')}: ${i.message}`);
+      }
+      // `at` before the card start = already landed/ticked (a carried-over list); after its end it would never show
+      if (card.type === 'numbered-list' || card.type === 'checklist') {
+        const items = (card.params as { items?: unknown }).items;
+        if (Array.isArray(items)) {
+          items.forEach((it, ii) => {
+            const t = (it as { at?: unknown })?.at;
+            if (typeof t === 'number' && t > card.end + TOL) errors.push(`${at}: items[${ii}].at ${t} is after the card ends (${card.end})`);
+          });
+        }
+      }
+    });
+    // shots inside their scene; a punch-in must start while its shot is on screen
+    scene.shots.forEach((sh, si) => {
+      const end = sh.at + (sh.to - sh.from);
+      if (sh.at < scene.start - TOL || end > scene.end + TOL) {
+        errors.push(`scene ${scene.id} shot[${si}] ${sh.at}-${Number(end.toFixed(6))} is outside the scene ${scene.start}-${scene.end}`);
+      }
+      if (sh.punch !== undefined && (sh.punch < sh.at - TOL || sh.punch >= end - TOL)) {
+        errors.push(`scene ${scene.id} shot[${si}]: punch ${sh.punch} is outside the shot [${sh.at}, ${Number(end.toFixed(6))})`);
       }
     });
   }

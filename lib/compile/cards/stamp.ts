@@ -1,9 +1,9 @@
-import { z } from 'zod';
 import type { Card } from '../../plan';
+import { StampParams } from '../../plan/card-params';
 import { type CardTemplate, type CompileContext, esc, num, sz, tlFromTo } from '../types';
 import { RED, regionClip, talkingCss } from './talking';
 
-const Params = z.object({ text: z.string().min(1) });
+const Params = StampParams;
 
 const ROTATION = -12;
 const SLAM = { duration: 0.3, ease: 'expo.out' };

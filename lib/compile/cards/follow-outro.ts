@@ -1,9 +1,9 @@
-import { z } from 'zod';
 import type { Card } from '../../plan';
+import { FollowOutroParams } from '../../plan/card-params';
 import { type CardTemplate, type CompileContext, esc, num, sz, tlFromTo, tlSet } from '../types';
 import { GREEN, INK, cardInOut, regionClip, talkingCss } from './talking';
 
-const Params = z.object({ handle: z.string().min(1) });
+const Params = FollowOutroParams;
 
 const PLUS_SVG =
   '<svg viewBox="0 0 24 24" width="100%" height="100%"><path d="M12 5v14M5 12h14" fill="none" stroke="#FFFFFF" stroke-width="3.2" stroke-linecap="round"/></svg>';

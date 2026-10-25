@@ -1,14 +1,9 @@
-import { z } from 'zod';
 import type { Card } from '../../plan';
+import { RollingNumberParams } from '../../plan/card-params';
 import { type CardTemplate, type CompileContext, esc, num, regionOf, sz, tlFromTo } from '../types';
 import { INK, cardInOut, regionClip, talkingCss } from './talking';
 
-const Params = z.object({
-  from: z.number().finite(),
-  to: z.number().finite(),
-  locale: z.enum(['tr-TR', 'en-US']),
-  suffix: z.string().optional(),
-});
+const Params = RollingNumberParams;
 
 /** prao doc §5 scene 1: each digit column rolls 0.9 s `expo.out`, right-most first, 0.07 s apart. */
 const ROLL = { duration: 0.9, ease: 'expo.out' };

@@ -86,8 +86,13 @@ export const MusicSchema = z.object({
   fadeOut: sec,
 });
 
+/** A BCP-47 language tag (`tr`, `en`, `en-US`): the spoken language of the footage, which captions follow (spec §7). */
+export const LangSchema = z.string().regex(/^[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/, 'must be a BCP-47 language tag such as "tr" or "en"');
+
 export const PlanSchema = z.object({
   version: z.literal(1),
+  /** Emitted as `<html lang>`, so CSS text-transform (uppercase card labels) cases per language (Turkish i → İ). */
+  lang: LangSchema,
   mode: z.enum(['reel', 'app']),
   fps: z.union([z.literal(30), z.literal(60)]),
   duration: z.number().finite().positive(),

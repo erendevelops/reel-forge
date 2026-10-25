@@ -9,7 +9,7 @@ const ctx = { width: 1080, height: 1920, fps: 60, ratio: '9:16' as const, assets
 /** Split talking head: full-face hook, split body with a 16:9 source, both with a punch on the shot. */
 function plan(punchIns: boolean): Plan {
   return {
-    version: 1, mode: 'reel', fps: 60, duration: 6, ratios: ['9:16'],
+    version: 1, lang: 'en', mode: 'reel', fps: 60, duration: 6, ratios: ['9:16'],
     selection: { captions: 'none', layouts: ['full-face', 'split'], cards: [], sfx: false, music: false, punchIns, thumbnail: false, topicAssets: false },
     scenes: [
       { id: 'a', start: 0, end: 3, say: 'x', why: 'x', layout: 'full-face', facePos: { x: 0.4, y: 0.3 }, shots: [{ src: 'v.mp4', from: 0, to: 3, at: 0, punch: 1 }], cards: [] },

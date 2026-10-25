@@ -1,11 +1,9 @@
-import { z } from 'zod';
 import type { Card } from '../../plan';
+import { ChecklistParams } from '../../plan/card-params';
 import { type CardTemplate, type CompileContext, esc, num, sz, tlFromTo, tlSet } from '../types';
 import { GREEN, INK, MUTED, cardInOut, regionClip, talkingCss } from './talking';
 
-const Params = z.object({
-  items: z.array(z.object({ label: z.string().min(1), at: z.number().finite().nonnegative() })).min(1),
-});
+const Params = ChecklistParams;
 
 const TICK_POP = { duration: 0.35, ease: 'back.out(1.7)' };
 const CHECK_SVG =

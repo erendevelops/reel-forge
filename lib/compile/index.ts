@@ -83,6 +83,27 @@ async function fonts(outDir: string): Promise<string> {
   return rules.join('\n');
 }
 
+/**
+ * Content-Security-Policy of the page (defence in depth behind the custom-animation allowlist): no eval/Function/
+ * string timers (no 'unsafe-eval'), no network (connect-src 'none'; images/media/fonts only from the project or
+ * data:), no plugins, no <base>, no forms. Scripts only from the project or inline.
+ *
+ * Why inline scripts are not pinned by hash: HyperFrames (0.8.191) serves the page with its own inline scripts
+ * injected after this meta — the runtime before </head>, the fps-dependent render-mode script and the bridge before
+ * </body> — and re-creates the body scripts after the fonts load. A `script-src 'sha256-…'` policy blocks all of them
+ * (seen with `hyperframes validate`: "Executing inline script violates … script-src"), so the renderer would never
+ * seek. Inline event handlers can never appear in a fragment: the html allowlist has no on* attribute.
+ */
+const CSP = [
+  "default-src 'self' data:",
+  "script-src 'self' 'unsafe-inline'",
+  "style-src 'self' 'unsafe-inline'",
+  "connect-src 'none'",
+  "object-src 'none'",
+  "base-uri 'none'",
+  "form-action 'none'",
+].join('; ');
+
 /** Compiles a plan into a HyperFrames project at `outDir` (index.html + assets/). Deterministic. */
 export async function compile(plan: Plan, o: CompileOptions): Promise<{ indexHtml: string }> {
   const [width, height] = RATIO_SIZE[o.ratio];
@@ -161,10 +182,17 @@ export async function compile(plan: Plan, o: CompileOptions): Promise<{ indexHtm
   for (const f of frags) for (const rule of f.css.split('\n')) if (rule && !css.includes(rule)) css.push(rule);
   const timeline = frags.map((f) => f.timeline).filter(Boolean).join('\n');
 
+  const script = `
+window.__timelines = window.__timelines || {};
+const tl = gsap.timeline({ paused: true });
+${timeline}
+window.__timelines["main"] = tl;
+`;
   const indexHtml = `<!doctype html>
-<html lang="tr">
+<html lang="${plan.lang}">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="${CSP}">
 <meta name="viewport" content="width=${width}, height=${height}">
 <script src="assets/gsap.min.js"></script>
 <style>
@@ -180,12 +208,7 @@ ${css.join('\n')}
 ${frags.map((f) => f.html).filter(Boolean).join('\n')}
 ${audio.join('\n')}
 </div>
-<script>
-window.__timelines = window.__timelines || {};
-const tl = gsap.timeline({ paused: true });
-${timeline}
-window.__timelines["main"] = tl;
-</script>
+<script>${script}</script>
 </body>
 </html>
 `;

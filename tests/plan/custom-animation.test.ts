@@ -21,7 +21,7 @@ const GOOD = {
 
 function planWith(card: Record<string, unknown>, topicAssets: boolean | undefined, extraCards: string[] = []) {
   return {
-    version: 1, mode: 'reel', fps: 60, duration: 4, ratios: ['9:16'],
+    version: 1, lang: 'en', mode: 'reel', fps: 60, duration: 4, ratios: ['9:16'],
     selection: {
       captions: 'none', layouts: ['split'], cards: ['custom-animation', ...extraCards], sfx: false, music: false, punchIns: false, thumbnail: false,
       ...(topicAssets === undefined ? {} : { topicAssets }),
@@ -35,8 +35,13 @@ const caCard = (params: unknown, start = 1, end = 4) => ({ type: 'custom-animati
 describe('custom-animation fragment rules', () => {
   it('accepts a valid fragment', () => {
     expect(checkFragment(GOOD, 3)).toEqual([]);
-    // CSS keys and grouping parens are not banned identifiers/calls
-    expect(checkFragment({ ...GOOD, timeline: 'const w = (2 + 1) * 10;\ntl.to("#bar", { top: w, left: "rgba(0,0,0,1)" }, 0);' }, 3)).toEqual([]);
+    // CSS keys such as top, nested objects, arrays, negatives and string values are plain literals
+    expect(checkFragment({ ...GOOD, timeline: 'tl.to("#bar", { top: 30, left: "rgba(0,0,0,1)", css: { x: -5 }, keys: [1, "a", true, null] }, 0)' }, 3)).toEqual([]);
+  });
+
+  it('rejects anything but literal tl calls (allowlist): variables and expressions', () => {
+    const errs = checkFragment({ ...GOOD, timeline: 'const w = (2 + 1) * 10;\ntl.to("#bar", { top: w }, 0);' }, 3);
+    expect(errs.length).toBeGreaterThan(0);
   });
 
   const bad: [string, Partial<typeof GOOD>, RegExp][] = [
@@ -60,6 +65,45 @@ describe('custom-animation fragment rules', () => {
     ['tl misuse', { timeline: 'tl.vars.x = 1;' }, /tl may only/],
     ['nested call', { timeline: 'if (1) { tl.set("#bar", { x: 1 }, 0); }' }, /top-level/],
     ['past the card', { timeline: 'tl.set("#bar", { x: 1 }, 3.5);' }, /after the card/],
+    // final review: bypasses of the old blacklist
+    ['tagged template + computed member → Function', { timeline: 'tl.set("#bar", { x: 1 }, 0);\ntl["constructor"]["constructor"]`fetch(1)```;' }, /./],
+    ['computed member in a value', { timeline: 'tl.set("#bar", { x: tl["vars"] }, 0);' }, /./],
+    ['tagged template alone', { timeline: 'String.raw`x`;' }, /`/],
+    ['global assignment top["loc"+"ation"]', { timeline: 'top["loc" + "ation"] = "x";' }, /./],
+    ['assignment', { timeline: 'tl.set("#bar", { x: 1 }, 0);\nx = 1;' }, /=/],
+    ['identifier in value position', { timeline: 'tl.set("#bar", { x: top }, 0);' }, /literal/],
+    ['call in value position', { timeline: 'tl.set("#bar", { x: Number("1") }, 0);' }, /./],
+    ['\\x escape hiding a URL in the timeline', { timeline: 'tl.set("#bar", { attr: { href: "\\x68ttp://e.com" } }, 0);' }, /\\/],
+    ['\\u escape in the timeline', { timeline: 'tl.set("#bar", { x: "\\u0068ttp://e.com" }, 0);' }, /\\/],
+    ['GSAP random() string', { timeline: 'tl.to("#bar", { x: "random(-100, 100)" }, 0);' }, /random/],
+    ['GSAP random stagger', { timeline: 'tl.to(".num", { x: 1, stagger: { each: 0.1, from: "random" } }, 0);' }, /random/],
+    ['callback key', { timeline: 'tl.to("#bar", { x: 1, onComplete: "x" }, 0);' }, /onComplete/],
+    ['innerHTML key', { timeline: 'tl.set("#bar", { innerHTML: "<b>x</b>" }, 0);' }, /innerHTML/],
+    ['/onerror= after a slash', { html: '<img src="a.png"/onerror="fetch(1)">' }, /./],
+    ['svg/onload', { html: '<svg/onload="x"></svg>' }, /./],
+    ['unquoted handler', { html: '<div onclick=x></div>' }, /./],
+    ['&# entity hiding javascript:', { html: '<svg><use href="&#106;avascript:x"/></svg>' }, /&#/],
+    ['&# entity in text', { html: '<div>&#60;script&#62;</div>' }, /&#/],
+    ['backslash in html', { html: '<div class="a\\b"></div>' }, /\\/],
+    ['img (no external media)', { html: '<img src="a.png">' }, /img/],
+    ['iframe', { html: '<iframe src="a.html"></iframe>' }, /iframe/],
+    ['object', { html: '<object data="a"></object>' }, /object/],
+    ['embed', { html: '<embed src="a">' }, /embed/],
+    ['link', { html: '<link rel="stylesheet" href="a.css">' }, /link/],
+    ['meta', { html: '<meta http-equiv="refresh" content="0">' }, /meta/],
+    ['style element', { html: '<style>.a{}</style>' }, /style/],
+    ['foreignObject', { html: '<svg><foreignObject><div></div></foreignObject></svg>' }, /foreignObject/],
+    ['external href', { html: '<svg><use href="a.svg#x"/></svg>' }, /href/],
+    ['unknown attribute', { html: '<div srcdoc="x"></div>' }, /srcdoc/],
+    ['html comment', { html: '<div><!-- x --></div>' }, /comment/],
+    ['HyperFrames timing attribute', { html: '<div data-start="0"></div>' }, /data-start/],
+    ['css backslash escape hiding a URL', { css: '.a { background: url(\\68 ttp://e.com/a.png); }' }, /\\/],
+    ['css @import', { css: '@import "a.css";' }, /@/],
+    ['css expression()', { css: '.a { width: expression(alert(1)); }' }, /expression/],
+    ['css url(data:)', { css: '.a { background: url(data:image/png;base64,AAAA); }' }, /url/],
+    ['css url(//)', { css: '.a { background: url(//e.com/a.png); }' }, /url|external/],
+    ['css url(../)', { css: '.a { background: url(../../secret.png); }' }, /url/],
+    ['style attribute url', { html: '<div style="background: url(data:x)"></div>' }, /url/],
   ];
   for (const [name, patch, msg] of bad) {
     it(`rejects ${name}`, () => {
@@ -68,6 +112,16 @@ describe('custom-animation fragment rules', () => {
       expect(errs.join('\n')).toMatch(msg);
     });
   }
+
+  it('allows url(#id) and relative asset paths in css, url(#id) and #id hrefs in svg', () => {
+    expect(checkFragment({ ...GOOD, css: '.a { background: url("img/a.png"); fill: url(#g); }' }, 3)).toEqual([]);
+    expect(checkFragment({ ...GOOD, html: '<svg><use href="#g"/><rect style="fill: url(#g)" clip-path="url(#c)"/></svg>' }, 3)).toEqual([]);
+  });
+
+  it('the compiled timeline is regenerated from the parsed literals (no source passthrough)', () => {
+    const f = namespaceFragment({ ...GOOD, timeline: "tl.to('.num',{x:-5,css:{y:1},k:[1,'a']},1)" }, 'c', 2);
+    expect(f.timeline).toBe('tl.to("#c .c-num", { x: -5, css: { y: 1 }, k: [1, "a"] }, 3);');
+  });
 });
 
 describe('custom-animation namespacing and timing', () => {

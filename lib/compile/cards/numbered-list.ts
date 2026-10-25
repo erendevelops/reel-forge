@@ -1,19 +1,9 @@
-import { z } from 'zod';
 import type { Card } from '../../plan';
+import { NumberedListParams } from '../../plan/card-params';
 import { type CardTemplate, type CompileContext, YELLOW, WHITE, clipDiv, esc, fx, fy, num, sz, tlFromTo, tlSet } from '../types';
-import { LogoFraming, TOOL_ICON_CSS, toolIcon } from './icon';
+import { TOOL_ICON_CSS, toolIcon } from './icon';
 
-const Item = z.object({
-  n: z.number().int().nonnegative(),
-  name: z.string().min(1),
-  logo: z.string().min(1).optional(),
-  ...LogoFraming,
-  at: z.number().finite().nonnegative(),
-});
-const Params = z.object({
-  items: z.array(Item).min(1),
-  highlight: z.enum(['latest', 'none']).default('latest'),
-});
+const Params = NumberedListParams;
 
 /** Spring(damping 16, stiffness 160) slide from −60 px ≈ back.out(1.2) over 0.5 s. */
 const SLIDE = { duration: 0.5, ease: 'back.out(1.2)' };

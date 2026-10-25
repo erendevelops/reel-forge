@@ -1,14 +1,9 @@
-import { z } from 'zod';
 import type { Card } from '../../plan';
+import { TitleCardParams } from '../../plan/card-params';
 import { type CardTemplate, type CompileContext, YELLOW, WHITE, clipDiv, esc, fy, num, sz, tlFromTo } from '../types';
-import { LogoFraming, TOOL_ICON_CSS, toolIcon } from './icon';
+import { TOOL_ICON_CSS, toolIcon } from './icon';
 
-const Params = z.object({
-  n: z.number().int().nonnegative(),
-  name: z.string().min(1),
-  logo: z.string().min(1).optional(),
-  ...LogoFraming,
-});
+const Params = TitleCardParams;
 
 /** Spring(damping 12, stiffness 200) on scale 0.6→1 ≈ back.out(2.5) over 0.45 s. */
 const IN = { duration: 0.45, ease: 'back.out(2.5)' };

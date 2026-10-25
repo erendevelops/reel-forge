@@ -163,6 +163,26 @@ describe('compile', () => {
     expect(html).not.toMatch(/Math\.random|Date\.now/);
   });
 
+  it('CSP: no eval, no network, no plugins, set before any script', () => {
+    const meta = tags(html, 'meta').find((m) => attr(m, 'http-equiv') === 'Content-Security-Policy')!;
+    expect(meta, 'CSP meta').toBeTruthy();
+    const csp = attr(meta, 'content')!;
+    expect(csp).toContain("default-src 'self' data:");
+    expect(csp).toContain("script-src 'self'");
+    expect(csp).toContain("connect-src 'none'");
+    expect(csp).toContain("object-src 'none'");
+    expect(csp).toContain("base-uri 'none'");
+    expect(csp).not.toMatch(/unsafe-eval/);
+    expect(csp).not.toMatch(/https?:|\*/);
+    expect(html.indexOf('Content-Security-Policy')).toBeLessThan(html.indexOf('<script'));
+  });
+
+  it('html lang comes from plan.lang', async () => {
+    expect(html).toContain('<html lang="tr">');
+    const en = await compile({ ...plan, lang: 'en' }, { outDir: path.join(tmp, 'out-en'), assetsDir, ratio: '9:16' });
+    expect(en.indexHtml).toContain('<html lang="en">');
+  });
+
   it('captions word-build', () => {
     const tl = timeline(html);
     const g = plan.captions.groups[0];
@@ -254,6 +274,16 @@ describe('compile', () => {
   it('card params are validated', () => {
     const ctx = { width: 1080, height: 1920, fps: 60, ratio: '9:16' as const, assetsUrl: (p: string) => p };
     expect(() => cardRegistry['stamp'].render({ type: 'stamp', start: 0, end: 1, params: {} }, 'x', ctx)).toThrow();
+  });
+
+  it('logo-pop bg must be a hex colour (no free CSS)', () => {
+    const ctx = { width: 1080, height: 1920, fps: 60, ratio: '9:16' as const, assetsUrl: (p: string) => p };
+    const pop = (bg: string) => () => cardRegistry['logo-pop'].render({ type: 'logo-pop', start: 0, end: 1, params: { img: 'a.png', left: 0, top: 0, bg } }, 'x', ctx);
+    expect(pop('#121417')).not.toThrow();
+    expect(pop('#fff')).not.toThrow();
+    expect(pop('red; background-image: url(a.png)')).toThrow();
+    expect(pop('url(a.png)')).toThrow();
+    expect(pop('#12141')).toThrow();
   });
 
   it('recomposes per ratio', async () => {

@@ -1,9 +1,9 @@
-import { z } from 'zod';
 import type { Card } from '../../plan';
+import { TypedTitleParams } from '../../plan/card-params';
 import { type CardTemplate, type CompileContext, esc, num, regionOf, sz, tlFromTo, tlSet } from '../types';
 import { INK, MUTED, cardInOut, regionClip, talkingCss } from './talking';
 
-const Params = z.object({ text: z.string().min(1), label: z.string().min(1).optional() });
+const Params = TypedTitleParams;
 
 const LEAD = 0.2;
 const CHAR = 0.06;

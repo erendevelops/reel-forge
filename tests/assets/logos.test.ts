@@ -57,7 +57,7 @@ describe('si: references compile to asset files', () => {
     const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'logos-'));
     dirs.push(tmp);
     const v = validatePlan({
-      version: 1, mode: 'reel', fps: 30, duration: 3, ratios: ['9:16'],
+      version: 1, lang: 'en', mode: 'reel', fps: 30, duration: 3, ratios: ['9:16'],
       selection: { captions: 'none', layouts: ['full-graphics'], cards: ['title-card', 'numbered-list', 'logo-pop'], sfx: false, music: false, punchIns: false, thumbnail: false, topicAssets: true },
       scenes: [{
         id: 's', start: 0, end: 3, say: 'x', why: 'x', layout: 'full-graphics', shots: [],

@@ -1,15 +1,5 @@
-import { z } from 'zod';
 import { type CompileContext, esc, num } from '../types';
 
-/**
- * Per-logo framing inside the tile (v5 Reel.tsx ToolIcon): `cover` fills the tile (photos, full-bleed app icons),
- * `contain` insets a mark at 62 % on the dark tile (e.g. the OpenAI/Whisper glyph). `logoPosition` is the
- * `object-position` of a cover crop (v5 Fooocus sample render: "25% 20%").
- */
-export const LogoFraming = {
-  logoFit: z.enum(['cover', 'contain']).default('cover'),
-  logoPosition: z.string().regex(/^[a-z0-9.%\s-]+$/i).optional(),
-};
 export type LogoFit = 'cover' | 'contain';
 
 /** v5's inset for contained logos: 62 % of the tile. */

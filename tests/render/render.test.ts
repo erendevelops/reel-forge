@@ -21,7 +21,7 @@ describe('render + qa', () => {
       await prepareClip(raw, clip, { from: 0, duration: 3, width: 1080, height: 1920, fps: 60 });
       await run('ffmpeg', ['-y', '-v', 'error', '-f', 'lavfi', '-i', 'sine=frequency=220:sample_rate=48000:duration=3', path.join(assets, 'vo.wav')]);
       const v = validatePlan({
-        version: 1, mode: 'reel', fps: 60, duration: 3, ratios: ['9:16'],
+        version: 1, lang: 'en', mode: 'reel', fps: 60, duration: 3, ratios: ['9:16'],
         selection: { captions: 'none', layouts: ['broll'], cards: ['title-card'], sfx: false, music: false, punchIns: false, thumbnail: false },
         scenes: [{
           id: 's1', start: 0, end: 3, say: 'x', why: 'x', layout: 'broll',

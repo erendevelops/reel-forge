@@ -8,7 +8,7 @@ const scene = (id: string, start: number, end: number, extra: Record<string, unk
 
 function plan(scenes: unknown[], duration: number): Plan {
   const v = validatePlan({
-    version: 1, mode: 'reel', fps: 60, duration, ratios: ['9:16'],
+    version: 1, lang: 'en', mode: 'reel', fps: 60, duration, ratios: ['9:16'],
     selection: { captions: 'none', layouts: ['full-face', 'split'], cards: ['checklist', 'stamp', 'numbered-list'], sfx: false, music: false, punchIns: false, thumbnail: false },
     scenes, captions: { style: 'none', groups: [] }, sfx: [],
   });

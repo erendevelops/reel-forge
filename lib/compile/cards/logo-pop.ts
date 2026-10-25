@@ -1,17 +1,8 @@
-import { z } from 'zod';
 import type { Card } from '../../plan';
+import { LogoPopParams } from '../../plan/card-params';
 import { type CardTemplate, type CompileContext, WHITE, clipDiv, esc, fx, fy, num, sz, tlFromTo } from '../types';
 
-const Params = z.object({
-  img: z.string().min(1),
-  left: z.number().finite(),
-  top: z.number().finite(),
-  rot: z.number().finite().optional(),
-  width: z.number().positive().default(300),
-  height: z.number().positive().default(300),
-  fit: z.enum(['cover', 'contain']).default('contain'),
-  bg: z.string().optional(),
-});
+const Params = LogoPopParams;
 
 /** Spring(damping 11, stiffness 180) on scale 0→1 ≈ back.out(2.5) over 0.6 s. */
 const POP = { duration: 0.6, ease: 'back.out(2.5)' };
