@@ -1,0 +1,15 @@
+# Analyse a talking-head take
+
+1. `rf probe` every take, and `rf sheet <take> analysis/sheets/<name>.jpg --every 2` to see framing, cutaways and any baked-in text.
+2. `rf transcribe <take> --lang <spoken language> --prompt "<names you can guess from the sheets>"` → save as `analysis/transcript.json`.
+3. `rf trims analysis/transcript.json` → `analysis/trims.json`: the kept ranges after dead air (gaps over 0.35 s). Mark obvious retakes (a sentence restarted) as removed ranges too. Cut only between words.
+4. `rf facetrack <take> analysis/face-track.json`, then `rf crop analysis/face-track.json --ratio <r>` for every project ratio → `analysis/face-<ratio>.json`.
+   - The crop is always the **widest window the ratio allows** (full source height for horizontal → vertical). It only pans to keep the face in frame. Never crop tighter.
+   - Use the median face centre as each scene's `facePos`.
+5. Working clips: `rf prep <take> inputs/work/take-<r>.mp4 --from <first kept> --duration <span> --ratio <r> --fps 60 --crop analysis/face-<r>.json`.
+6. **Topics:** read the transcript and list every product, brand, tool, number and claim with its word time in `analysis/topics.json`:
+   ```json
+   { "topics": [{ "at": 3.42, "kind": "product", "text": "ChatGPT" }, { "at": 7.1, "kind": "number", "text": "1.000.000 ₺" }, { "at": 9.8, "kind": "claim", "text": "devlet %70'ini geri ödüyor" }, { "at": 14.2, "kind": "concept", "text": "masa = klasör" }] }
+   ```
+   For each `product`, run `rf logo <text>` now and note `found`.
+7. Write a 5-line summary: length after trims, cuts removed, face found in what share of samples, topics found, logos found/missing.
