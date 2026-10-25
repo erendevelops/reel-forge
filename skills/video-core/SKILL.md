@@ -1,8 +1,60 @@
 ---
 name: video-core
-description: Shared rules, plan contract and rf tool for every Reelforge video project. Load first in any analyse, plan or revise stage.
+description: Shared rules, plan contract and the rf tool for every Reelforge video project. Load first in any analyse, plan or revise stage, before the preset skill.
 ---
 
 # video-core
 
-(Filled in by Plan 3 Tasks 4–7.)
+You are planning a video inside a Reelforge project folder. The app renders; you decide. Your output is always a
+`plan.json` stored with `rf save`, never a video file.
+
+## The three stages
+
+The app starts you with one of these in the prompt:
+
+| Stage | You do | You finish with |
+|---|---|---|
+| **analyse** | Inventory `inputs/`, run the preset's analysis steps, write results under `analysis/` | A short summary in the reply. No plan. |
+| **plan** | Write `plan.json` from the analysis, using only the ticked option cards | `rf validate` clean, then `rf save plan.json --request "first cut"` |
+| **revise** | Apply the user's request (and their hand edits) to the latest version | `rf save plan.json --parent <n> --request "<what changed>"` |
+
+The preset skill (`reel-faceless`, `reel-talking-head` or `app-video`) says what "analysis" and "plan" mean for
+that kind of video. Read this skill first, then that one.
+
+## Everything mechanical is an `rf` command
+
+`rf` lives in the project folder (`rf.cmd` on Windows). Every command prints one JSON object, and exits 1 with
+`{"error": …}` when something is wrong. Read the error, fix the input and run it again. Never work around rf with
+your own ffmpeg or Python, unless a preset skill tells you to.
+
+| Command | What it gives you |
+|---|---|
+| `rf project` | The project (preset, ratios, language, option cards), learned preferences, versions |
+| `rf probe <file>` | Duration, size, rotation, fps, colour range, audio |
+| `rf sheet <video> <out.jpg> --every <s>` | A timestamped contact sheet to read as an image (much cheaper than frames) |
+| `rf cuts <video>` | Scene-change times (pacing of a reference reel) |
+| `rf transcribe <audio> --lang <tr\|en\|auto> --prompt "<names>"` | Word-level timestamps. Seed `--prompt` with proper nouns |
+| `rf prep <src> <out> --from <s> --duration <s> --ratio <r> --fps <30\|60> [--crop <crop.json>]` | A working clip (BT.709, colour untouched) |
+| `rf trims <transcript.json>` | Kept ranges after cutting dead air between words |
+| `rf facetrack <video> <out.json>` | Face boxes over time |
+| `rf crop <track.json> --ratio <r>` | The widest crop window for the ratio that keeps the face in frame |
+| `rf logo <name>` | The official logo of a named product, written into `assets/si/` (or `{found:false}`) |
+| `rf beats <audio>` | Tempo, beat times and the drop of a music track |
+| `rf validate <plan.json>` | Every contract and selection error in the plan |
+| `rf gaps <plan.json>` | Stretches longer than 3 s with nothing visual happening |
+| `rf save <plan.json> [--parent <n>] [--request <text>]` | Validates and stores a new version. The app then renders a draft |
+
+## Hard limits
+
+- Never render. Never write outside the project folder. Never modify anything in `inputs/`.
+- Use **only** the option cards listed in `CLAUDE.md` / `rf project`. `rf save` rejects anything else.
+- Reply in the project's language (it's in `CLAUDE.md`). Captions follow the *spoken* language of the footage.
+
+## References
+
+- [references/plan-contract.md](references/plan-contract.md): every field of `plan.json`, with a full example.
+- [references/rules.md](references/rules.md): hard rules, defaults, preferences.
+- [references/cards.md](references/cards.md): every card type, when to use it, timing and sound.
+- [references/assets.md](references/assets.md): logos, external images, and writing a `custom-animation`.
+- [references/music.md](references/music.md): suggesting music and aligning to its beats.
+- [references/qa.md](references/qa.md): what the app checks, and the one check you do yourself.
