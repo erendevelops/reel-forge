@@ -15,6 +15,9 @@ export const tr = {
   setup: {
     title: 'KURULUM',
     recheck: 'Tekrar kontrol et',
+    missing: 'bulunamadı',
+    tooOld: 'sürüm çok eski',
+    modelMissing: 'indirilmedi veya eksik',
     copy: 'Kopyala',
     downloadFaceModel: 'Yüz modelini indir (230 KB)',
     checks: {

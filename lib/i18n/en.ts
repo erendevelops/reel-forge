@@ -17,6 +17,9 @@ export const en: Dictionary = {
   setup: {
     title: 'SETUP',
     recheck: 'Check again',
+    missing: 'not found',
+    tooOld: 'version too old',
+    modelMissing: 'not downloaded or incomplete',
     copy: 'Copy',
     downloadFaceModel: 'Download face model (230 KB)',
     checks: {
