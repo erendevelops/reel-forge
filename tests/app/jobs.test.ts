@@ -2,7 +2,6 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { mkdtemp, rm, writeFile, mkdir } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { saveSettings } from '../../lib/app/settings';
 import { createProject, getProject } from '../../lib/app/workspace/store';
 import { projectDir } from '../../lib/app/workspace/paths';
 import { JobBusyError, cancelJob, listJobs, resumeJob, startJob, subscribe, type JobEvent } from '../../lib/app/jobs/jobs';
@@ -13,11 +12,12 @@ let ws: string;
 beforeEach(async () => {
   ws = await mkdtemp(path.join(os.tmpdir(), 'rf-jobs-'));
   process.env.REELFORGE_WORKSPACE = ws;
-  await saveSettings({ claudeBinary: `${process.execPath}|${FAKE}` });
+  process.env.REELFORGE_CLAUDE_BINARY = `${process.execPath}|${FAKE}`;
 });
 afterEach(async () => {
   delete process.env.FAKE_CLAUDE_MODE;
   delete process.env.REELFORGE_WORKSPACE;
+  delete process.env.REELFORGE_CLAUDE_BINARY;
   await rm(ws, { recursive: true, force: true });
 });
 

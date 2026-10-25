@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { getSettings } from '@/lib/app/settings';
+import { claudeCommand, getSettings } from '@/lib/app/settings';
 import { downloadFaceModel, runChecks } from '@/lib/app/setup/checks';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const { language, claudeBinary } = await getSettings();
-  return NextResponse.json(await runChecks({ lang: language, claudeBinary }));
+  const { language } = await getSettings();
+  return NextResponse.json(await runChecks({ lang: language, claudeBinary: await claudeCommand() }));
 }
 
 const Body = z.object({ action: z.literal('download-face-model') });

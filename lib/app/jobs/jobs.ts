@@ -3,7 +3,7 @@ import { appendFile, mkdir, readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { DEFAULT_ALLOWED_TOOLS, runClaude } from '@/lib/app/claude/run';
 import type { ClaudeEvent } from '@/lib/app/claude/events';
-import { getSettings } from '@/lib/app/settings';
+import { claudeCommand } from '@/lib/app/settings';
 import { projectDir } from '@/lib/app/workspace/paths';
 import { getProject, updateProject } from '@/lib/app/workspace/store';
 
@@ -49,7 +49,7 @@ const isTerminal = (e: JobEvent) => e.type === 'state' && e.state !== 'running';
 registerExecutor('claude', async ({ projectId, spec, emit, signal }) => {
   const s = spec as ClaudeJobSpec;
   const project = await getProject(projectId);
-  const { claudeBinary } = await getSettings();
+  const claudeBinary = await claudeCommand();
   let error: Extract<ClaudeEvent, { kind: 'error' }> | null = null;
   const res = await runClaude({
     binary: claudeBinary,
