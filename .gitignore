@@ -3,3 +3,4 @@ node_modules/
 out/
 *.mp4
 !tests/fixtures/*.mp4
+tools/models/

@@ -52,6 +52,40 @@ describe('prepareClip', () => {
     expect(Math.abs(a.yavg - b.yavg)).toBeLessThanOrEqual(3);
   });
 
+  it('prepareClip applies crop path', async () => {
+    const src = await makeClip(dir, { w: 1920, h: 1080, fps: 30, seconds: 3 });
+    const out = path.join(dir, 'c.mp4');
+    const crop = [
+      { t: 0, x: 200, y: 0, w: 608, h: 1080 },
+      { t: 0.5, x: 230, y: 0, w: 608, h: 1080 },
+      { t: 1.0, x: 260, y: 0, w: 608, h: 1080 },
+    ];
+    await prepareClip(src, out, { from: 0, duration: 1.5, width: 1080, height: 1920, fps: 30, crop });
+    const p = await probe(out);
+    expect([p.width, p.height]).toEqual([1080, 1920]);
+    expect(p.colorSpace).toBe('bt709');
+    expect(p.colorRange).toBe('tv');
+  });
+
+  it('crop path moves the window over time', async () => {
+    // left half white, right half black: a window at x=0 is white, one at the right edge is black
+    const src = path.join(dir, 'halves.mp4');
+    await run('ffmpeg', [
+      '-y', '-v', 'error',
+      '-f', 'lavfi', '-i', 'color=c=white:s=960x1080:r=30:d=3',
+      '-f', 'lavfi', '-i', 'color=c=black:s=960x1080:r=30:d=3',
+      '-filter_complex', '[0:v][1:v]hstack,format=yuv420p', '-c:v', 'libx264', '-preset', 'ultrafast', src,
+    ]);
+    const out = path.join(dir, 'cm.mp4');
+    const crop = [
+      { t: 0, x: 0, y: 0, w: 608, h: 1080 },
+      { t: 1.0, x: 1312, y: 0, w: 608, h: 1080 },
+    ];
+    await prepareClip(src, out, { from: 0, duration: 2, width: 270, height: 480, fps: 30, crop });
+    expect((await lumaStats(out, 0.4, 54, 96)).yavg).toBeGreaterThan(200);
+    expect((await lumaStats(out, 1.5, 54, 96)).yavg).toBeLessThan(40);
+  });
+
   it('upsamples 30fps', async () => {
     const src = await makeClip(dir, { w: 1920, h: 1080, fps: 30, seconds: 4 });
     const out = path.join(dir, 'u.mp4');

@@ -223,9 +223,9 @@ describe('compile', () => {
     expect(f.timeline).not.toContain('#nl-i1", { opacity: 0');
   });
 
-  it('unimplemented card types throw', () => {
+  it('card params are validated', () => {
     const ctx = { width: 1080, height: 1920, fps: 60, ratio: '9:16' as const, assetsUrl: (p: string) => p };
-    expect(() => cardRegistry['stamp'].render({ type: 'stamp', start: 0, end: 1, params: {} }, 'x', ctx)).toThrow('not implemented: stamp');
+    expect(() => cardRegistry['stamp'].render({ type: 'stamp', start: 0, end: 1, params: {} }, 'x', ctx)).toThrow();
   });
 
   it('recomposes per ratio', async () => {

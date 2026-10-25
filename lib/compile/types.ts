@@ -11,7 +11,13 @@ export type CompileContext = {
   ratio: Ratio;
   /** Maps a plan-relative asset path (e.g. `ext/logo.png`) to the URL used in the page. */
   assetsUrl: (p: string) => string;
+  /** Where the scene's graphics live, in px (split layout: the top half). Defaults to the whole frame. */
+  region?: Region;
 };
+
+export type Region = { x: number; y: number; w: number; h: number };
+
+export const regionOf = (ctx: CompileContext): Region => ctx.region ?? { x: 0, y: 0, w: ctx.width, h: ctx.height };
 
 export type CardTemplate = {
   type: CardType;

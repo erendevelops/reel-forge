@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import { run } from '../media/run';
-import type { Plan, Shot } from '../plan';
-import { type CompileContext, type Fragment, num, tlFromTo } from './types';
+import type { Layout, Plan, Scene, Shot } from '../plan';
+import { type CompileContext, type Fragment, type Region, num, sz, tlFromTo } from './types';
 
 /** Punch-in (reel doc §7.3): spring(damping 40, stiffness 120) × 0.08 is overdamped → smooth ease. */
 const PUNCH = { scale: 1.08, duration: 1.2, ease: 'power2.out' };
@@ -10,7 +10,71 @@ export function allShots(plan: Plan): Shot[] {
   return plan.scenes.flatMap((s) => s.shots);
 }
 
-/** Footage: one muted `<video class="clip">` per shot inside a wrapper the punch-in scales. */
+/** Talking-head layouts (onur.builds reel): beige graphics panel, face as a rounded card at the bottom. */
+export const LAYOUT_BG = '#F7F3EA';
+const FACE_RADIUS = 28;
+const FACE_WIDTH = 0.7;
+const LAYOUT_TWEEN = { duration: 0.4, ease: 'expo.out' };
+
+/** Position is a transform (x/y: sub-pixel, no layout snapping under frame seeking); size is width/height. */
+type FaceState = { x: number; y: number; width: number; height: number; borderRadius: number; opacity: number };
+
+const sceneLayout = (s: Scene): Layout => s.layout ?? 'full-face';
+
+/** Graphics region of a layout: `split` keeps graphics in the top 50%; every other layout uses the whole frame. */
+export function layoutRegion(layout: Layout | undefined, ctx: CompileContext): Region {
+  return layout === 'split' ? { x: 0, y: 0, w: ctx.width, h: ctx.height / 2 } : { x: 0, y: 0, w: ctx.width, h: ctx.height };
+}
+
+/** `prev` is the face geometry before this layout; `full-graphics` keeps it and only hides the face. */
+function faceState(layout: Layout, ctx: CompileContext, prev: FaceState | undefined): FaceState {
+  const full = { x: 0, y: 0, width: ctx.width, height: ctx.height, borderRadius: 0, opacity: 1 };
+  if (layout === 'split') {
+    const gap = sz(ctx, 40);
+    const w = FACE_WIDTH * ctx.width;
+    return { x: (ctx.width - w) / 2, y: ctx.height / 2 + gap, width: w, height: ctx.height / 2 - 2 * gap, borderRadius: FACE_RADIUS, opacity: 1 };
+  }
+  if (layout === 'full-graphics') return { ...(prev ?? full), opacity: 0 };
+  return full;
+}
+
+const bgOpacity = (layout: Layout) => (layout === 'split' || layout === 'full-graphics' ? 1 : 0);
+const same = (a: FaceState, b: FaceState) => (Object.keys(a) as (keyof FaceState)[]).every((k) => num(a[k]) === num(b[k]));
+
+/**
+ * Layout switching: the first scene's layout is the inline start state; every later change tweens the face
+ * wrapper (`#face`) and the beige panel (`#layout-bg`) over 0.4 s `expo.out` from the scene start.
+ */
+function renderLayouts(plan: Plan, ctx: CompileContext): { faceStyle: string; bg: string; css: string; timeline: string } {
+  const tl: string[] = [];
+  let face = faceState(sceneLayout(plan.scenes[0]), ctx, undefined);
+  let bg = bgOpacity(sceneLayout(plan.scenes[0]));
+  const init = face;
+  const initBg = bg;
+  for (const s of plan.scenes.slice(1)) {
+    const next = faceState(sceneLayout(s), ctx, face);
+    const nextBg = bgOpacity(sceneLayout(s));
+    if (!same(face, next)) tl.push(tlFromTo('#face', face, { ...next, ...LAYOUT_TWEEN, immediateRender: false }, s.start));
+    if (bg !== nextBg) tl.push(tlFromTo('#layout-bg', { opacity: bg }, { opacity: nextBg, ...LAYOUT_TWEEN, immediateRender: false }, s.start));
+    face = next;
+    bg = nextBg;
+  }
+  const usesPanel = plan.scenes.some((s) => bgOpacity(sceneLayout(s)) === 1);
+  const faceStyle =
+    `transform: translate(${num(init.x)}px, ${num(init.y)}px); width: ${num(init.width)}px; height: ${num(init.height)}px; ` +
+    `border-radius: ${num(init.borderRadius)}px; opacity: ${num(init.opacity)};`;
+  return {
+    faceStyle,
+    bg: usesPanel ? `<div id="layout-bg" style="opacity: ${initBg};"></div>` : '',
+    css: [
+      '#face { position: absolute; left: 0; top: 0; z-index: 1; overflow: hidden; }',
+      usesPanel ? `#layout-bg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; z-index: 0; background: ${LAYOUT_BG}; }` : '',
+    ].filter(Boolean).join('\n'),
+    timeline: tl.join('\n'),
+  };
+}
+
+/** Footage: one muted `<video class="clip">` per shot inside a wrapper the punch-in scales, all inside `#face`. */
 export function renderFootage(plan: Plan, ctx: CompileContext): Fragment {
   const html: string[] = [];
   const tl: string[] = [];
@@ -28,13 +92,15 @@ export function renderFootage(plan: Plan, ctx: CompileContext): Fragment {
       if (d > 0) tl.push(tlFromTo(`#${id}`, { scale: 1 }, { scale: PUNCH.scale, duration: d, ease: PUNCH.ease }, sh.punch));
     }
   });
+  const lay = renderLayouts(plan, ctx);
   return {
-    html: html.join('\n'),
+    html: [lay.bg, `<div id="face" style="${lay.faceStyle}">`, ...html, '</div>'].filter(Boolean).join('\n'),
     css: [
+      lay.css,
       '.shot { position: absolute; left: 0; top: 0; width: 100%; height: 100%; z-index: 1; overflow: hidden; }',
       '.shot video.clip { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; }',
     ].join('\n'),
-    timeline: tl.join('\n'),
+    timeline: [lay.timeline, ...tl].filter(Boolean).join('\n'),
   };
 }
 

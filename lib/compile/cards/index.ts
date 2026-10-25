@@ -4,6 +4,12 @@ import type { CardTemplate } from '../types';
 import { titleCard } from './title-card';
 import { numberedList } from './numbered-list';
 import { logoPop } from './logo-pop';
+import { rollingNumber } from './rolling-number';
+import { checklist } from './checklist';
+import { stamp } from './stamp';
+import { barChart } from './bar-chart';
+import { typedTitle } from './typed-title';
+import { followOutro } from './follow-outro';
 
 function notImplemented(type: CardType): CardTemplate {
   return {
@@ -19,6 +25,12 @@ const implemented: Partial<Record<CardType, CardTemplate>> = {
   'title-card': titleCard,
   'numbered-list': numberedList,
   'logo-pop': logoPop,
+  'rolling-number': rollingNumber,
+  checklist,
+  stamp,
+  'bar-chart': barChart,
+  'typed-title': typedTitle,
+  'follow-outro': followOutro,
 };
 
 export const cardRegistry: Record<CardType, CardTemplate> = Object.fromEntries(

@@ -6,8 +6,8 @@ import { fileURLToPath } from 'node:url';
 import type { Card, CardType, Plan, Ratio } from '../plan';
 import { cardRegistry } from './cards';
 import { renderCaptions } from './captions';
-import { audioDuration, renderFootage, renderMusic, renderSfx, renderVoice } from './layers';
-import { type CompileContext, type Fragment, RATIO_SIZE, num } from './types';
+import { audioDuration, layoutRegion, renderFootage, renderMusic, renderSfx, renderVoice } from './layers';
+import { type CompileContext, type Fragment, type Region, RATIO_SIZE, num } from './types';
 
 export * from './types';
 export { cardRegistry } from './cards';
@@ -102,7 +102,7 @@ export async function compile(plan: Plan, o: CompileOptions): Promise<{ indexHtm
   if (!o.overlayOnly) frags.push(renderFootage(plan, ctx));
 
   // cards: stable layer order, then plan order
-  const cards: { card: Card; id: string; layer: number; seq: number }[] = [];
+  const cards: { card: Card; id: string; layer: number; seq: number; region: Region }[] = [];
   const sceneSlugs = new Set<string>();
   plan.scenes.forEach((scene, si) => {
     let s = slug(scene.id);
@@ -118,11 +118,12 @@ export async function compile(plan: Plan, o: CompileOptions): Promise<{ indexHtm
         id: `${s}-${card.type}-${k}`,
         layer: CARD_LAYER[card.type] ?? 1,
         seq: cards.length,
+        region: layoutRegion(scene.layout, ctx),
       });
     }
   });
   cards.sort((a, b) => a.layer - b.layer || a.seq - b.seq);
-  for (const c of cards) frags.push(cardRegistry[c.card.type].render(c.card, c.id, ctx));
+  for (const c of cards) frags.push(cardRegistry[c.card.type].render(c.card, c.id, { ...ctx, region: c.region }));
   frags.push(renderCaptions(plan.captions, ctx));
 
   const sfxDur = await Promise.all(plan.sfx.map((c) => audioDuration(resolveAsset(normAsset(c.file), o.assetsDir))));
