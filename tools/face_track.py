@@ -74,8 +74,12 @@ def main() -> None:
     aw = min(ANALYSIS_W, w) // 2 * 2
     ah = max(2, round(aw * h / w / 2) * 2)
 
+    # MediaPipe's native loader can't open non-ASCII paths (e.g. Masaüstü) on Windows: hand it the bytes instead.
+    # The video is never opened natively either: ffmpeg (argv via CreateProcessW) decodes it into numpy frames.
+    with open(a.model, "rb") as f:
+        model_bytes = f.read()
     detector = FaceDetector.create_from_options(
-        FaceDetectorOptions(base_options=BaseOptions(model_asset_path=a.model), min_detection_confidence=0.5)
+        FaceDetectorOptions(base_options=BaseOptions(model_asset_buffer=model_bytes), min_detection_confidence=0.5)
     )
     boxes = []
     for i, rgb in enumerate(frames(a.video, a.fps, aw, ah)):
