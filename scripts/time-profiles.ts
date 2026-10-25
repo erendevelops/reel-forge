@@ -27,7 +27,8 @@ try {
     captions: { style: 'none', groups: [] }, sfx: [], voice: { src: 'vo.wav' },
   });
   if (!v.ok) throw new Error(v.errors.join('\n'));
-  for (const profile of ['draft', 'final'] as const) {
+  // final first, so draft doesn't benefit from the warm HyperFrames/Chrome cache
+  for (const profile of ['final', 'draft'] as const) {
     const t0 = Date.now();
     await renderLayered(v.plan, { assetsDir: assets, workDir: path.join(tmp, `work-${profile}`), out: path.join(tmp, `${profile}.mp4`), ratio: '9:16', profile });
     console.log(`${profile}: ${((Date.now() - t0) / 1000).toFixed(1)} s`);

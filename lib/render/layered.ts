@@ -10,7 +10,7 @@ import { LAYOUT_TWEEN_S, sceneFaces, type FaceState } from '../compile/layers';
 import { punchScaleExpr } from '../compile/punch';
 import type { Plan, Ratio } from '../plan';
 import { render } from './render';
-import { baseEncodeArgs, compositeEncodeArgs, type RenderProfile } from './profiles';
+import { baseEncodeArgs, compositeEncodeArgs, profilePlan, type RenderProfile } from './profiles';
 
 export interface LayeredOpts {
   assetsDir: string;
@@ -170,7 +170,8 @@ async function buildAudio(plan: Plan, o: LayeredOpts, out: string): Promise<void
  * Primary render path (the spikes' decision): footage encoded as a plain base track, HyperFrames renders cards/captions as a ProRes 4444
  * alpha overlay, ffmpeg composites (`overlay=format=auto`, yuva420p so base luma never round-trips through RGB).
  */
-export async function renderLayered(plan: Plan, o: LayeredOpts): Promise<LayeredResult> {
+export async function renderLayered(input: Plan, o: LayeredOpts): Promise<LayeredResult> {
+  const plan = profilePlan(input, o.profile ?? 'final');
   const [w, h] = RATIO_SIZE[o.ratio];
   await fs.mkdir(o.workDir, { recursive: true });
   const base = path.join(o.workDir, 'base.mkv');

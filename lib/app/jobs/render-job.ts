@@ -5,7 +5,7 @@ import { run } from '@/lib/media/run';
 import { renderLayered } from '@/lib/render/layered';
 import { expectsAudio, qa, type QaReport } from '@/lib/render/qa';
 import { RATIO_SIZE } from '@/lib/compile';
-import { PROFILES, type RenderProfile } from '@/lib/render/profiles';
+import { PROFILES, profilePlan, type RenderProfile } from '@/lib/render/profiles';
 import type { Plan, Ratio } from '@/lib/plan';
 import { writeJson } from '@/lib/app/workspace/files';
 import { projectDir, versionDir } from '@/lib/app/workspace/paths';
@@ -75,9 +75,10 @@ export async function runRenderJob(
     if (PROFILES[profile].qa === 'full') {
       emit({ type: 'progress', step: `${ratio} qa` });
       const [width, height] = RATIO_SIZE[ratio];
+      const fps = profilePlan(plan, profile).fps;
       const report = await deps.qa(out, {
-        fps: plan.fps,
-        frames: Math.round(plan.duration * plan.fps),
+        fps,
+        frames: Math.round(plan.duration * fps),
         duration: plan.duration,
         width,
         height,

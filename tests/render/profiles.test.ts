@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import { PROFILES, hfRenderArgs } from '../../lib/render/profiles';
+import { PROFILES, hfRenderArgs, profilePlan } from '../../lib/render/profiles';
 import { baseArgs, compositeArgs } from '../../lib/render/layered';
 import { validatePlan } from '../../lib/plan';
 
@@ -53,6 +53,14 @@ describe('render profiles', () => {
       // Never a colour filter on footage, in any profile.
       expect(base.join(' ')).not.toMatch(/\beq=|lut|colorbalance|curves/);
     }
+  });
+
+  it('draft renders at most 30 fps; final keeps the plan fps', () => {
+    expect(profilePlan(plan, 'draft').fps).toBe(30);
+    expect(profilePlan(plan, 'final').fps).toBe(60);
+    expect(profilePlan({ ...plan, fps: 30 }, 'draft').fps).toBe(30);
+    const base = baseArgs(profilePlan(plan, 'draft'), { ...opts, profile: 'draft' }, 1080, 1920, 'b.mkv');
+    expect(base.join(' ')).toContain(':r=30:');
   });
 
   it('an explicit crf still overrides the profile composite crf', () => {

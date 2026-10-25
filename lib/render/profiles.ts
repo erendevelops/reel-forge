@@ -38,3 +38,10 @@ export function compositeEncodeArgs(profile: RenderProfile, crf?: number): strin
 export function hfRenderArgs(profile: RenderProfile): string[] {
   return ['--quality', PROFILES[profile].hfQuality];
 }
+
+/** Most render time is per-frame capture, so draft halves the frame count: at most 30 fps. Final keeps the plan's fps. */
+export const DRAFT_MAX_FPS = 30;
+
+export function profilePlan<P extends { fps: 30 | 60 }>(plan: P, profile: RenderProfile): P {
+  return profile === 'draft' && plan.fps > DRAFT_MAX_FPS ? { ...plan, fps: DRAFT_MAX_FPS } : plan;
+}
