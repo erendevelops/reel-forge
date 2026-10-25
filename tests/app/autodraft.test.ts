@@ -50,6 +50,21 @@ describe('auto-draft', () => {
     expect(renders).toEqual([{ kind: 'render', version: 1, profile: 'draft' }]);
   }, 60000);
 
+  it('claude jobs see the project folder first on PATH and a fresh CLAUDE.md', async () => {
+    process.env.FAKE_CLAUDE_MODE = 'env';
+    const p = await createProject({ name: 'envp', mode: 'reel', preset: 'faceless', ratios: ['9:16'], lang: 'en', inputs: [] });
+    const { updateProject } = await import('../../lib/app/workspace/store');
+    await updateProject(p.id, { selection: { ...p.selection!, cards: ['title-card'] } });
+    const { jobId } = await startJob(p.id, { kind: 'claude', prompt: 'x' });
+    const events = await until(p.id, jobId);
+    const texts = events.flatMap((e) => (e.type === 'claude' && e.event.kind === 'text' ? [e.event.text] : []));
+    const { projectDir } = await import('../../lib/app/workspace/paths');
+    expect(path.resolve(texts.find((t) => t.startsWith('path0: '))!.slice(7))).toBe(path.resolve(projectDir(p.id)));
+    const md = texts.find((t) => t.startsWith('claudemd: '))!;
+    expect(md).toContain('Cards: title-card');
+    expect(md).not.toContain('numbered-list');
+  });
+
   it('no version is saved when the job fails before rf save', async () => {
     process.env.FAKE_CLAUDE_MODE = 'limit';
     const p = await createProject({ name: 'ad2', mode: 'reel', preset: 'faceless', ratios: ['9:16'], lang: 'en', inputs: [] });

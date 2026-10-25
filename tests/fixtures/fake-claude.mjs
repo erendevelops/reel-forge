@@ -40,6 +40,14 @@ process.stdin.on('end', async () => {
     out({ type: 'result', subtype: 'success', is_error: r.status !== 0, result: r.stdout.trim(), session_id: sid });
     process.exit(r.status ?? 1);
   }
+  if (mode === 'env') {
+    const { readFileSync } = await import('node:fs');
+    const sep = process.platform === 'win32' ? ';' : ':';
+    out({ type: 'assistant', message: { content: [{ type: 'text', text: `path0: ${(process.env.PATH ?? process.env.Path ?? '').split(sep)[0]}` }] } });
+    out({ type: 'assistant', message: { content: [{ type: 'text', text: `claudemd: ${readFileSync('CLAUDE.md', 'utf8')}` }] } });
+    out({ type: 'result', subtype: 'success', is_error: false, result: 'ok', session_id: sid });
+    process.exit(0);
+  }
   if (mode === 'hang') {
     setInterval(() => {}, 1000);
     return;

@@ -1,7 +1,7 @@
 import { cp, mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import type { Selection } from '@/lib/plan/schema';
-import { REPO_ROOT, repoPath } from '@/lib/root';
+import { repoPath } from '@/lib/root';
 import type { Preferences, Preset, Project } from '@/lib/app/workspace/schema';
 
 export const PRESET_SKILL: Record<Preset, string> = {
@@ -64,6 +64,10 @@ export function claudeMd(project: Project, prefs: Preferences): string {
   ].join('\n');
 }
 
+export async function writeClaudeMd(project: Project, prefs: Preferences, dir: string): Promise<void> {
+  await writeFile(path.join(dir, 'CLAUDE.md'), claudeMd(project, prefs), 'utf8');
+}
+
 /** Copies video-core + the preset skill into the project, writes CLAUDE.md and the `rf` shims. */
 export async function installSkills(project: Project, prefs: Preferences, dir: string): Promise<void> {
   const skills = path.join(dir, '.claude', 'skills');
@@ -71,12 +75,11 @@ export async function installSkills(project: Project, prefs: Preferences, dir: s
   for (const name of ['video-core', PRESET_SKILL[project.preset]]) {
     await cp(repoPath('skills', name), path.join(skills, name), { recursive: true });
   }
-  await writeFile(path.join(dir, 'CLAUDE.md'), claudeMd(project, prefs), 'utf8');
+  await writeClaudeMd(project, prefs, dir);
   const tsx = repoPath('node_modules', 'tsx', 'dist', 'cli.mjs');
   const tsconfig = repoPath('tsconfig.json');
   const rf = repoPath('scripts', 'rf.ts');
   // tsx resolves the @/ alias from --tsconfig: rf runs with cwd = this project folder.
   await writeFile(path.join(dir, 'rf.cmd'), `@echo off\r\nnode "${tsx}" --tsconfig "${tsconfig}" "${rf}" %*\r\n`, 'utf8');
   await writeFile(path.join(dir, 'rf'), `#!/bin/sh\nexec node "${tsx}" --tsconfig "${tsconfig}" "${rf}" "$@"\n`, { encoding: 'utf8', mode: 0o755 });
-  void REPO_ROOT;
 }

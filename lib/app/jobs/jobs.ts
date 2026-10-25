@@ -5,7 +5,8 @@ import { DEFAULT_ALLOWED_TOOLS, runClaude } from '@/lib/app/claude/run';
 import type { ClaudeEvent } from '@/lib/app/claude/events';
 import { claudeCommand } from '@/lib/app/settings';
 import { projectDir } from '@/lib/app/workspace/paths';
-import { getProject, listVersions, updateProject } from '@/lib/app/workspace/store';
+import { getPreferences, getProject, listVersions, updateProject } from '@/lib/app/workspace/store';
+import { writeClaudeMd } from '@/lib/app/claude/install';
 import { workspaceDir } from '@/lib/app/workspace/paths';
 import { REPO_ROOT } from '@/lib/root';
 
@@ -58,6 +59,11 @@ registerExecutor('claude', async ({ projectId, spec, emit, signal }) => {
   const project = await getProject(projectId);
   const claudeBinary = await claudeCommand();
   const before = (await listVersions(projectId)).length;
+  // The brief must match the current option cards and preferences, which change after creation.
+  await writeClaudeMd(project, await getPreferences(), projectDir(projectId));
+  // Git Bash (Claude's shell on Windows) only runs `rf` if the project folder is on PATH.
+  const pathKey = Object.keys(process.env).find((k) => k.toUpperCase() === 'PATH') ?? 'PATH';
+  const sep = process.platform === 'win32' ? ';' : ':';
   let error: Extract<ClaudeEvent, { kind: 'error' }> | null = null;
   const res = await runClaude({
     binary: claudeBinary,
@@ -68,7 +74,12 @@ registerExecutor('claude', async ({ projectId, spec, emit, signal }) => {
     timeoutMs: CLAUDE_TIMEOUT_MS,
     signal,
     // rf (the skills' tool) finds its project and the repo through these.
-    env: { REELFORGE_PROJECT: projectId, REELFORGE_WORKSPACE: workspaceDir(), REELFORGE_ROOT: REPO_ROOT },
+    env: {
+      REELFORGE_PROJECT: projectId,
+      REELFORGE_WORKSPACE: workspaceDir(),
+      REELFORGE_ROOT: REPO_ROOT,
+      [pathKey]: `${projectDir(projectId)}${sep}${process.env[pathKey] ?? ''}`,
+    },
     onEvent: (event) => {
       if (event.kind === 'error') error = event;
       emit({ type: 'claude', event });
