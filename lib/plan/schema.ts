@@ -89,6 +89,8 @@ export const MusicSchema = z.object({
 /** A BCP-47 language tag (`tr`, `en`, `en-US`): the spoken language of the footage, which captions follow (spec §7). */
 export const LangSchema = z.string().regex(/^[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/, 'must be a BCP-47 language tag such as "tr" or "en"');
 
+const Hex = z.string().regex(/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/, 'must be a hex colour (#rgb or #rrggbb)');
+
 export const PlanSchema = z.object({
   version: z.literal(1),
   /** Emitted as `<html lang>`, so CSS text-transform (uppercase card labels) cases per language (Turkish i → İ). */
@@ -103,6 +105,8 @@ export const PlanSchema = z.object({
   sfx: z.array(SfxCueSchema),
   voice: z.object({ src: z.string().min(1) }).optional(),
   music: MusicSchema.optional(),
+  /** Panel colours behind graphics (split/full-graphics). Required for app videos: the brand's own ground and ink. */
+  look: z.object({ background: Hex, ink: Hex.optional() }).optional(),
 });
 
 export type Selection = z.infer<typeof SelectionSchema>;

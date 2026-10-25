@@ -27,6 +27,7 @@ export function validatePlan(input: unknown): ValidationResult {
   }
   const plan = parsed.data;
   const errors: string[] = [];
+  if (plan.mode === 'app' && !plan.look?.background) errors.push('app videos need look.background (the brand ground colour)');
 
   // 1. selection
   const sel = plan.selection;

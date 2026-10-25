@@ -10,6 +10,8 @@ export function allShots(plan: Plan): Shot[] {
 
 /** Talking-head layouts (onur.builds reel): beige graphics panel, face as a rounded card at the bottom. */
 export const LAYOUT_BG = '#F7F3EA';
+/** The graphics panel colour: the plan's look (app videos: brand ground), else the talking-head beige. */
+export const panelColour = (plan: { look?: { background: string } }) => plan.look?.background ?? LAYOUT_BG;
 const FACE_RADIUS = 28;
 /** Widest the split face card may be, as a fraction of the frame width. */
 const FACE_MAX_WIDTH = 0.92;
@@ -99,7 +101,7 @@ function renderLayouts(plan: Plan, ctx: CompileContext): { faceStyle: string; bg
     bg: usesPanel ? `<div id="layout-bg" style="opacity: ${initBg};"></div>` : '',
     css: [
       '#face { position: absolute; left: 0; top: 0; z-index: 1; overflow: hidden; }',
-      usesPanel ? `#layout-bg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; z-index: 0; background: ${LAYOUT_BG}; }` : '',
+      usesPanel ? `#layout-bg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; z-index: 0; background: ${panelColour(plan)}; }` : '',
     ].filter(Boolean).join('\n'),
     timeline: tl.join('\n'),
   };
@@ -145,8 +147,8 @@ export function renderLayoutMask(plan: Plan, ctx: CompileContext): Fragment {
       `<div id="layout-cover" style="opacity: ${num(1 - i.opacity)};"></div>`,
     ].join(NL),
     css: [
-      `#face-hole { position: absolute; left: 0; top: 0; z-index: 2; box-shadow: 0 0 0 ${spread}px ${LAYOUT_BG}; }`,
-      `#layout-cover { position: absolute; left: 0; top: 0; width: 100%; height: 100%; z-index: 2; background: ${LAYOUT_BG}; }`,
+      `#face-hole { position: absolute; left: 0; top: 0; z-index: 2; box-shadow: 0 0 0 ${spread}px ${panelColour(plan)}; }`,
+      `#layout-cover { position: absolute; left: 0; top: 0; width: 100%; height: 100%; z-index: 2; background: ${panelColour(plan)}; }`,
     ].join(NL),
     timeline: tl.join(NL),
   };
