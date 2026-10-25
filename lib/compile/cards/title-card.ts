@@ -1,12 +1,13 @@
 import { z } from 'zod';
 import type { Card } from '../../plan';
 import { type CardTemplate, type CompileContext, YELLOW, WHITE, clipDiv, esc, fy, num, sz, tlFromTo } from '../types';
-import { TOOL_ICON_CSS, toolIcon } from './icon';
+import { LogoFraming, TOOL_ICON_CSS, toolIcon } from './icon';
 
 const Params = z.object({
   n: z.number().int().nonnegative(),
   name: z.string().min(1),
   logo: z.string().min(1).optional(),
+  ...LogoFraming,
 });
 
 /** Spring(damping 12, stiffness 200) on scale 0.6→1 ≈ back.out(2.5) over 0.45 s. */
@@ -27,7 +28,7 @@ export const titleCard: CardTemplate = {
     const badge = sz(ctx, 64);
     const inner =
       `<div class="tc-inner" style="margin-top: ${num(-fy(ctx, 260))}px; gap: ${num(sz(ctx, 26))}px;">` +
-      `<div class="tc-icon">${toolIcon(ctx, p.logo, sz(ctx, 140), p.name)}` +
+      `<div class="tc-icon">${toolIcon(ctx, p.logo, sz(ctx, 140), p.name, p)}` +
       `<div class="tc-badge" style="left: ${num(-sz(ctx, 22))}px; top: ${num(-sz(ctx, 22))}px; width: ${num(badge)}px; height: ${num(badge)}px; border-radius: ${num(badge / 2)}px; font-size: ${num(sz(ctx, 40))}px;">${p.n}</div></div>` +
       `<div class="tc-name" style="letter-spacing: ${num(-sz(ctx, 3))}px; font-size: ${num(sz(ctx, fontPx))}px;">${esc(p.name)}</div>` +
       `</div>`;

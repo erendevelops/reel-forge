@@ -134,7 +134,8 @@
           "params": {
             "n": 1,
             "name": "Fooocus",
-            "logo": "ext/fooocus_1.png"
+            "logo": "ext/fooocus_1.png",
+            "logoPosition": "25% 20%"
           }
         },
         {
@@ -147,6 +148,7 @@
                 "n": 1,
                 "name": "Fooocus",
                 "logo": "ext/fooocus_1.png",
+                "logoPosition": "25% 20%",
                 "at": 7.4667
               }
             ],
@@ -178,7 +180,8 @@
           "params": {
             "n": 2,
             "name": "Whisper",
-            "logo": "ext/openai_white.svg"
+            "logo": "ext/openai_white.svg",
+            "logoFit": "contain"
           }
         },
         {
@@ -191,12 +194,14 @@
                 "n": 1,
                 "name": "Fooocus",
                 "logo": "ext/fooocus_1.png",
+                "logoPosition": "25% 20%",
                 "at": 7.4667
               },
               {
                 "n": 2,
                 "name": "Whisper",
                 "logo": "ext/openai_white.svg",
+                "logoFit": "contain",
                 "at": 11.9167
               }
             ],
@@ -247,12 +252,14 @@
                 "n": 1,
                 "name": "Fooocus",
                 "logo": "ext/fooocus_1.png",
+                "logoPosition": "25% 20%",
                 "at": 7.4667
               },
               {
                 "n": 2,
                 "name": "Whisper",
                 "logo": "ext/openai_white.svg",
+                "logoFit": "contain",
                 "at": 11.9167
               },
               {
@@ -309,12 +316,14 @@
                 "n": 1,
                 "name": "Fooocus",
                 "logo": "ext/fooocus_1.png",
+                "logoPosition": "25% 20%",
                 "at": 7.4667
               },
               {
                 "n": 2,
                 "name": "Whisper",
                 "logo": "ext/openai_white.svg",
+                "logoFit": "contain",
                 "at": 11.9167
               },
               {
@@ -378,12 +387,14 @@
                 "n": 1,
                 "name": "Fooocus",
                 "logo": "ext/fooocus_1.png",
+                "logoPosition": "25% 20%",
                 "at": 7.4667
               },
               {
                 "n": 2,
                 "name": "Whisper",
                 "logo": "ext/openai_white.svg",
+                "logoFit": "contain",
                 "at": 11.9167
               },
               {
@@ -436,12 +447,14 @@
                 "n": 1,
                 "name": "Fooocus",
                 "logo": "ext/fooocus_1.png",
+                "logoPosition": "25% 20%",
                 "at": 7.4667
               },
               {
                 "n": 2,
                 "name": "Whisper",
                 "logo": "ext/openai_white.svg",
+                "logoFit": "contain",
                 "at": 11.9167
               },
               {
@@ -485,16 +498,16 @@
           [
             "yapay",
             0.68
-          ]
-        ],
-        "end": 1.02
-      },
-      {
-        "words": [
+          ],
           [
             "zeka",
             1.02
-          ],
+          ]
+        ],
+        "end": 1.28
+      },
+      {
+        "words": [
           [
             "araçlarının",
             1.28
@@ -517,7 +530,7 @@
             2.76
           ],
           [
-            "var",
+            "var.",
             3.44
           ]
         ],
@@ -559,7 +572,7 @@
             5.34
           ],
           [
-            "derledim",
+            "derledim.",
             5.56
           ]
         ],
@@ -568,11 +581,11 @@
       {
         "words": [
           [
-            "Birincisi",
+            "Birincisi,",
             6.16
           ],
           [
-            "Fooocus",
+            "Fooocus.",
             6.6
           ]
         ],
@@ -585,7 +598,7 @@
             7.2
           ],
           [
-            "veriyorsunuz",
+            "veriyorsunuz,",
             7.54
           ]
         ],
@@ -602,7 +615,7 @@
             8.84
           ],
           [
-            "oluşturuyor",
+            "oluşturuyor,",
             9.08
           ]
         ],
@@ -615,7 +628,7 @@
             9.84
           ],
           [
-            "yok",
+            "yok.",
             10.18
           ]
         ],
@@ -624,11 +637,11 @@
       {
         "words": [
           [
-            "İkinci",
+            "İkinci,",
             10.66
           ],
           [
-            "Whisper",
+            "Whisper.",
             11.08
           ]
         ],
@@ -647,22 +660,22 @@
           [
             "dilde",
             12.08
-          ]
-        ],
-        "end": 12.44
-      },
-      {
-        "words": [
+          ],
           [
             "sesin",
             12.44
-          ],
+          ]
+        ],
+        "end": 12.9
+      },
+      {
+        "words": [
           [
             "transkriptini",
             12.9
           ],
           [
-            "alabiliyorsunuz",
+            "alabiliyorsunuz.",
             13.5
           ]
         ],
@@ -671,11 +684,11 @@
       {
         "words": [
           [
-            "Üçüncü",
+            "Üçüncü,",
             14.2
           ],
           [
-            "Upscayl",
+            "Upscayl.",
             14.68
           ]
         ],
@@ -705,7 +718,7 @@
             16.22
           ],
           [
-            "netleştiriyor",
+            "netleştiriyor.",
             16.9
           ]
         ],
@@ -714,11 +727,11 @@
       {
         "words": [
           [
-            "Dördüncü",
+            "Dördüncü,",
             18.02
           ],
           [
-            "Browser Use",
+            "Browser Use.",
             18.6
           ]
         ],
@@ -756,7 +769,7 @@
             21.48
           ],
           [
-            "sağlıyor",
+            "sağlıyor.",
             22.18
           ]
         ],
@@ -773,7 +786,7 @@
             23.04
           ],
           [
-            "favorim",
+            "favorim,",
             23.2
           ]
         ],
@@ -782,9 +795,14 @@
       {
         "words": [
           [
-            "VoiceStudio",
+            "VoiceStudio.",
             23.54
-          ],
+          ]
+        ],
+        "end": 24.6
+      },
+      {
+        "words": [
           [
             "646",
             24.6
@@ -792,29 +810,24 @@
           [
             "dilde",
             25.18
-          ]
-        ],
-        "end": 25.56
-      },
-      {
-        "words": [
+          ],
           [
             "ses",
             25.56
           ],
           [
-            "klonlayıp",
+            "klonlayıp,",
             25.78
-          ],
-          [
-            "videolara",
-            26.3
           ]
         ],
-        "end": 26.76
+        "end": 26.3
       },
       {
         "words": [
+          [
+            "videolara",
+            26.3
+          ],
           [
             "dublaj",
             26.76
@@ -824,7 +837,7 @@
             27.08
           ],
           [
-            "sağlıyor",
+            "sağlıyor.",
             27.58
           ]
         ],
@@ -841,7 +854,7 @@
             28.52
           ],
           [
-            "bırakıyorum",
+            "bırakıyorum.",
             28.82
           ]
         ],
@@ -883,7 +896,7 @@
             31.22
           ],
           [
-            "unutmayın",
+            "unutmayın.",
             31.48
           ]
         ],

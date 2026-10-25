@@ -4,13 +4,25 @@ import { run } from '../media/run';
 import { finishLoudness } from '../media/prepare';
 import { compile, RATIO_SIZE } from '../compile';
 import { allShots } from '../compile/layers';
+import { punchScaleExpr } from '../compile/punch';
 import type { Plan, Ratio } from '../plan';
 import { render } from './render';
 
-export interface LayeredOpts { assetsDir: string; workDir: string; out: string; ratio: Ratio }
+export interface LayeredOpts {
+  assetsDir: string;
+  workDir: string;
+  out: string;
+  ratio: Ratio;
+  /** x264 CRF of the delivered composite (the base track stays lossless ffv1). Default 10, v5's delivery setting (reel doc §8.1). */
+  crf?: number;
+}
 
-/** Same soft punch-in as compile/layers.ts: 1 -> 1.08 over min(1.2 s, remaining), power2.out. */
-const PUNCH = { scale: 1.08, duration: 1.2 };
+export interface LayeredResult {
+  /** Lossless footage-only base track (ffv1), kept for the footage luma gate (`QaExpect.lumaFile`). */
+  base: string;
+}
+
+export const DELIVERY_CRF = 10;
 
 const TV_TAGS = ['-color_range', 'tv', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-colorspace', 'bt709', '-x264-params', 'colorprim=bt709:transfer=bt709:colormatrix=bt709'];
 
@@ -31,13 +43,10 @@ function resolveAsset(assetsDir: string, rel: string): string {
 function shotChain(idx: number, label: string, sh: Plan['scenes'][number]['shots'][number], w: number, h: number): string {
   const dur = sh.to - sh.from;
   const f = [`trim=start=${n(sh.from)}:duration=${n(dur)}`, 'setpts=PTS-STARTPTS'];
-  if (sh.punch !== undefined) {
-    const d = Math.min(PUNCH.duration, sh.at + dur - sh.punch);
-    if (d > 0) {
-      const p = `clip((t-${n(sh.punch - sh.at)})/${n(d)},0,1)`;
-      const s = `(1+${n(PUNCH.scale - 1)}*(1-pow(1-${p},2)))`;
-      f.push(`scale=w='trunc(iw*${s}/2)*2':h='trunc(ih*${s}/2)*2':eval=frame:flags=bicubic`, `crop=${w}:${h}`);
-    }
+  if (sh.punch !== undefined && sh.punch < sh.at + dur) {
+    // the same v5 spring as the HTML layer (compile/punch.ts), evaluated per frame for the rest of the shot
+    const s = punchScaleExpr(sh.punch - sh.at);
+    f.push(`scale=w='trunc(iw*${s}/2)*2':h='trunc(ih*${s}/2)*2':eval=frame:flags=bicubic`, `crop=${w}:${h}`);
   }
   f.push(`setpts=PTS+${n(sh.at)}/TB`);
   return `[${idx}:v]${f.join(',')}[${label}]`;
@@ -103,7 +112,7 @@ async function buildAudio(plan: Plan, o: LayeredOpts, out: string): Promise<void
  * Fallback path: footage encoded as a plain base track, HyperFrames renders cards/captions as a ProRes 4444
  * alpha overlay, ffmpeg composites (`overlay=format=auto`, yuva420p so base luma never round-trips through RGB).
  */
-export async function renderLayered(plan: Plan, o: LayeredOpts): Promise<void> {
+export async function renderLayered(plan: Plan, o: LayeredOpts): Promise<LayeredResult> {
   const [w, h] = RATIO_SIZE[o.ratio];
   await fs.mkdir(o.workDir, { recursive: true });
   const base = path.join(o.workDir, 'base.mkv');
@@ -123,9 +132,10 @@ export async function renderLayered(plan: Plan, o: LayeredOpts): Promise<void> {
     '-y', '-v', 'error', '-i', base, '-i', ovl, '-i', mix,
     '-filter_complex', `[1:v]${BT709_TV},format=yuva420p[ov];`+'[0:v][ov]overlay=format=auto:eof_action=pass,format=yuv420p[v]',
     '-map', '[v]', '-map', '2:a', '-t', n(plan.duration),
-    '-c:v', 'libx264', '-preset', 'slow', '-crf', '4', '-g', '30', '-pix_fmt', 'yuv420p', ...TV_TAGS,
+    '-c:v', 'libx264', '-preset', 'slow', '-crf', String(o.crf ?? DELIVERY_CRF), '-g', '30', '-pix_fmt', 'yuv420p', ...TV_TAGS,
     '-c:a', 'pcm_s16le', comp,
   ], { timeoutMs: 30 * 60 * 1000 });
 
   await finishLoudness(comp, o.out, { I: -14, TP: -1.5 });
+  return { base };
 }

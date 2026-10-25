@@ -7,7 +7,7 @@ const FADE = 0.08;
 
 /**
  * Word-build captions (reel doc §7.3): words accumulate as spoken, each fades in over 0.08 s
- * with no scale or bounce, and only the newest word is yellow.
+ * with no scale or bounce, and only the newest word is yellow. Like v5, only spoken words are laid out.
  */
 export function renderCaptions(captions: Plan['captions'], ctx: CompileContext): Fragment {
   if (captions.style === 'none' || captions.groups.length === 0) return { html: '', css: '', timeline: '' };
@@ -17,7 +17,8 @@ export function renderCaptions(captions: Plan['captions'], ctx: CompileContext):
   const css = [
     `#captions { position: absolute; left: 0; top: ${Math.round(CAPTION_TOP * ctx.height)}px; width: 100%; z-index: 5; }`,
     `#captions .cap-group { position: absolute; left: 50%; top: 0; width: ${num(maxW)}px; margin-left: ${num(-maxW / 2)}px; text-align: center; font-family: 'Inter', sans-serif; font-weight: 800; font-size: ${num(sz(ctx, 66))}px; line-height: 1.15; color: ${WHITE}; text-shadow: 0 4px 18px rgba(0,0,0,0.9), 0 2px 4px rgba(0,0,0,0.8); }`,
-    `#captions .cap-word { display: inline-block; margin: 0 ${num(sz(ctx, 9))}px; opacity: 0; color: ${WHITE}; }`,
+    // unspoken words take no space (display: none), so the line re-centres as words arrive, as in v5
+    `#captions .cap-word { display: none; margin: 0 ${num(sz(ctx, 9))}px; opacity: 0; color: ${WHITE}; }`,
   ].join('\n');
 
   const groups: string[] = [];
@@ -27,10 +28,12 @@ export function renderCaptions(captions: Plan['captions'], ctx: CompileContext):
     const start = g.words[0][1];
     const spans = g.words
       .map(([w], wi) => `<span id="${gid}-w${wi + 1}" class="cap-word">${esc(w)}</span>`)
-      .join(' ');
+      // no whitespace between the inline-block words: the 9 px side margins are the whole gap (18 px), as in v5
+      .join('');
     groups.push(clipDiv(gid, start, g.end, 'cap-group', spans));
     g.words.forEach(([, t], wi) => {
       const sel = `#${gid}-w${wi + 1}`;
+      tl.push(tlSet(sel, { display: 'inline-block' }, t));
       tl.push(tlFromTo(sel, { opacity: 0 }, { opacity: 1, duration: FADE, ease: 'none' }, t));
       tl.push(tlSet(sel, { color: YELLOW }, t));
       if (wi > 0) tl.push(tlSet(`#${gid}-w${wi}`, { color: WHITE }, t));

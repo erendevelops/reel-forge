@@ -1,10 +1,8 @@
 import fs from 'node:fs/promises';
 import { run } from '../media/run';
 import type { Layout, Plan, Scene, Shot } from '../plan';
-import { type CompileContext, type Fragment, type Region, num, sz, tlFromTo } from './types';
-
-/** Punch-in (reel doc §7.3): spring(damping 40, stiffness 120) × 0.08 is overdamped → smooth ease. */
-const PUNCH = { scale: 1.08, duration: 1.2, ease: 'power2.out' };
+import { type CompileContext, type Fragment, type Region, num, sz, tlFromTo, vars } from './types';
+import { PUNCH, PUNCH_SETTLE, punchEaseJs } from './punch';
 
 export function allShots(plan: Plan): Shot[] {
   return plan.scenes.flatMap((s) => s.shots);
@@ -90,11 +88,15 @@ export function renderFootage(plan: Plan, ctx: CompileContext): Fragment {
         `data-media-start="${num(sh.from)}" data-track-index="0"${pos} src="${ctx.assetsUrl(sh.src)}"></video></div>`,
     );
     if (sh.punch !== undefined) {
-      const end = sh.at + dur;
-      const d = Math.min(PUNCH.duration, end - sh.punch);
-      if (d > 0) tl.push(tlFromTo(`#${id}`, { scale: 1 }, { scale: PUNCH.scale, duration: d, ease: PUNCH.ease }, sh.punch));
+      // v5 spring until it settles or the shot ends; the ease is the spring's own time curve (see punch.ts)
+      const d = Math.min(PUNCH_SETTLE, sh.at + dur - sh.punch);
+      if (d > 0) {
+        const to = vars({ scale: 1 + PUNCH.amount, duration: d }).replace(/ \}$/, `, ease: punchEase(${num(d)}) }`);
+        tl.push(`tl.fromTo(${JSON.stringify(`#${id}`)}, ${vars({ scale: 1 })}, ${to}, ${num(sh.punch)});`);
+      }
     }
   });
+  if (tl.length) tl.unshift(punchEaseJs());
   const lay = renderLayouts(plan, ctx);
   return {
     html: [lay.bg, `<div id="face" style="${lay.faceStyle}">`, ...html, '</div>'].filter(Boolean).join('\n'),

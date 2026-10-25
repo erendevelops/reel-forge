@@ -12,8 +12,18 @@ export interface QaExpect {
   width: number;
   height: number;
   lufs?: number;
+  /**
+   * Footage luma refs: frame `outT` of the measured file vs frame `srcT` of the working clip `src`, |Δ yavg| ≤ 3.
+   * The gate is about footage colour, so it must not see overlay pixels: measure a footage-only file (`lumaFile`,
+   * e.g. the layered path's lossless base track) and/or restrict both frames to an overlay-free `lumaRegion`.
+   */
   lumaRefs?: { src: string; srcT: number; outT: number }[];
+  /** File the luma refs are measured on instead of the deliverable (layered path: `renderLayered(...).base`). */
+  lumaFile?: string;
+  /** Fractions of the frame (0–1) both frames are cropped to before measuring; default the whole frame. */
+  lumaRegion?: LumaRegion;
 }
+export type LumaRegion = { x: number; y: number; w: number; h: number };
 export interface QaCheck { name: string; pass: boolean; detail: string }
 export interface QaReport { pass: boolean; checks: QaCheck[] }
 
@@ -55,13 +65,15 @@ async function loudnessCheck(file: string, target: number): Promise<QaCheck> {
 }
 
 async function lumaCheck(file: string, refs: NonNullable<QaExpect['lumaRefs']>, e: QaExpect): Promise<QaCheck> {
-  const w = Math.round(e.width / 4);
-  const h = Math.round(e.height / 4);
-  const parts: string[] = [];
+  const reg = e.lumaRegion;
+  const w = Math.max(2, Math.round((e.width * (reg?.w ?? 1)) / 4));
+  const h = Math.max(2, Math.round((e.height * (reg?.h ?? 1)) / 4));
+  const measured = e.lumaFile ?? file;
+  const parts: string[] = [`on ${e.lumaFile ? `footage file ${path.basename(measured)}` : 'output'}${reg ? ` region ${JSON.stringify(reg)}` : ''}`];
   let pass = true;
   for (const r of refs) {
-    const a = await lumaStats(file, r.outT, w, h);
-    const b = await lumaStats(r.src, r.srcT, w, h);
+    const a = await lumaStats(measured, r.outT, w, h, reg);
+    const b = await lumaStats(r.src, r.srcT, w, h, reg);
     const d = a.yavg - b.yavg;
     if (!(Math.abs(d) <= 3)) pass = false;
     parts.push(`t=${r.outT}: out=${a.yavg} ref=${b.yavg} d=${d.toFixed(3)}`);

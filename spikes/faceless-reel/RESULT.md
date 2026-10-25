@@ -1,5 +1,53 @@
 DECISION: hyperframes-layered
 
+# Follow-up round (2026-10-25): layered path re-run after the fixes
+
+`npx tsx spikes/faceless-reel/run.ts` now runs only the layered path by default; `--single` adds the single path back. Output: `MEDIA/spike-a/layered-v2.mp4`.
+
+**What changed**
+- Luma gate measures footage only. The layered path checks the lossless base track (`QaExpect.lumaFile`, which `renderLayered` returns as `base`). There's also an optional `lumaRegion` crop.
+- Loudness is two-pass and linear, targeting TP −2.0 internally.
+- The composite is encoded at CRF 10, preset slow.
+- The punch-in uses the actual v5 spring curve, from one shared definition in `lib/compile/punch.ts`.
+- Captions:
+  - Spacing: no whitespace between the inline-block words, so the gap is only the 9 px margins.
+  - Only spoken words are laid out, so the line re-centres as words arrive, like v5.
+  - The words are v5's punctuated `GROUPS`.
+- Tool icons: Whisper uses contain at a 62 % inset; Fooocus uses cover at `object-position: 25% 20%`.
+
+| | first round (layered) | **v2 (layered)** | v5 Remotion |
+|---|---|---|---|
+| luma gate (footage) | n/a (whole frame: FAIL 3/12) | **PASS 12/12** on base.mkv: 0.000 on 7 refs, ±0.20 on 4 between-frame refs, +2.544 on s10 (punch-in, scaled frame) | n/a (whole frame: FAIL 3/12) |
+| loudness I / TP | −14.28 LUFS / −1.42 dBTP (FAIL) | **−14.26 LUFS / −1.92 dBTP (PASS)** | −14.28 / −1.44 (FAIL) |
+| size / bitrate | 360 MB / 89.9 Mb/s (CRF 4) | **161.6 MB / 40.3 Mb/s (CRF 10)** | 155 MB / 38.8 Mb/s |
+| render time | 241.8 s | **229.1 s** (an earlier v2 run took 322.6 s while the test suite was using the CPU) | 131 s |
+| format | PASS | PASS (60 fps, 1920 frames, 32.000 s, tv/bt709 ×3, yuv420p) | PASS |
+
+The whole-frame composite luma is informational only, since overlays are included. It now tracks v5 closely: Δ −3.58 / +3.22 / +3.93 against v5's −3.52 / +4.12 / +4.50 at 1.89 / 19.18 / 23.94 s. The s10 value got closer because the punch now follows v5's curve.
+
+**Punch-in.** Remotion's `spring()` (`spring-utils.js`) has only under-damped and critically-damped branches. With ζ ≈ 1.83 it uses the critically-damped one:
+- The curve is x(t) = 1 − e^(−ωt)(1 + ωt), with ω = √120. Checked against v5's `spring()`: 0.299 @ 0.1 s, 0.758 @ 0.25 s, 0.973 @ 0.5 s.
+- It settles to within 1e-3 in 0.845 s (51 frames), so it is *faster* than the old power2.out/1.2 s ease, not slower. The first round's by-eye "ours stronger" didn't hold up.
+- Our base track measured scale 1.0239 at τ = 0.1 s, which matches.
+- Side-by-side footage frames aren't the same instant in v5. Even at t = 3.2, where both are settled at 1.08, the PSNR of ours vs v5 is only about 14 dB, with different hand positions. So v5's Remotion video frames are offset from the timeline, and punch timing can't be compared by eye from those PNGs.
+
+**Images (left = ours v2 layered, right = v5)**
+- `MEDIA/spike-a/compare-{punch-2.6s,hook-cards-2.9s,whisper-card-11.5s,list-whisper-13s,title-card-7.1s,list-21.5s,cta-30.5s}-layered-vs-v5-v2.png`
+- `MEDIA/spike-a/shot06-raw-vs-layered-v2.png`
+- `MEDIA/spike-a/layered-v2.mp4.sheet.jpg`
+
+Captions ("İkinci, Whisper.", centring, spacing, wrapping at 21.5 s), the Whisper tile inset and the Fooocus crop now match v5.
+
+**Remaining look differences**
+1. During the Whisper title card (11.5 s), v5 still shows the list ("1. Fooocus"); ours doesn't. The fixture's first list card ends at 10.66 and the next starts at 11.9167. This is a plan-timing difference, not a template one.
+2. There's no whoosh, by design.
+3. v5's Upscayl/VoiceStudio tiles have no drop shadow (the image is the tile). Ours keep the shadow, which is minor.
+
+---
+
+# First round
+
+
 # Spike A: faceless reel colour test
 
 Run on 2026-10-25 (Windows 11, hyperframes@0.8.191, ffmpeg 8.1). Commands:

@@ -1,8 +1,8 @@
 /**
- * Spike A: faceless reel colour test.
+ * Spike A: faceless reel colour test. DECISION: hyperframes-layered (see RESULT.md).
  *
- *   npx tsx spikes/faceless-reel/run.ts            single-path render; layered too if a luma check fails
- *   npx tsx spikes/faceless-reel/run.ts --layered  also run the layered path regardless
+ *   npx tsx spikes/faceless-reel/run.ts            layered path (the decision), QA with the footage luma gate, -v2 PNGs
+ *   npx tsx spikes/faceless-reel/run.ts --single   also the single (HyperFrames-only) path, as in the first round
  *   npx tsx spikes/faceless-reel/run.ts --footage-only  diagnostic: luma of footage with no overlays (see footageOnly)
  *
  * Inputs (read-only): ../video/reel/public (v5 working clips s01–s12, vo.wav, ext/, sfx/).
@@ -28,9 +28,12 @@ const MEDIA = path.resolve(REPO, '..', 'tbd-spike-media');
 const OUT = path.join(MEDIA, 'spike-a');
 const REFERENCE = path.join(MEDIA, 'v5-reference.mp4');
 
-/** Comparison timestamps vs v5: hook cards, a title card, the list, the CTA. */
+/** Comparison timestamps vs v5: punch-in, hook cards, title cards, the list, the CTA. */
 const COMPARE = [
+  { name: 'punch', t: 2.6 },
   { name: 'hook-cards', t: 2.9 },
+  { name: 'whisper-card', t: 11.5 },
+  { name: 'list-whisper', t: 13.0 },
   { name: 'title-card', t: 7.1 },
   { name: 'list', t: 21.5 },
   { name: 'cta', t: 30.5 },
@@ -109,55 +112,54 @@ async function main(): Promise<void> {
   if (process.argv.includes('--footage-only')) return footageOnly(plan, expect);
   const results: Record<string, unknown> = { plan: path.join(HERE, 'plan.json'), assets: ASSETS };
 
-  // --- single path: compile -> HyperFrames render (60 fps, PNG frames) -> loudness finish -> QA
-  const proj = path.join(OUT, 'single-proj');
-  const singleRaw = path.join(OUT, 'single-raw.mp4');
-  const single = path.join(OUT, 'single.mp4');
-  const [, compileS] = await timed(() => compile(plan, { outDir: proj, assetsDir: ASSETS, ratio: '9:16' }));
-  const [, renderS] = await timed(() => render(proj, singleRaw, { fps: plan.fps }));
-  const [, finishS] = await timed(() => finishLoudness(singleRaw, single, { I: -14, TP: -1.5 }));
-  const singleQa = await qa(single, expect);
-  await fs.writeFile(path.join(OUT, 'single.qa.json'), JSON.stringify(singleQa, null, 2));
-  summary('single', singleQa);
-  results.single = { file: single, seconds: { compile: compileS, render: renderS, finish: finishS }, qa: singleQa };
-
-  // shot 6 raw vs render (left = working clip s06, right = our render)
   const s6 = expect.lumaRefs![5];
-  const s6png = path.join(OUT, 'shot06-raw-vs-single.png');
-  await sideBySide(s6.src, s6.srcT, single, s6.outT, s6png);
-  results.shot6 = { png: s6png, srcT: s6.srcT, outT: s6.outT };
+  const v5 = existsSync(REFERENCE);
 
-  // --- layered path, if any luma check failed (or on request)
-  const lumaFailed = singleQa.checks.some((c) => c.name === 'luma' && !c.pass);
-  if (lumaFailed || process.argv.includes('--layered')) {
-    const layered = path.join(OUT, 'layered.mp4');
-    const [, layeredS] = await timed(() =>
-      renderLayered(plan, { assetsDir: ASSETS, workDir: path.join(OUT, 'layered-work'), out: layered, ratio: '9:16' }));
-    const layeredQa = await qa(layered, expect);
-    await fs.writeFile(path.join(OUT, 'layered.qa.json'), JSON.stringify(layeredQa, null, 2));
-    summary('layered', layeredQa);
-    const png = path.join(OUT, 'shot06-raw-vs-layered.png');
-    await sideBySide(s6.src, s6.srcT, layered, s6.outT, png);
-    results.layered = { file: layered, seconds: layeredS, qa: layeredQa, shot6: png, triggeredBy: lumaFailed ? 'luma fail' : '--layered' };
+  // --- single path (first-round comparison only), on request
+  if (process.argv.includes('--single')) {
+    const proj = path.join(OUT, 'single-proj');
+    const singleRaw = path.join(OUT, 'single-raw.mp4');
+    const single = path.join(OUT, 'single.mp4');
+    const [, compileS] = await timed(() => compile(plan, { outDir: proj, assetsDir: ASSETS, ratio: '9:16' }));
+    const [, renderS] = await timed(() => render(proj, singleRaw, { fps: plan.fps }));
+    const [, finishS] = await timed(() => finishLoudness(singleRaw, single, { I: -14, TP: -1.5 }));
+    const singleQa = await qa(single, expect);
+    await fs.writeFile(path.join(OUT, 'single.qa.json'), JSON.stringify(singleQa, null, 2));
+    summary('single', singleQa);
+    results.single = { file: single, seconds: { compile: compileS, render: renderS, finish: finishS }, qa: singleQa };
   }
 
+  // --- layered path: lossless base + HyperFrames overlay + ffmpeg composite (CRF 10) + two-pass loudness
+  const layered = path.join(OUT, 'layered-v2.mp4');
+  const [{ base }, layeredS] = await timed(() =>
+    renderLayered(plan, { assetsDir: ASSETS, workDir: path.join(OUT, 'layered-work'), out: layered, ratio: '9:16' }));
+  // the gate: footage luma on the lossless base track (no overlay pixels)
+  const layeredQa = await qa(layered, { ...expect, lumaFile: base });
+  await fs.writeFile(path.join(OUT, 'layered-v2.qa.json'), JSON.stringify(layeredQa, null, 2));
+  summary('layered', layeredQa);
+  // informational: the old whole-frame measurement of the delivered composite (overlays included)
+  const wholeFrame = (await qa(layered, { ...expect, lufs: undefined })).checks.find((c) => c.name === 'luma')!;
+  console.log(`  (info) whole-frame composite luma ${wholeFrame.pass ? 'ok' : 'over'}: ${wholeFrame.detail}`);
+  const size = (await fs.stat(layered)).size;
+  const png = path.join(OUT, 'shot06-raw-vs-layered-v2.png');
+  await sideBySide(s6.src, s6.srcT, layered, s6.outT, png);
+  results.layered = { file: layered, base, bytes: size, seconds: layeredS, qa: layeredQa, wholeFrameLuma: wholeFrame, shot6: png };
+
   // --- v5 reference (Remotion render of the original composition): same QA + side-by-side with ours
-  if (existsSync(REFERENCE)) {
+  if (v5) {
     const refQa = await qa(REFERENCE, expect);
     await fs.writeFile(path.join(OUT, 'v5-reference.qa.json'), JSON.stringify(refQa, null, 2));
     summary('v5-reference', refQa);
-    const sheet = refQa.checks.find((c) => c.name === 'contactSheet')!.detail;
-    const sheetCopy = path.join(OUT, 'v5-reference.sheet.jpg');
-    await fs.copyFile(sheet, sheetCopy);
     const pngs: string[] = [];
     for (const c of COMPARE) {
-      const png = path.join(OUT, `compare-${c.name}-${c.t}s-single-vs-v5.png`);
-      await sideBySide(single, c.t, REFERENCE, c.t, png);
-      pngs.push(png);
+      const out = path.join(OUT, `compare-${c.name}-${c.t}s-layered-vs-v5-v2.png`);
+      await sideBySide(layered, c.t, REFERENCE, c.t, out);
+      pngs.push(out);
     }
-    results.reference = { file: REFERENCE, qa: refQa, sheet: sheetCopy, compare: pngs, note: 'left = ours (single), right = v5 Remotion' };
+    results.reference = { file: REFERENCE, qa: refQa, compare: pngs, note: 'left = ours (layered), right = v5 Remotion' };
   } else {
-    console.log(`\n(no ${REFERENCE}; skipping the v5 comparison)`);
+    console.log(`
+(no ${REFERENCE}; skipping the v5 comparison)`);
   }
 
   await fs.writeFile(path.join(OUT, 'results.json'), JSON.stringify(results, null, 2));

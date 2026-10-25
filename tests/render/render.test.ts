@@ -57,4 +57,32 @@ describe('render + qa', () => {
       await fs.rm(tmp, { recursive: true, force: true });
     }
   }, 600000);
+
+  it('luma gate measures footage only: lumaFile and lumaRegion skip overlay pixels', async () => {
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'qa-luma-'));
+    try {
+      const raw = await makeClip(tmp, { w: 540, h: 960, fps: 30, seconds: 3 });
+      const clip = path.join(tmp, 'clip.mp4');
+      await prepareClip(raw, clip, { from: 0, duration: 2, width: 1080, height: 1920, fps: 60 });
+      // an "overlay": a white card over the top 40 % of the frame, footage untouched below it
+      const boxed = path.join(tmp, 'boxed.mp4');
+      await run('ffmpeg', [
+        '-y', '-v', 'error', '-i', clip, '-vf', 'drawbox=x=0:y=0:w=iw:h=ih*0.4:color=white:t=fill',
+        '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '4', '-pix_fmt', 'yuv420p',
+        '-color_range', 'tv', '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', boxed,
+      ]);
+      const base = { fps: 60, frames: 138, duration: 2.3, width: 1080, height: 1920, lumaRefs: [{ src: clip, srcT: 1.0, outT: 1.0 }] };
+      const luma = async (e: Parameters<typeof qa>[1]) => (await qa(boxed, e)).checks.find((c) => c.name === 'luma')!;
+      const whole = await luma(base);
+      expect(whole.pass, whole.detail).toBe(false); // whole-frame mean sees the card
+      const region = await luma({ ...base, lumaRegion: { x: 0, y: 0.5, w: 1, h: 0.5 } });
+      expect(region.pass, region.detail).toBe(true);
+      expect(region.detail).toContain('region');
+      const file = await luma({ ...base, lumaFile: clip });
+      expect(file.pass, file.detail).toBe(true);
+      expect(file.detail).toContain('footage file clip.mp4');
+    } finally {
+      await fs.rm(tmp, { recursive: true, force: true });
+    }
+  }, 300000);
 });

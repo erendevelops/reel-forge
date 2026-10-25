@@ -103,38 +103,82 @@ export async function prepareVoice(src: string, out: string): Promise<void> {
   ]);
 }
 
-/** Final pass: video stream copied, audio loudness-normalised to target, AAC 320k. */
+export type LoudnormStats = { I: number; TP: number; LRA: number; thresh: number; offset: number };
+
+/** loudnorm analysis (print_format=json) of `file`'s audio against `target`. */
+export async function measureLoudness(file: string, target: { I: number; TP: number }): Promise<LoudnormStats> {
+  const { stderr } = await run('ffmpeg', [
+    '-hide_banner', '-nostats', '-i', file, '-vn',
+    '-af', `loudnorm=I=${target.I}:TP=${target.TP}:LRA=11:print_format=json`, '-f', 'null', '-',
+  ]);
+  const m = stderr.match(/\{[^{}]*"input_i"[^{}]*\}/);
+  if (!m) throw new Error(`loudnorm analysis not found for ${file}`);
+  const j = JSON.parse(m[0]);
+  return {
+    I: Number(j.input_i), TP: Number(j.input_tp), LRA: Number(j.input_lra),
+    thresh: Number(j.input_thresh), offset: Number(j.target_offset),
+  };
+}
+
+/** Internal true-peak headroom below the target: AAC encoding adds inter-sample overs (measured +0.1 dB on reels). */
+export const AAC_TP_MARGIN = 0.5;
+
+/**
+ * Final pass: video stream copied, audio two-pass loudness-normalised to target, AAC 320k.
+ * Pass 1 measures (loudnorm print_format=json); pass 2 applies the measured values with linear=true, aiming at
+ * TP − AAC_TP_MARGIN so the AAC output still lands ≤ target.TP. If the encoded file is still over (or off target I),
+ * pass 2 is redone once with the excess added to the margin.
+ */
 export async function finishLoudness(
   src: string,
   out: string,
   target: { I: number; TP: number },
 ): Promise<void> {
-  // Measured: a 3.0 s render came out 3.1 s after this pass (audio stream 3.1 s, video 3.0 s).
+  // Measured: a 3.0 s render came out 3.1 s after a loudnorm pass (audio stream 3.1 s, video 3.0 s).
   // Cause: loudnorm resamples internally and emits trailing samples (plus AAC encoder padding),
   // so the audio runs ~0.1 s past the video. Bounding the output to the source length with -t
   // keeps the deliverable exactly as long as the render. Video is stream-copied, never re-encoded.
   const { duration } = await probe(src);
-  await run('ffmpeg', [
+  const m = await measureLoudness(src, target);
+  // silence (or no measurable programme) reports -inf: nothing to normalise (loudnorm would emit NaN), pass it through
+  const measured = [m.I, m.TP, m.LRA, m.thresh, m.offset].every(Number.isFinite);
+  const encode = (tp: number) => run('ffmpeg', [
     '-y', '-v', 'error', '-i', src,
     '-t', String(duration),
     '-c:v', 'copy',
-    '-af', `loudnorm=I=${target.I}:TP=${target.TP}:LRA=11`,
+    '-af',
+    measured
+      ? `loudnorm=I=${target.I}:TP=${tp}:LRA=11:measured_I=${m.I}:measured_TP=${m.TP}:measured_LRA=${m.LRA}` +
+        `:measured_thresh=${m.thresh}:offset=${m.offset}:linear=true:print_format=none`
+      : 'anull',
     '-ar', '48000', '-c:a', 'aac', '-b:a', '320k',
     '-movflags', '+faststart',
     out,
   ]);
+  let margin = AAC_TP_MARGIN;
+  await encode(target.TP - margin);
+  const got = await measureLoudness(out, target);
+  if (got.TP > target.TP) {
+    margin += got.TP - target.TP + 0.1;
+    await encode(target.TP - margin);
+  }
 }
 
-/** Luma stats of the frame at time t after scaling to w x h. */
+/**
+ * Luma stats of the frame at time t after scaling to w x h. `region` (fractions of the frame, 0–1) crops the
+ * frame first, so a measurement can skip overlay areas.
+ */
 export async function lumaStats(
   file: string,
   t: number,
   w: number,
   h: number,
+  region?: { x: number; y: number; w: number; h: number },
 ): Promise<{ yavg: number; ymin: number; ymax: number }> {
+  const crop = region ? `crop=w=iw*${region.w}:h=ih*${region.h}:x=iw*${region.x}:y=ih*${region.y},` : '';
   const { stderr } = await run('ffmpeg', [
     '-v', 'info', '-ss', String(t), '-i', file, '-frames:v', '1',
-    '-vf', `scale=${w}:${h},signalstats,metadata=print`,
+    '-vf', `${crop}scale=${w}:${h},signalstats,metadata=print`,
     '-f', 'null', '-',
   ]);
   const get = (k: string): number => {

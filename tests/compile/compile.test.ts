@@ -8,6 +8,7 @@ import { npx } from '../../lib/media/npx';
 import { validatePlan, type Plan } from '../../lib/plan';
 import { compile } from '../../lib/compile';
 import { cardRegistry } from '../../lib/compile/cards';
+import { PUNCH_SETTLE, punchEaseJs, punchSpring } from '../../lib/compile/punch';
 import fixture from '../fixtures/plan-reel-v5.json';
 
 let tmp: string;
@@ -102,7 +103,34 @@ describe('compile', () => {
     const tl = timeline(html);
     const punches = tl.match(/scale: 1\.08/g) ?? [];
     expect(punches).toHaveLength(2);
-    expect(tl).toMatch(/tl\.fromTo\("#shot-1", \{ scale: 1 \}, \{ scale: 1\.08, [^}]*\}, 2\.42\)/);
+    // v5 spring (damping 40, stiffness 120) as the ease, over its settle time (shot s01 is long enough)
+    expect(tl).toContain(`tl.fromTo("#shot-1", { scale: 1 }, { scale: 1.08, duration: ${r3(PUNCH_SETTLE)}, ease: punchEase(${r3(PUNCH_SETTLE)}) }, 2.42);`);
+    expect(tl.split(punchEaseJs()).length - 1).toBe(1);
+    expect(tl).not.toContain('power2.out');
+  });
+
+  it('punch ease in the page is the shared v5 spring curve', () => {
+    const factory = new Function(`${punchEaseJs()}; return punchEase;`)() as (d: number) => (p: number) => number;
+    const e = factory(PUNCH_SETTLE);
+    for (const p of [0, 0.1, 0.25, 0.5, 1]) expect(e(p)).toBeCloseTo(punchSpring(p * PUNCH_SETTLE), 5);
+  });
+
+  it('captions: v5 spacing (no whitespace between words) and punctuated v5 words', () => {
+    // v5 renders inline-block spans with `margin: 0 9px` and nothing between them; a space would double the gap
+    expect(html).toMatch(/<span id="cap-6-w1" class="cap-word">Birincisi,<\/span><span id="cap-6-w2" class="cap-word">Fooocus\.<\/span>/);
+    expect(html).toContain('#captions .cap-word { display: none; margin: 0 9px;');
+    // a word joins the layout when spoken, so the centred line re-centres (v5 renders only shown words)
+    expect(timeline(html)).toContain('tl.set("#cap-6-w2", { display: "inline-block" }, 6.6);');
+    expect(html).not.toMatch(/<\/span> <span id="cap-/);
+    expect(html).toContain('>Browser Use.</span>');
+  });
+
+  it('tool icons: contain inset for marks, cover with object-position for photos', () => {
+    const whisper = html.match(/<div class="tool-icon tool-icon-contain" style="width: 140px;[^"]*"><img src="assets\/ext\/whisper\.png"[^>]*>/);
+    expect(whisper?.[0]).toContain('style="width: 62%; height: 62%; object-fit: contain;"');
+    const fooocus = html.match(/<div class="tool-icon tool-icon-cover" style="width: 140px;[^"]*"><img src="assets\/ext\/fooocus\.png"[^>]*>/);
+    expect(fooocus?.[0]).toContain('object-fit: cover; object-position: 25% 20%;');
+    expect(html).toContain('.tool-icon-contain { display: flex; align-items: center; justify-content: center; }');
   });
 
   it('voice and sfx', () => {

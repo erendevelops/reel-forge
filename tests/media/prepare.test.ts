@@ -5,7 +5,7 @@ import path from 'node:path';
 import { run } from '../../lib/media/run';
 import { probe } from '../../lib/media/probe';
 import { makeClip } from '../helpers/media';
-import { prepareClip, finishLoudness, lumaStats, cropCommands } from '../../lib/media/prepare';
+import { prepareClip, finishLoudness, lumaStats, cropCommands, measureLoudness } from '../../lib/media/prepare';
 import { cropPath } from '../../lib/talking/reframe';
 
 let dir: string;
@@ -134,5 +134,46 @@ describe('finishLoudness', () => {
     const peak = Number(/Peak:\s+(-?[\d.]+) dBFS/.exec(summary)![1]);
     expect(Math.abs(I - -14)).toBeLessThanOrEqual(1);
     expect(peak).toBeLessThanOrEqual(-1.5);
+  });
+
+  it('two-pass: true peak lands <= -1.5 dBTP after AAC on a signal single-pass overshot', async () => {
+    // brown noise (seed 3): the old single-pass loudnorm + AAC 320k gave I -14.10, TP -1.38 dBTP (over the gate)
+    const src = path.join(dir, 'brown.mkv');
+    await run('ffmpeg', [
+      '-y', '-v', 'error',
+      '-f', 'lavfi', '-i', 'testsrc2=size=320x240:rate=30:duration=8',
+      '-f', 'lavfi', '-i', 'anoisesrc=color=brown:amplitude=0.9:d=8:r=48000:seed=3',
+      '-c:v', 'libx264', '-preset', 'ultrafast', '-pix_fmt', 'yuv420p', '-c:a', 'pcm_s16le', '-shortest', src,
+    ]);
+    const single = path.join(dir, 'brown-single.mp4');
+    await run('ffmpeg', ['-y', '-v', 'error', '-i', src, '-c:v', 'copy', '-af', 'loudnorm=I=-14:TP=-1.5:LRA=11', '-ar', '48000', '-c:a', 'aac', '-b:a', '320k', single]);
+    expect((await measureLoudness(single, { I: -14, TP: -1.5 })).TP).toBeGreaterThan(-1.5); // the regression this guards
+
+    const out = path.join(dir, 'brown-two-pass.mp4');
+    await finishLoudness(src, out, { I: -14, TP: -1.5 });
+    const m = await measureLoudness(out, { I: -14, TP: -1.5 });
+    expect(m.TP).toBeLessThanOrEqual(-1.5);
+    expect(Math.abs(m.I - -14)).toBeLessThanOrEqual(1);
+    // still -t bounded and video stream-copied
+    const v = (f: string) => run('ffprobe', ['-v', 'error', '-count_packets', '-select_streams', 'v:0', '-show_entries', 'stream=codec_name,nb_read_packets', '-of', 'csv=p=0', f]);
+    expect((await v(out)).stdout.trim()).toBe((await v(src)).stdout.trim());
+    const p = await probe(out);
+    expect(Math.abs(p.duration - 8)).toBeLessThanOrEqual(1 / 30 + 1e-6);
+  });
+
+  it('two-pass falls back cleanly on silent audio (loudnorm measures -inf)', async () => {
+    const src = path.join(dir, 'silent.mkv');
+    await run('ffmpeg', [
+      '-y', '-v', 'error',
+      '-f', 'lavfi', '-i', 'testsrc2=size=320x240:rate=30:duration=2',
+      '-f', 'lavfi', '-i', 'anullsrc=r=48000:cl=stereo:d=2',
+      '-c:v', 'libx264', '-preset', 'ultrafast', '-pix_fmt', 'yuv420p', '-c:a', 'pcm_s16le', '-shortest', src,
+    ]);
+    expect(Number.isFinite((await measureLoudness(src, { I: -14, TP: -1.5 })).I)).toBe(false);
+    const out = path.join(dir, 'silent.mp4');
+    await finishLoudness(src, out, { I: -14, TP: -1.5 });
+    const p = await probe(out);
+    expect(p.hasAudio).toBe(true);
+    expect(Math.abs(p.duration - 2)).toBeLessThanOrEqual(1 / 30 + 1e-6);
   });
 });

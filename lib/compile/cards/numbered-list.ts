@@ -1,12 +1,13 @@
 import { z } from 'zod';
 import type { Card } from '../../plan';
 import { type CardTemplate, type CompileContext, YELLOW, WHITE, clipDiv, esc, fx, fy, num, sz, tlFromTo, tlSet } from '../types';
-import { TOOL_ICON_CSS, toolIcon } from './icon';
+import { LogoFraming, TOOL_ICON_CSS, toolIcon } from './icon';
 
 const Item = z.object({
   n: z.number().int().nonnegative(),
   name: z.string().min(1),
   logo: z.string().min(1).optional(),
+  ...LogoFraming,
   at: z.number().finite().nonnegative(),
 });
 const Params = z.object({
@@ -52,7 +53,7 @@ export const numberedList: CardTemplate = {
       .map((it, i) => {
         const color = i === initialLatest ? YELLOW : WHITE;
         const opacity = landed(i) ? 1 : 0;
-        return `<div id="${rowId(i)}" class="nl-row" style="opacity: ${opacity}; color: ${color};">${toolIcon(ctx, it.logo, icon, it.name)}<span>${it.n}. ${esc(it.name)}</span></div>`;
+        return `<div id="${rowId(i)}" class="nl-row" style="opacity: ${opacity}; color: ${color};">${toolIcon(ctx, it.logo, icon, it.name, it)}<span>${it.n}. ${esc(it.name)}</span></div>`;
       })
       .join('');
     const box = `<div class="nl-box" style="left: ${num(fx(ctx, 100))}px; top: ${num(fy(ctx, 200))}px;">${rows}</div>`;
