@@ -124,8 +124,23 @@ export function saveVersion(
     await getProject(id);
     const result = validatePlan(input.plan);
     if (!result.ok) throw new Error(`invalid plan:\n${result.errors.join('\n')}`);
-    const versions = await listVersions(id);
-    const n = (versions.at(-1)?.n ?? 0) + 1;
+    // `rf save` runs in another process, so the in-process queue isn't enough: claim the folder exclusively.
+    let n = await highestVersionDir(id);
+    for (;;) {
+      n += 1;
+      try {
+        await mkdir(versionDir(id, n), { recursive: false });
+        break;
+      } catch (err) {
+        if ((err as NodeJS.ErrnoException).code === 'EEXIST') continue;
+        if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
+          await mkdir(path.join(projectDir(id), 'versions'), { recursive: true });
+          n -= 1;
+          continue;
+        }
+        throw err;
+      }
+    }
     const origin: VersionOrigin = {
       n,
       by: input.by,
@@ -138,6 +153,16 @@ export function saveVersion(
     await writeJson(path.join(versionDir(id, n), 'origin.json'), origin);
     return n;
   });
+}
+
+async function highestVersionDir(id: string): Promise<number> {
+  try {
+    const names = await readdir(path.join(projectDir(id), 'versions'));
+    return Math.max(0, ...names.map((x) => Number(/^v(\d+)$/.exec(x)?.[1] ?? 0)));
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return 0;
+    throw error;
+  }
 }
 
 export async function readVersion(id: string, n: number): Promise<{ plan: Plan; origin: VersionOrigin }> {

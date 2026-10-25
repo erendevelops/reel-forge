@@ -3,7 +3,7 @@ import { spawn } from 'node:child_process';
 import { copyFile, mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { createProject, listVersions } from '../../lib/app/workspace/store';
+import { createProject, listVersions, updateProject } from '../../lib/app/workspace/store';
 import { projectDir } from '../../lib/app/workspace/paths';
 import { makeClip } from '../helpers/media';
 
@@ -81,9 +81,9 @@ describe('rf', () => {
 
   it('save rejects unselected card', async () => {
     const p = await project();
-    const plan = JSON.parse(await readFile(path.join(ROOT, 'tests/fixtures/plan-reel-v5.json'), 'utf8'));
-    plan.selection.cards = plan.selection.cards.filter((c: string) => c !== 'title-card');
-    await writeFile(path.join(projectDir(p.id), 'plan.json'), JSON.stringify(plan));
+    // The user's project selection no longer ticks title-card; the v5 plan still uses it.
+    await updateProject(p.id, { selection: { ...p.selection!, cards: p.selection!.cards.filter((c) => c !== 'title-card') } });
+    await copyFile(path.join(ROOT, 'tests/fixtures/plan-reel-v5.json'), path.join(projectDir(p.id), 'plan.json'));
     const r = await rf(p.id, ['save', 'plan.json']);
     expect(r.code).toBe(1);
     expect(r.json.error).toMatch(/not selected/);
@@ -97,6 +97,27 @@ describe('rf', () => {
     expect(r.code).toBe(1);
     expect(r.json.error).toMatch(/static for more than 3 s/);
     expect(await listVersions(p.id)).toEqual([]);
+  });
+
+  it("save enforces the project selection, not the plan's own copy", async () => {
+    const p = await project();
+    const plan = JSON.parse(await readFile(path.join(ROOT, 'tests/fixtures/plan-reel-v5.json'), 'utf8'));
+    // Claude adds an unticked card AND writes it into the plan's own selection.
+    plan.selection.cards.push('stamp');
+    plan.scenes[0].cards.push({ type: 'stamp', start: 0.5, end: 1.5, params: { text: 'FREE' } });
+    await writeFile(path.join(projectDir(p.id), 'plan.json'), JSON.stringify(plan));
+    const r = await rf(p.id, ['save', 'plan.json']);
+    expect(r.code).toBe(1);
+    expect(r.json.error).toMatch(/stamp not selected/);
+    expect(await listVersions(p.id)).toEqual([]);
+  });
+
+  it('project returns the latest plan so revisions start from it', async () => {
+    const p = await project();
+    await copyFile(path.join(ROOT, 'tests/fixtures/plan-reel-v5.json'), path.join(projectDir(p.id), 'plan.json'));
+    await rf(p.id, ['save', 'plan.json']);
+    const r = await rf(p.id, ['project']);
+    expect(r.json.latest).toMatchObject({ n: 1, plan: { duration: 32 } });
   });
 
   it('logo resolves ChatGPT and writes the svg', async () => {

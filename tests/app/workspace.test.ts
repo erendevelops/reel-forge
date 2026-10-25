@@ -73,6 +73,14 @@ describe('workspace store', () => {
     expect(await listVersions(p.id)).toEqual([]);
   });
 
+  it('saveVersion skips a version number another process already claimed', async () => {
+    const p = await createProject(base);
+    expect(await saveVersion(p.id, { plan: fixture, by: 'claude', parent: null })).toBe(1);
+    // Another process (rf save) has claimed v2 but not written origin.json yet.
+    await mkdir(path.join(projectDir(p.id), 'versions', 'v2'), { recursive: true });
+    expect(await saveVersion(p.id, { plan: fixture, by: 'user', parent: 1 })).toBe(3);
+  });
+
   it('concurrent updates serialise', async () => {
     const p = await createProject(base);
     await Promise.all(Array.from({ length: 20 }, (_, i) => updateProject(p.id, { name: `n${i}` })));

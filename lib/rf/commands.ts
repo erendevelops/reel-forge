@@ -10,7 +10,7 @@ import { resolveLogo, logoSvgFile } from '@/lib/assets/logos';
 import { cropPath, faceTrack, type FaceTrack } from '@/lib/talking/reframe';
 import { planTrims } from '@/lib/talking/trim';
 import { repoPath } from '@/lib/root';
-import { getPreferences, getProject, listVersions, saveVersion } from '@/lib/app/workspace/store';
+import { getPreferences, getProject, listVersions, readVersion, saveVersion } from '@/lib/app/workspace/store';
 import { parseArgs, projectId, resolveInProject } from './context';
 
 type Command = (args: string[]) => Promise<unknown>;
@@ -39,10 +39,24 @@ async function python(args: string[]): Promise<void> {
   }
 }
 
+/**
+ * The option cards are the user's, never the plan's: validation always uses the project's selection, so a plan that
+ * edits its own `selection` to allow an unticked card is still refused.
+ */
+async function withProjectSelection(plan: unknown): Promise<unknown> {
+  const { selection } = await getProject(projectId());
+  if (!selection || typeof plan !== 'object' || plan === null) return plan;
+  return { ...(plan as object), selection };
+}
+
 export const COMMANDS: Record<string, Command> = {
   async project() {
     const id = projectId();
-    return { project: await getProject(id), preferences: await getPreferences(), versions: await listVersions(id) };
+    const versions = await listVersions(id);
+    const n = versions.at(-1)?.n;
+    // A revision starts from this plan (it includes the user's hand edits), never from an old plan.json.
+    const latest = n ? { n, plan: (await readVersion(id, n)).plan } : null;
+    return { project: await getProject(id), preferences: await getPreferences(), versions, latest };
   },
 
   async probe(args) {
@@ -131,7 +145,7 @@ export const COMMANDS: Record<string, Command> = {
   },
 
   async validate(args) {
-    const r = validatePlan(await readJson(need(args[0], 'plan.json')));
+    const r = validatePlan(await withProjectSelection(await readJson(need(args[0], 'plan.json'))));
     return r.ok ? { ok: true, errors: [] } : { ok: false, errors: r.errors };
   },
 
@@ -146,7 +160,7 @@ export const COMMANDS: Record<string, Command> = {
     const plan = await readJson(need(pos[0], 'plan.json'));
     const id = projectId();
     const project = await getProject(id);
-    const r = validatePlan(plan);
+    const r = validatePlan(await withProjectSelection(plan));
     if (!r.ok) throw new Error(`invalid plan:\n${r.errors.join('\n')}`);
     if (project.preset === 'talking-head') {
       const gaps = motionGaps(r.plan);
