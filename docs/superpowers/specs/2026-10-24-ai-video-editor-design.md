@@ -113,6 +113,17 @@ Initial catalogue (per mode; the builder may adjust exact items):
 - **Captions (pick one):** word build with newest word yellow (Eren's style) · one big word · small serif with italic emphasis · none.
 - **Layout (reel):** full face · split (graphics top, face card bottom) · full graphics · B-roll cutaways.
 - **Graphic cards:** rolling number · checklist · bar chart · stamp ("%70 GERİ") · logo pop-ins (official assets) · numbered list (grows) · typed title · title card per item · follow-button outro.
+- **Topic assets & animations** (Eren, after the talking-head spike; ticked by default for talking-head reels). Claude decides the visuals from what is being said:
+  - Every product, brand or tool named in the transcript gets its official logo. Logos are resolved offline first from the bundled `simple-icons` set, then from the tool's own GitHub repo or site per the reel doc §6.4. The logo appears as a pop-in or card on the word.
+  - Concepts without a logo get a **custom animation** that Claude writes: a deterministic HTML/SVG + GSAP fragment such as a growing chart, a flow diagram, a counter racing up or a simple simulation, timed to the words.
+  - This card is the only one where Claude authors visuals freely, and it only does so when the card is ticked.
+
+**Motion density (talking head; Eren, after the spike):** "it lacks a lot of motion and assets". Something visual should change every ~1.5–2.5 s while someone is talking: a card, a logo, a list tick, a layout switch or an animation beat. No scene should hold static for longer than ~3 s.
+
+**Never zoom into the face (Eren, after the spike):**
+- Converting a horizontal take to a vertical ratio uses the **widest crop the ratio allows** (full source height), placed to keep the face in frame. There is no tighter, face-hugging crop.
+- In the split layout, the face card shows the source frame at its own aspect ratio, without cropping into the face.
+- Talking-head punch-ins only happen when the "soft punch-ins" card is ticked.
 - **App video moments:** phone frame rise · typed amount · tap + selected state · list row drop-in · counter · progress rings · calendar cascade · story card · 3D screenshot fan.
 - **Sound & finish:** SFX on visible actions · music bed · soft punch-ins (max 2) · thumbnail/cover.
 
