@@ -1,0 +1,969 @@
+{
+  "version": 1,
+  "mode": "reel",
+  "fps": 60,
+  "duration": 32,
+  "ratios": [
+    "9:16"
+  ],
+  "selection": {
+    "captions": "word-build",
+    "layouts": [
+      "broll"
+    ],
+    "cards": [
+      "logo-pop",
+      "title-card",
+      "numbered-list"
+    ],
+    "sfx": true,
+    "music": false,
+    "punchIns": true,
+    "thumbnail": true
+  },
+  "scenes": [
+    {
+      "id": "hook",
+      "start": 0,
+      "end": 6.16,
+      "say": "Para verilen yapay zeka araçlarının GitHub'da bedava alternatifleri var.",
+      "why": "Hook: wide desk shot, logo cards pop in on the spoken words.",
+      "layout": "broll",
+      "shots": [
+        {
+          "src": "s01.mp4",
+          "from": 0,
+          "to": 3.78,
+          "at": 0,
+          "punch": 2.42
+        },
+        {
+          "src": "s02.mp4",
+          "from": 0,
+          "to": 2.38,
+          "at": 3.78
+        }
+      ],
+      "cards": [
+        {
+          "type": "logo-pop",
+          "start": 0.68,
+          "end": 3.78,
+          "params": {
+            "img": "ext/fooocus_1.png",
+            "left": 50,
+            "top": 300,
+            "width": 400,
+            "height": 400,
+            "rot": -6,
+            "fit": "cover"
+          }
+        },
+        {
+          "type": "logo-pop",
+          "start": 1.02,
+          "end": 3.78,
+          "params": {
+            "img": "ext/upscayl_banner.jpg",
+            "left": 560,
+            "top": 270,
+            "width": 470,
+            "height": 264,
+            "rot": 5,
+            "fit": "cover"
+          }
+        },
+        {
+          "type": "logo-pop",
+          "start": 1.28,
+          "end": 3.78,
+          "params": {
+            "img": "ext/bu_logo_white.png",
+            "left": 40,
+            "top": 790,
+            "width": 480,
+            "height": 150,
+            "rot": 4,
+            "fit": "contain",
+            "bg": "#121417"
+          }
+        },
+        {
+          "type": "logo-pop",
+          "start": 2.02,
+          "end": 3.78,
+          "params": {
+            "img": "ext/voice_logo.png",
+            "left": 650,
+            "top": 640,
+            "width": 300,
+            "height": 300,
+            "rot": -5,
+            "fit": "contain",
+            "bg": "#1b1320"
+          }
+        }
+      ]
+    },
+    {
+      "id": "fooocus",
+      "start": 6.16,
+      "end": 10.66,
+      "say": "Birincisi Fooocus. Promptu veriyorsunuz, bilgisayarınızda görsel oluşturuyor, sınır yok.",
+      "why": "Tool 1: README then generated elf images.",
+      "layout": "broll",
+      "shots": [
+        {
+          "src": "s03.mp4",
+          "from": 0,
+          "to": 2.68,
+          "at": 6.16
+        },
+        {
+          "src": "s04.mp4",
+          "from": 0,
+          "to": 1.82,
+          "at": 8.84
+        }
+      ],
+      "cards": [
+        {
+          "type": "title-card",
+          "start": 6.6,
+          "end": 7.5,
+          "params": {
+            "n": 1,
+            "name": "Fooocus",
+            "logo": "ext/fooocus_1.png"
+          }
+        },
+        {
+          "type": "numbered-list",
+          "start": 7.4667,
+          "end": 10.66,
+          "params": {
+            "items": [
+              {
+                "n": 1,
+                "name": "Fooocus",
+                "logo": "ext/fooocus_1.png",
+                "at": 7.4667
+              }
+            ],
+            "highlight": "latest"
+          }
+        }
+      ]
+    },
+    {
+      "id": "whisper",
+      "start": 10.66,
+      "end": 14.2,
+      "say": "İkinci Whisper. Herhangi bir dilde sesin transkriptini alabiliyorsunuz.",
+      "why": "Tool 2: README then diagram.",
+      "layout": "broll",
+      "shots": [
+        {
+          "src": "s05.mp4",
+          "from": 0,
+          "to": 3.54,
+          "at": 10.66
+        }
+      ],
+      "cards": [
+        {
+          "type": "title-card",
+          "start": 11.08,
+          "end": 11.95,
+          "params": {
+            "n": 2,
+            "name": "Whisper",
+            "logo": "ext/openai_white.svg"
+          }
+        },
+        {
+          "type": "numbered-list",
+          "start": 11.9167,
+          "end": 14.2,
+          "params": {
+            "items": [
+              {
+                "n": 1,
+                "name": "Fooocus",
+                "logo": "ext/fooocus_1.png",
+                "at": 7.4667
+              },
+              {
+                "n": 2,
+                "name": "Whisper",
+                "logo": "ext/openai_white.svg",
+                "at": 11.9167
+              }
+            ],
+            "highlight": "latest"
+          }
+        }
+      ]
+    },
+    {
+      "id": "upscayl",
+      "start": 14.2,
+      "end": 18.02,
+      "say": "Üçüncü Upscayl. Bulanık ve kalitesiz fotoğrafları netleştiriyor.",
+      "why": "Tool 3: site, then the before/after slider.",
+      "layout": "broll",
+      "shots": [
+        {
+          "src": "s06.mp4",
+          "from": 0,
+          "to": 2.02,
+          "at": 14.2
+        },
+        {
+          "src": "s07.mp4",
+          "from": 0,
+          "to": 1.8,
+          "at": 16.22
+        }
+      ],
+      "cards": [
+        {
+          "type": "title-card",
+          "start": 14.68,
+          "end": 15.5,
+          "params": {
+            "n": 3,
+            "name": "Upscayl",
+            "logo": "ext/upscayl_icon.png"
+          }
+        },
+        {
+          "type": "numbered-list",
+          "start": 15.4667,
+          "end": 18.02,
+          "params": {
+            "items": [
+              {
+                "n": 1,
+                "name": "Fooocus",
+                "logo": "ext/fooocus_1.png",
+                "at": 7.4667
+              },
+              {
+                "n": 2,
+                "name": "Whisper",
+                "logo": "ext/openai_white.svg",
+                "at": 11.9167
+              },
+              {
+                "n": 3,
+                "name": "Upscayl",
+                "logo": "ext/upscayl_icon.png",
+                "at": 15.4667
+              }
+            ],
+            "highlight": "latest"
+          }
+        }
+      ]
+    },
+    {
+      "id": "browser-use",
+      "start": 18.02,
+      "end": 22.7,
+      "say": "Dördüncü Browser Use. Tarayıcıdaki sıkıcı işlerinizi yapay zekaya yaptırmanızı sağlıyor.",
+      "why": "Tool 4: logo page, then the agent clicking through pages.",
+      "layout": "broll",
+      "shots": [
+        {
+          "src": "s08.mp4",
+          "from": 0,
+          "to": 2.32,
+          "at": 18.02
+        },
+        {
+          "src": "s09.mp4",
+          "from": 0,
+          "to": 2.36,
+          "at": 20.34
+        }
+      ],
+      "cards": [
+        {
+          "type": "title-card",
+          "start": 18.6,
+          "end": 19.5,
+          "params": {
+            "n": 4,
+            "name": "Browser Use",
+            "logo": "ext/bu_symbol.png"
+          }
+        },
+        {
+          "type": "numbered-list",
+          "start": 19.4667,
+          "end": 22.7,
+          "params": {
+            "items": [
+              {
+                "n": 1,
+                "name": "Fooocus",
+                "logo": "ext/fooocus_1.png",
+                "at": 7.4667
+              },
+              {
+                "n": 2,
+                "name": "Whisper",
+                "logo": "ext/openai_white.svg",
+                "at": 11.9167
+              },
+              {
+                "n": 3,
+                "name": "Upscayl",
+                "logo": "ext/upscayl_icon.png",
+                "at": 15.4667
+              },
+              {
+                "n": 4,
+                "name": "Browser Use",
+                "logo": "ext/bu_symbol.png",
+                "at": 19.4667
+              }
+            ],
+            "highlight": "latest"
+          }
+        }
+      ]
+    },
+    {
+      "id": "voicestudio",
+      "start": 22.7,
+      "end": 28.2,
+      "say": "Beşinci ve favorim VoiceStudio. 646 dilde ses klonlayıp videolara dublaj yapmanızı sağlıyor.",
+      "why": "Tool 5: logo, then the editor UI.",
+      "layout": "broll",
+      "shots": [
+        {
+          "src": "s10.mp4",
+          "from": 0,
+          "to": 2.48,
+          "at": 22.7,
+          "punch": 23.2
+        },
+        {
+          "src": "s11.mp4",
+          "from": 0,
+          "to": 3.02,
+          "at": 25.18
+        }
+      ],
+      "cards": [
+        {
+          "type": "title-card",
+          "start": 23.54,
+          "end": 24.5,
+          "params": {
+            "n": 5,
+            "name": "VoiceStudio",
+            "logo": "ext/voice_logo.png"
+          }
+        },
+        {
+          "type": "numbered-list",
+          "start": 24.4667,
+          "end": 28.2,
+          "params": {
+            "items": [
+              {
+                "n": 1,
+                "name": "Fooocus",
+                "logo": "ext/fooocus_1.png",
+                "at": 7.4667
+              },
+              {
+                "n": 2,
+                "name": "Whisper",
+                "logo": "ext/openai_white.svg",
+                "at": 11.9167
+              },
+              {
+                "n": 3,
+                "name": "Upscayl",
+                "logo": "ext/upscayl_icon.png",
+                "at": 15.4667
+              },
+              {
+                "n": 4,
+                "name": "Browser Use",
+                "logo": "ext/bu_symbol.png",
+                "at": 19.4667
+              },
+              {
+                "n": 5,
+                "name": "VoiceStudio",
+                "logo": "ext/voice_logo.png",
+                "at": 24.4667
+              }
+            ],
+            "highlight": "latest"
+          }
+        }
+      ]
+    },
+    {
+      "id": "cta",
+      "start": 28.2,
+      "end": 32,
+      "say": "Linkleri yoruma bırakıyorum. Böyle videoların devamı için beni takip etmeyi unutmayın.",
+      "why": "CTA: closing wide desk shot.",
+      "layout": "broll",
+      "shots": [
+        {
+          "src": "s12.mp4",
+          "from": 0,
+          "to": 3.8,
+          "at": 28.2
+        }
+      ],
+      "cards": [
+        {
+          "type": "numbered-list",
+          "start": 28.2,
+          "end": 32,
+          "params": {
+            "items": [
+              {
+                "n": 1,
+                "name": "Fooocus",
+                "logo": "ext/fooocus_1.png",
+                "at": 7.4667
+              },
+              {
+                "n": 2,
+                "name": "Whisper",
+                "logo": "ext/openai_white.svg",
+                "at": 11.9167
+              },
+              {
+                "n": 3,
+                "name": "Upscayl",
+                "logo": "ext/upscayl_icon.png",
+                "at": 15.4667
+              },
+              {
+                "n": 4,
+                "name": "Browser Use",
+                "logo": "ext/bu_symbol.png",
+                "at": 19.4667
+              },
+              {
+                "n": 5,
+                "name": "VoiceStudio",
+                "logo": "ext/voice_logo.png",
+                "at": 24.4667
+              }
+            ],
+            "highlight": "none"
+          }
+        }
+      ]
+    }
+  ],
+  "captions": {
+    "style": "word-build",
+    "groups": [
+      {
+        "words": [
+          [
+            "Para",
+            0
+          ],
+          [
+            "verilen",
+            0.34
+          ],
+          [
+            "yapay",
+            0.68
+          ]
+        ],
+        "end": 1.02
+      },
+      {
+        "words": [
+          [
+            "zeka",
+            1.02
+          ],
+          [
+            "araçlarının",
+            1.28
+          ],
+          [
+            "GitHub'da",
+            2.02
+          ]
+        ],
+        "end": 2.42
+      },
+      {
+        "words": [
+          [
+            "bedava",
+            2.42
+          ],
+          [
+            "alternatifleri",
+            2.76
+          ],
+          [
+            "var",
+            3.44
+          ]
+        ],
+        "end": 3.78
+      },
+      {
+        "words": [
+          [
+            "Ben",
+            3.78
+          ],
+          [
+            "de",
+            3.9
+          ],
+          [
+            "bunlardan",
+            4.04
+          ],
+          [
+            "5",
+            4.46
+          ],
+          [
+            "tanesini",
+            4.66
+          ]
+        ],
+        "end": 5.14
+      },
+      {
+        "words": [
+          [
+            "sizin",
+            5.14
+          ],
+          [
+            "için",
+            5.34
+          ],
+          [
+            "derledim",
+            5.56
+          ]
+        ],
+        "end": 6.16
+      },
+      {
+        "words": [
+          [
+            "Birincisi",
+            6.16
+          ],
+          [
+            "Fooocus",
+            6.6
+          ]
+        ],
+        "end": 7.2
+      },
+      {
+        "words": [
+          [
+            "Promptu",
+            7.2
+          ],
+          [
+            "veriyorsunuz",
+            7.54
+          ]
+        ],
+        "end": 8.2
+      },
+      {
+        "words": [
+          [
+            "bilgisayarınızda",
+            8.2
+          ],
+          [
+            "görsel",
+            8.84
+          ],
+          [
+            "oluşturuyor",
+            9.08
+          ]
+        ],
+        "end": 9.84
+      },
+      {
+        "words": [
+          [
+            "sınır",
+            9.84
+          ],
+          [
+            "yok",
+            10.18
+          ]
+        ],
+        "end": 10.66
+      },
+      {
+        "words": [
+          [
+            "İkinci",
+            10.66
+          ],
+          [
+            "Whisper",
+            11.08
+          ]
+        ],
+        "end": 11.68
+      },
+      {
+        "words": [
+          [
+            "Herhangi",
+            11.68
+          ],
+          [
+            "bir",
+            11.98
+          ],
+          [
+            "dilde",
+            12.08
+          ]
+        ],
+        "end": 12.44
+      },
+      {
+        "words": [
+          [
+            "sesin",
+            12.44
+          ],
+          [
+            "transkriptini",
+            12.9
+          ],
+          [
+            "alabiliyorsunuz",
+            13.5
+          ]
+        ],
+        "end": 14.2
+      },
+      {
+        "words": [
+          [
+            "Üçüncü",
+            14.2
+          ],
+          [
+            "Upscayl",
+            14.68
+          ]
+        ],
+        "end": 15.44
+      },
+      {
+        "words": [
+          [
+            "Bulanık",
+            15.44
+          ],
+          [
+            "ve",
+            15.66
+          ],
+          [
+            "kalitesiz",
+            15.82
+          ]
+        ],
+        "end": 16.22
+      },
+      {
+        "words": [
+          [
+            "fotoğrafları",
+            16.22
+          ],
+          [
+            "netleştiriyor",
+            16.9
+          ]
+        ],
+        "end": 18.02
+      },
+      {
+        "words": [
+          [
+            "Dördüncü",
+            18.02
+          ],
+          [
+            "Browser Use",
+            18.6
+          ]
+        ],
+        "end": 19.58
+      },
+      {
+        "words": [
+          [
+            "Tarayıcıdaki",
+            19.58
+          ],
+          [
+            "sıkıcı",
+            20.04
+          ],
+          [
+            "işlerinizi",
+            20.34
+          ]
+        ],
+        "end": 20.88
+      },
+      {
+        "words": [
+          [
+            "yapay",
+            20.88
+          ],
+          [
+            "zekaya",
+            21.24
+          ],
+          [
+            "yaptırmanızı",
+            21.48
+          ],
+          [
+            "sağlıyor",
+            22.18
+          ]
+        ],
+        "end": 22.7
+      },
+      {
+        "words": [
+          [
+            "Beşinci",
+            22.7
+          ],
+          [
+            "ve",
+            23.04
+          ],
+          [
+            "favorim",
+            23.2
+          ]
+        ],
+        "end": 23.54
+      },
+      {
+        "words": [
+          [
+            "VoiceStudio",
+            23.54
+          ],
+          [
+            "646",
+            24.6
+          ],
+          [
+            "dilde",
+            25.18
+          ]
+        ],
+        "end": 25.56
+      },
+      {
+        "words": [
+          [
+            "ses",
+            25.56
+          ],
+          [
+            "klonlayıp",
+            25.78
+          ],
+          [
+            "videolara",
+            26.3
+          ]
+        ],
+        "end": 26.76
+      },
+      {
+        "words": [
+          [
+            "dublaj",
+            26.76
+          ],
+          [
+            "yapmanızı",
+            27.08
+          ],
+          [
+            "sağlıyor",
+            27.58
+          ]
+        ],
+        "end": 28.2
+      },
+      {
+        "words": [
+          [
+            "Linkleri",
+            28.2
+          ],
+          [
+            "yoruma",
+            28.52
+          ],
+          [
+            "bırakıyorum",
+            28.82
+          ]
+        ],
+        "end": 29.3
+      },
+      {
+        "words": [
+          [
+            "Böyle",
+            29.3
+          ],
+          [
+            "videoların",
+            29.66
+          ],
+          [
+            "devamı",
+            30.16
+          ],
+          [
+            "için",
+            30.48
+          ]
+        ],
+        "end": 30.66
+      },
+      {
+        "words": [
+          [
+            "beni",
+            30.66
+          ],
+          [
+            "takip",
+            30.88
+          ],
+          [
+            "etmeyi",
+            31.22
+          ],
+          [
+            "unutmayın",
+            31.48
+          ]
+        ],
+        "end": 32
+      }
+    ]
+  },
+  "sfx": [
+    {
+      "file": "sfx/drop_001.wav",
+      "at": 0.68,
+      "volume": 0.45
+    },
+    {
+      "file": "sfx/drop_002.wav",
+      "at": 1.02,
+      "volume": 0.45
+    },
+    {
+      "file": "sfx/drop_003.wav",
+      "at": 1.28,
+      "volume": 0.45
+    },
+    {
+      "file": "sfx/drop_004.wav",
+      "at": 2.02,
+      "volume": 0.45
+    },
+    {
+      "file": "sfx/maximize_006.wav",
+      "at": 6.6,
+      "volume": 0.3
+    },
+    {
+      "file": "sfx/maximize_006.wav",
+      "at": 11.08,
+      "volume": 0.3
+    },
+    {
+      "file": "sfx/maximize_006.wav",
+      "at": 14.68,
+      "volume": 0.3
+    },
+    {
+      "file": "sfx/maximize_006.wav",
+      "at": 18.6,
+      "volume": 0.3
+    },
+    {
+      "file": "sfx/maximize_006.wav",
+      "at": 23.54,
+      "volume": 0.3
+    },
+    {
+      "file": "sfx/pluck_002.wav",
+      "at": 7.4667,
+      "volume": 0.35
+    },
+    {
+      "file": "sfx/pluck_002.wav",
+      "at": 11.9167,
+      "volume": 0.35
+    },
+    {
+      "file": "sfx/pluck_002.wav",
+      "at": 15.4667,
+      "volume": 0.35
+    },
+    {
+      "file": "sfx/pluck_002.wav",
+      "at": 19.4667,
+      "volume": 0.35
+    },
+    {
+      "file": "sfx/pluck_002.wav",
+      "at": 24.4667,
+      "volume": 0.35
+    }
+  ],
+  "voice": {
+    "src": "vo.wav"
+  }
+}
