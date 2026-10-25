@@ -3,6 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { run } from './run';
 import { probe } from './probe';
+import { WORKING_CLIP_X264 } from './color';
 import type { CropPath } from '../talking/reframe';
 
 export interface PrepareClipOpts {
@@ -82,10 +83,7 @@ export async function prepareClip(src: string, out: string, o: PrepareClipOpts):
       '-i', path.resolve(src),
       '-an',
       '-vf', vf,
-      '-c:v', 'libx264', '-preset', 'slow', '-crf', '4', '-g', '30',
-      '-color_range', 'tv', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-colorspace', 'bt709',
-      // this ffmpeg build's libx264 drops -color_primaries/-color_trc; the x264 VUI params carry them
-      '-x264-params', 'colorprim=bt709:transfer=bt709:colormatrix=bt709',
+      ...WORKING_CLIP_X264,
       path.resolve(out),
     ], { cwd });
   } finally {
@@ -126,8 +124,9 @@ export const AAC_TP_MARGIN = 0.5;
 /**
  * Final pass: video stream copied, audio two-pass loudness-normalised to target, AAC 320k.
  * Pass 1 measures (loudnorm print_format=json); pass 2 applies the measured values with linear=true, aiming at
- * TP − AAC_TP_MARGIN so the AAC output still lands ≤ target.TP. If the encoded file is still over (or off target I),
- * pass 2 is redone once with the excess added to the margin.
+ * TP − AAC_TP_MARGIN so the AAC output still lands ≤ target.TP. If the encoded file's true peak is still over
+ * target.TP, pass 2 is redone once with the excess added to the margin. The retry is for true peak only: an
+ * integrated level off target is not retried (the QA loudness gate reports it).
  */
 export async function finishLoudness(
   src: string,

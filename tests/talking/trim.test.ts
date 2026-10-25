@@ -121,6 +121,23 @@ describe('renderTrimmedTake', () => {
     expect(m.start).toBeCloseTo(before + 0.2, 6);
     expect(m.end).toBeLessThanOrEqual(v + 1e-6);
   }, 120000);
+
+  it('normalises a variable-frame-rate take to its frame grid before trimming', async () => {
+    const fps = 30;
+    // VFR source: the first second keeps every other frame (15 fps), the rest is 30 fps; r_frame_rate stays 30
+    const src = path.join(dir, 'vfr.mp4');
+    await run('ffmpeg', ['-y', '-v', 'error', '-f', 'lavfi', '-i', `testsrc2=size=160x120:rate=${fps}:duration=3`,
+      '-f', 'lavfi', '-i', 'sine=frequency=440:sample_rate=48000:duration=3',
+      '-vf', "select='if(lt(t,1),not(mod(n,2)),1)'", '-fps_mode', 'vfr', '-c:v', 'libx264', '-preset', 'ultrafast', '-c:a', 'aac', src]);
+    const count = async (f: string) => Number((await run('ffprobe', ['-v', 'error', '-count_frames', '-select_streams', 'v:0',
+      '-show_entries', 'stream=nb_read_frames', '-of', 'csv=p=0', f])).stdout.trim());
+    expect(await count(src)).toBeLessThan(3 * fps); // really VFR
+    const out = path.join(dir, 'vfr-take.mp4');
+    const used = await renderTrimmedTake(src, [{ from: 0.2, to: 1.4 }, { from: 2, to: 2.8 }], out);
+    const total = used.reduce((acc, s) => acc + s.to - s.from, 0);
+    // a constant-rate output: one frame per grid step, including the 15 fps stretch
+    expect(await count(out)).toBe(Math.round(total * fps));
+  }, 120000);
 });
 
 describe('quietCuts', () => {

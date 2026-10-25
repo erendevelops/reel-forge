@@ -23,11 +23,15 @@ const sceneLayout = (s: Scene): Layout => s.layout ?? 'full-face';
 /** The scene's source aspect (w/h): its first shot's `aspect`, else the frame's (a working clip at output size). */
 export const sceneAspect = (s: Scene, width: number, height: number): number => s.shots[0]?.aspect ?? width / height;
 
-/** Graphics region of a layout: `split` keeps graphics in the top 50%; every other layout uses the whole frame. */
+/**
+ * Graphics region of a layout: `split` keeps graphics in the top 50%; full-face (also the default when a scene has
+ * no layout, as everywhere else) the band below the captions; `full-graphics`/`broll` the whole frame.
+ */
 export function layoutRegion(layout: Layout | undefined, ctx: CompileContext): Region {
-  if (layout === 'split') return { x: 0, y: 0, w: ctx.width, h: ctx.height / 2 };
-  // explicit full-face: cards sit in the band below the captions so they never cover the face
-  if (layout === 'full-face') {
+  const l = layout ?? 'full-face';
+  if (l === 'split') return { x: 0, y: 0, w: ctx.width, h: ctx.height / 2 };
+  // cards sit in the band below the captions so they never cover the face
+  if (l === 'full-face') {
     const top = Math.round(FULL_FACE_CARD_TOP * ctx.height);
     return { x: 0, y: top, w: ctx.width, h: ctx.height - top };
   }

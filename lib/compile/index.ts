@@ -1,8 +1,7 @@
 import fs from 'node:fs/promises';
-import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
-import { fileURLToPath } from 'node:url';
+import { normAsset, resolveAsset } from '../media/assets';
 import type { Card, CardType, Plan, Ratio } from '../plan';
 import { cardRegistry } from './cards';
 import { renderCaptions } from './captions';
@@ -15,8 +14,6 @@ export { cardRegistry } from './cards';
 
 export type CompileOptions = { outDir: string; assetsDir: string; ratio: Ratio; overlayOnly?: boolean };
 
-/** Bundled assets (CC0 SFX) live in the repo's `assets/`; a plan's `sfx/...` resolves there if `assetsDir` lacks it. */
-const BUNDLED_ASSETS = fileURLToPath(new URL('../../assets/', import.meta.url));
 const require = createRequire(import.meta.url);
 
 const FONTS: { pkg: string; weights: number[] }[] = [
@@ -27,22 +24,6 @@ const FONT_SUBSETS = ['latin-ext', 'latin'];
 
 /** Paint order (reel doc §7.2): shots < pop cards < title cards < list < captions. */
 const CARD_LAYER: Partial<Record<CardType, number>> = { 'logo-pop': 0, 'title-card': 1, 'numbered-list': 2 };
-
-function normAsset(p: string): string {
-  const n = path.posix.normalize(p.replace(/\\/g, '/'));
-  if (path.posix.isAbsolute(n) || /^[a-zA-Z]:/.test(n) || n === '..' || n.startsWith('../')) {
-    throw new Error(`asset path must be relative to assetsDir: ${p}`);
-  }
-  return n;
-}
-
-function resolveAsset(rel: string, assetsDir: string): string {
-  for (const base of [assetsDir, BUNDLED_ASSETS]) {
-    const f = path.join(base, ...rel.split('/'));
-    if (existsSync(f)) return f;
-  }
-  throw new Error(`missing asset: ${rel} (looked in ${assetsDir} and ${BUNDLED_ASSETS})`);
-}
 
 async function copyFile(src: string, dest: string): Promise<void> {
   await fs.mkdir(path.dirname(dest), { recursive: true });
@@ -158,7 +139,7 @@ export async function compile(plan: Plan, o: CompileOptions): Promise<{ indexHtm
   for (const c of cards) frags.push(cardRegistry[c.card.type].render(c.card, c.id, { ...ctx, region: c.region }));
   frags.push(renderCaptions(plan.captions, ctx));
 
-  const sfxDur = await Promise.all(plan.sfx.map((c) => audioDuration(resolveAsset(normAsset(c.file), o.assetsDir))));
+  const sfxDur = await Promise.all(plan.sfx.map((c) => audioDuration(resolveAsset(c.file, o.assetsDir))));
   const audio = [
     o.overlayOnly ? '' : renderVoice(plan, ctx),
     o.overlayOnly ? '' : renderMusic(plan, ctx),

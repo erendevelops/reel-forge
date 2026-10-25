@@ -1,8 +1,9 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { existsSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import { run } from '../media/run';
+import { probe } from '../media/probe';
+import { resolveAsset } from '../media/assets';
+import { TV_BT709_TAGS } from '../media/color';
 import { finishLoudness } from '../media/prepare';
 import { compile, RATIO_SIZE } from '../compile';
 import { LAYOUT_TWEEN_S, sceneFaces, type FaceState } from '../compile/layers';
@@ -26,8 +27,6 @@ export interface LayeredResult {
 
 export const DELIVERY_CRF = 10;
 
-const TV_TAGS = ['-color_range', 'tv', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-colorspace', 'bt709', '-x264-params', 'colorprim=bt709:transfer=bt709:colormatrix=bt709'];
-
 /*
  * Root cause of the old -1.9 luma shift (bisected: already present in the lossless base): the lavfi `color`
  * source is untagged, and this ffmpeg's overlay negotiates the colour space of both inputs, silently converting
@@ -36,17 +35,6 @@ const TV_TAGS = ['-color_range', 'tv', '-color_primaries', 'bt709', '-color_trc'
 const BT709_TV = 'setparams=range=tv:colorspace=bt709:color_primaries=bt709:color_trc=bt709';
 
 function n(x: number): string { return Number(x.toFixed(6)).toString(); }
-
-/** Bundled assets (CC0 SFX) in the repo's `assets/`: a plan's `sfx/...` resolves there if `assetsDir` lacks it, as in compile. */
-const BUNDLED_ASSETS = fileURLToPath(new URL('../../assets/', import.meta.url));
-
-function resolveAsset(assetsDir: string, rel: string): string {
-  const parts = rel.split(/[\\/]/);
-  const own = path.join(assetsDir, ...parts);
-  if (existsSync(own)) return own;
-  const bundled = path.join(BUNDLED_ASSETS, ...parts);
-  return existsSync(bundled) ? bundled : own;
-}
 
 type ShotPlace = { face: { start: number; from: FaceState; to: FaceState }; facePos: { x: number; y: number }; fit: 'cover' | 'contain' };
 
@@ -73,34 +61,50 @@ function placement(p: ShotPlace, W: number, H: number): { scale: string; x: stri
   };
 }
 
-/** Per-shot filter chain: trim, optional per-frame scale+crop punch-in (no zoompan), shift to timeline, layout scale. */
-function shotChain(idx: number, label: string, sh: Plan['scenes'][number]['shots'][number], w: number, h: number, punchIns: boolean, place?: { scale: string }): string {
+export type ClipSizes = Record<string, { width: number; height: number }>;
+
+/**
+ * Per-shot filter chain: trim, optional per-frame scale+crop punch-in (no zoompan), shift to timeline, layout scale.
+ * The punch scales the clip up and crops it back to the clip's own size `clip` (not the output frame: a shot whose
+ * `aspect` differs from the frame would be cut to the wrong shape), centred.
+ */
+function shotChain(idx: number, label: string, sh: Plan['scenes'][number]['shots'][number], clip: { width: number; height: number }, punchIns: boolean, place?: { scale: string }): string {
   const dur = sh.to - sh.from;
   const f = [`trim=start=${n(sh.from)}:duration=${n(dur)}`, 'setpts=PTS-STARTPTS'];
   // punch-ins only when the "soft punch-ins" card is ticked (spec §6 "Never zoom into the face")
   if (punchIns && sh.punch !== undefined && sh.punch < sh.at + dur) {
     // the same v5 spring as the HTML layer (compile/punch.ts), evaluated per frame for the rest of the shot
     const s = punchScaleExpr(sh.punch - sh.at);
-    f.push(`scale=w='trunc(iw*${s}/2)*2':h='trunc(ih*${s}/2)*2':eval=frame:flags=bicubic`, `crop=${w}:${h}`);
+    f.push(`scale=w='trunc(iw*${s}/2)*2':h='trunc(ih*${s}/2)*2':eval=frame:flags=bicubic`, `crop=${clip.width}:${clip.height}`);
   }
   f.push(`setpts=PTS+${n(sh.at)}/TB`);
   if (place) f.push(place.scale);
   return `[${idx}:v]${f.join(',')}[${label}]`;
 }
 
-/** ffmpeg arguments of the base track: shots on black at their `at` times, no colour filters, working-clip encode rules. */
-export function baseArgs(plan: Plan, o: LayeredOpts, w: number, h: number, out: string): string[] {
+/**
+ * ffmpeg arguments of the base track: shots on black at their `at` times, no colour filters, working-clip encode rules.
+ * `sizes`: each punched shot's clip size by `src` (`buildBase` probes them); without it a punched shot must be a
+ * working clip at the output size (no `aspect`, or the frame's).
+ */
+export function baseArgs(plan: Plan, o: LayeredOpts, w: number, h: number, out: string, sizes?: ClipSizes): string[] {
   const faces = sceneFaces(plan, w, h);
   const shots = plan.scenes.flatMap((sc, si) => sc.shots.map((sh) => ({
     ...sh,
     place: placement({ face: faces[si], facePos: sc.facePos ?? { x: 0.5, y: 0.5 }, fit: sc.layout === 'split' ? 'contain' : 'cover' }, w, h),
   })));
   const args = ['-y', '-v', 'error', '-f', 'lavfi', '-i', `color=c=black:s=${w}x${h}:r=${plan.fps}:d=${n(plan.duration)},format=yuv420p,${BT709_TV}`];
-  for (const sh of shots) args.push('-i', resolveAsset(o.assetsDir, sh.src));
+  for (const sh of shots) args.push('-i', resolveAsset(sh.src, o.assetsDir));
   const parts: string[] = [];
   let cur = '0:v';
   shots.forEach((sh, i) => {
-    parts.push(shotChain(i + 1, `s${i}`, sh, w, h, plan.selection.punchIns, sh.place));
+    let clip = sizes?.[sh.src];
+    if (!clip && plan.selection.punchIns && sh.punch !== undefined) {
+      if (sh.aspect !== undefined && Math.abs(sh.aspect - w / h) > 1e-3) {
+        throw new Error(`baseArgs: punch-in on ${sh.src} (aspect ${sh.aspect}) needs the clip's size (sizes) to crop back to`);
+      }
+    }
+    parts.push(shotChain(i + 1, `s${i}`, sh, clip ?? { width: w, height: h }, plan.selection.punchIns, sh.place));
     const last = i === shots.length - 1;
     const pos = sh.place ? `:x='${sh.place.x}':y='${sh.place.y}':eval=frame` : '';
     parts.push(
@@ -111,13 +115,19 @@ export function baseArgs(plan: Plan, o: LayeredOpts, w: number, h: number, out: 
   if (!shots.length) parts.push('[0:v]null[vout]');
   args.push(
     '-filter_complex', parts.join(';'), '-map', '[vout]', '-an', '-t', n(plan.duration),
-    '-c:v', 'ffv1', '-level', '3', '-pix_fmt', 'yuv420p', ...TV_TAGS, out,
+    '-c:v', 'ffv1', '-level', '3', '-pix_fmt', 'yuv420p', ...TV_BT709_TAGS, out,
   );
   return args;
 }
 
 async function buildBase(plan: Plan, o: LayeredOpts, w: number, h: number, out: string): Promise<void> {
-  await run('ffmpeg', baseArgs(plan, o, w, h, out), { timeoutMs: 30 * 60 * 1000 });
+  const sizes: ClipSizes = {};
+  for (const sh of plan.scenes.flatMap((s) => s.shots)) {
+    if (sh.punch === undefined || sizes[sh.src]) continue;
+    const p = await probe(resolveAsset(sh.src, o.assetsDir));
+    sizes[sh.src] = { width: p.width, height: p.height };
+  }
+  await run('ffmpeg', baseArgs(plan, o, w, h, out, sizes), { timeoutMs: 30 * 60 * 1000 });
 }
 
 /** Voice + music + SFX mixed by ffmpeg from the plan (levels from the cues), exactly plan.duration long. */
@@ -128,13 +138,13 @@ async function buildAudio(plan: Plan, o: LayeredOpts, out: string): Promise<void
   const labels = ['[0:a]'];
   let i = 1;
   if (plan.voice) {
-    args.push('-i', resolveAsset(o.assetsDir, plan.voice.src));
+    args.push('-i', resolveAsset(plan.voice.src, o.assetsDir));
     parts.push(`[${i}:a]aresample=48000,aformat=channel_layouts=stereo,atrim=0:${D}[a${i}]`);
     labels.push(`[a${i}]`); i++;
   }
   if (plan.music) {
     const m = plan.music;
-    args.push('-i', resolveAsset(o.assetsDir, m.src));
+    args.push('-i', resolveAsset(m.src, o.assetsDir));
     const fo = Math.max(0, plan.duration - m.fadeOut);
     parts.push(
       `[${i}:a]aresample=48000,aformat=channel_layouts=stereo,atrim=start=${n(m.mediaStart)}:duration=${D},asetpts=PTS-STARTPTS,` +
@@ -143,7 +153,7 @@ async function buildAudio(plan: Plan, o: LayeredOpts, out: string): Promise<void
     labels.push(`[a${i}]`); i++;
   }
   for (const c of plan.sfx) {
-    args.push('-i', resolveAsset(o.assetsDir, c.file));
+    args.push('-i', resolveAsset(c.file, o.assetsDir));
     const ms = Math.round(c.at * 1000);
     parts.push(`[${i}:a]aresample=48000,aformat=channel_layouts=stereo,volume=${n(c.volume)},adelay=${ms}|${ms}[a${i}]`);
     labels.push(`[a${i}]`); i++;
@@ -154,7 +164,7 @@ async function buildAudio(plan: Plan, o: LayeredOpts, out: string): Promise<void
 }
 
 /**
- * Fallback path: footage encoded as a plain base track, HyperFrames renders cards/captions as a ProRes 4444
+ * Primary render path (the spikes' decision): footage encoded as a plain base track, HyperFrames renders cards/captions as a ProRes 4444
  * alpha overlay, ffmpeg composites (`overlay=format=auto`, yuva420p so base luma never round-trips through RGB).
  */
 export async function renderLayered(plan: Plan, o: LayeredOpts): Promise<LayeredResult> {
@@ -177,7 +187,7 @@ export async function renderLayered(plan: Plan, o: LayeredOpts): Promise<Layered
     '-y', '-v', 'error', '-i', base, '-i', ovl, '-i', mix,
     '-filter_complex', `[1:v]${BT709_TV},format=yuva420p[ov];`+'[0:v][ov]overlay=format=auto:eof_action=pass,format=yuv420p[v]',
     '-map', '[v]', '-map', '2:a', '-t', n(plan.duration),
-    '-c:v', 'libx264', '-preset', 'slow', '-crf', String(o.crf ?? DELIVERY_CRF), '-g', '30', '-pix_fmt', 'yuv420p', ...TV_TAGS,
+    '-c:v', 'libx264', '-preset', 'slow', '-crf', String(o.crf ?? DELIVERY_CRF), '-g', '30', '-pix_fmt', 'yuv420p', ...TV_BT709_TAGS,
     '-c:a', 'pcm_s16le', comp,
   ], { timeoutMs: 30 * 60 * 1000 });
 

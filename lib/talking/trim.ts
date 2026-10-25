@@ -3,6 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { run } from '../media/run';
 import { probe } from '../media/probe';
+import { WORKING_CLIP_X264 } from '../media/color';
 import type { Transcript } from '../media/transcribe';
 
 /** A kept range of the source take, in source seconds. */
@@ -90,7 +91,8 @@ export function snapSegments(segs: Segment[], fps: number): Segment[] {
 
 /**
  * Plays the kept ranges back to back: hard video cuts (`trim` + `concat`), a 0.03 s `acrossfade` at every audio
- * join. Ranges are snapped to the source frame grid first; the snapped ranges are returned so callers can
+ * join. Video is first normalised to the take's frame grid (`fps=`), so a variable-frame-rate phone take trims
+ * frame-exactly and comes out constant-rate. Ranges are snapped to the source frame grid first; the snapped ranges are returned so callers can
  * `remapTimes` with exactly what was rendered. No colour filters; the encode follows the working-clip rules
  * (TV range, BT.709 tags, like prepareClip).
  */
@@ -103,7 +105,7 @@ export async function renderTrimmedTake(src: string, segsIn: Segment[], out: str
   const parts: string[] = [];
   segs.forEach((s, i) => {
     // half-frame offsets select exactly the frames k..m-1 of a range [k/fps, m/fps), immune to float rounding
-    parts.push(`[0:v]trim=start=${n(Math.max(0, s.from - half))}:end=${n(s.to - half)},setpts=PTS-STARTPTS[v${i}]`);
+    parts.push(`[0:v]fps=${fps},trim=start=${n(Math.max(0, s.from - half))}:end=${n(s.to - half)},setpts=PTS-STARTPTS[v${i}]`);
     // every piece but the last carries XFADE extra so the crossfade overlap doesn't shorten the audio
     const end = i < segs.length - 1 ? s.to + XFADE : s.to;
     parts.push(`[0:a]atrim=start=${n(s.from)}:end=${n(end)},asetpts=PTS-STARTPTS[a${i}]`);
@@ -123,9 +125,7 @@ export async function renderTrimmedTake(src: string, segsIn: Segment[], out: str
     '-y', '-v', 'error', '-i', src,
     '-filter_complex', parts.join(';'),
     '-map', '[vout]', '-map', `[${a}]`, '-t', n(total),
-    '-c:v', 'libx264', '-preset', 'slow', '-crf', '4', '-g', '30',
-    '-color_range', 'tv', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-colorspace', 'bt709',
-    '-x264-params', 'colorprim=bt709:transfer=bt709:colormatrix=bt709',
+    ...WORKING_CLIP_X264,
     '-c:a', 'aac', '-b:a', '320k', '-ar', '48000',
     out,
   ], { timeoutMs: 30 * 60 * 1000 });
