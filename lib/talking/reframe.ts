@@ -1,16 +1,16 @@
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { run, RunError } from '../media/run';
 import type { Ratio } from '../plan';
+import { repoPath } from '../root';
 
 /** Face boxes from `tools/face_track.py`: `w`/`h` in source pixels, box values normalised 0–1, `t` in source seconds. */
 export type FaceTrack = { w: number; h: number; boxes: { t: number; x: number; y: number; bw: number; bh: number }[] };
 /** A crop window per sample, in source pixels. */
 export type CropPath = { t: number; x: number; y: number; w: number; h: number }[];
 
-const TOOLS = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../tools');
+const TOOLS = repoPath('tools');
 const SCRIPT = path.join(TOOLS, 'face_track.py');
 /** MediaPipe BlazeFace short-range model; not committed (see tools/face_track.py). */
 export const FACE_MODEL = path.join(TOOLS, 'models', 'blaze_face_short_range.tflite');

@@ -1,6 +1,5 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { createRequire } from 'node:module';
 import { normAsset, resolveAsset } from '../media/assets';
 import type { Card, CardType, Plan, Ratio } from '../plan';
 import { cardRegistry } from './cards';
@@ -8,13 +7,14 @@ import { renderCaptions } from './captions';
 import { audioDuration, layoutRegion, renderFootage, renderLayoutMask, renderMusic, renderSfx, renderVoice } from './layers';
 import { type CompileContext, type Fragment, type Region, RATIO_SIZE, num } from './types';
 import { type Logo, logoRef, logoSvgFile, resolveLogo } from '../assets/logos';
+import { repoRequire } from '../root';
 
 export * from './types';
 export { cardRegistry } from './cards';
 
 export type CompileOptions = { outDir: string; assetsDir: string; ratio: Ratio; overlayOnly?: boolean };
 
-const require = createRequire(import.meta.url);
+const require = repoRequire;
 
 const FONTS: { pkg: string; weights: number[] }[] = [
   { pkg: '@fontsource/inter', weights: [600, 800, 900] },

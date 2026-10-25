@@ -1,9 +1,9 @@
 import path from 'node:path';
 import { existsSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { repoPath } from '../root';
 
 /** Bundled assets (CC0 SFX) live in the repo's `assets/`; a plan's `sfx/...` resolves there if `assetsDir` lacks it. */
-export const BUNDLED_ASSETS = fileURLToPath(new URL('../../assets/', import.meta.url));
+export const BUNDLED_ASSETS = repoPath('assets');
 
 /** A plan asset path normalised to posix and checked to stay inside `assetsDir` (no absolute paths, no `..`). */
 export function normAsset(p: string): string {

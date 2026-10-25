@@ -7,6 +7,7 @@ export default defineConfig({
   test: {
     include: ['tests/**/*.test.ts', 'tests/**/*.test.tsx'],
     environmentMatchGlobs: [['tests/ui/**', 'jsdom']],
+    setupFiles: ['tests/setup-ui.ts'],
     testTimeout: 60000,
     hookTimeout: 60000,
   },

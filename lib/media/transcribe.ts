@@ -1,15 +1,15 @@
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { run, RunError } from './run';
+import { repoPath } from '../root';
 
 export interface Transcript {
   language: string;
   words: { w: string; start: number; end: number }[];
 }
 
-const SCRIPT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../tools/transcribe.py');
+const SCRIPT = repoPath('tools', 'transcribe.py');
 
 export async function transcribe(
   audio: string,

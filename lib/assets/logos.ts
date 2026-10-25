@@ -1,7 +1,7 @@
-import { createRequire } from 'node:module';
 import * as icons from 'simple-icons';
 /** simple-icons 13.0.0 (npm alias), only for marks removed from the current set since (e.g. OpenAI, removed in 16.0.0). */
 import * as legacyIcons from 'simple-icons-v13';
+import { repoRequire } from '../root';
 
 /** An offline brand mark from the bundled `simple-icons` set: a 24×24 single-path SVG and the brand colour. */
 export type Logo = { svg: string; hex: string; title: string; slug: string };
@@ -44,7 +44,7 @@ function build(): Map<string, SiIcon> {
   // titles and slugs first (a slug wins over another icon's title), then simple-icons' own "aka" aliases
   for (const i of [...bySlug.values()].sort((a, b) => a.slug.localeCompare(b.slug))) if (!m.has(key(i.title))) m.set(key(i.title), i);
   for (const i of bySlug.values()) m.set(key(i.slug), i);
-  const data = createRequire(import.meta.url)('simple-icons/icons.json') as SiData[];
+  const data = repoRequire('simple-icons/icons.json') as SiData[];
   for (const d of data) {
     const i = bySlug.get(d.slug);
     if (!i) continue;
