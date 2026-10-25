@@ -1,0 +1,1263 @@
+{
+  "version": 1,
+  "mode": "reel",
+  "fps": 60,
+  "duration": 54.8,
+  "ratios": [
+    "9:16",
+    "4:5",
+    "1:1"
+  ],
+  "selection": {
+    "captions": "word-build",
+    "layouts": [
+      "full-face",
+      "split",
+      "full-graphics"
+    ],
+    "cards": [
+      "checklist",
+      "rolling-number",
+      "stamp",
+      "typed-title",
+      "follow-outro"
+    ],
+    "sfx": true,
+    "music": false,
+    "punchIns": false,
+    "thumbnail": false
+  },
+  "scenes": [
+    {
+      "id": "hook",
+      "start": 0,
+      "end": 7.0,
+      "say": "So one of the big reasons why many people are afraid to start a YouTube channel is because of the fear of speaking in front of the camera.",
+      "why": "Hook: the fear of speaking to camera, full face, no cards.",
+      "layout": "full-face",
+      "facePos": {
+        "x": 0.4992,
+        "y": 0.4556
+      },
+      "shots": [
+        {
+          "src": "take.mp4",
+          "from": 0,
+          "to": 7.0,
+          "at": 0
+        }
+      ],
+      "cards": []
+    },
+    {
+      "id": "explain",
+      "start": 7.0,
+      "end": 30.3,
+      "say": "I had this feeling when I started this YouTube channel and this can be really intimidating at first, but with the right amount of practice, you will not only look natural on camera but also connect and be more intimate with your audience, which in general will make your videos look way better. In this video I will give you 5 tips that will quickly improve your confidence in front of the camera.",
+      "why": "Split explainer: checklist ticks on \"natural\" 15.92, \"connect\" 17.72, \"better\" 23.78 (card in on \"practice,\" 14.18); rolling number on the spoken \"5\" 25.72.",
+      "layout": "split",
+      "facePos": {
+        "x": 0.4906,
+        "y": 0.3569
+      },
+      "shots": [
+        {
+          "src": "take.mp4",
+          "from": 7.0,
+          "to": 30.3,
+          "at": 7.0
+        }
+      ],
+      "cards": [
+        {
+          "type": "checklist",
+          "start": 14.18,
+          "end": 24.6,
+          "params": {
+            "items": [
+              {
+                "label": "Look natural on camera",
+                "at": 15.92
+              },
+              {
+                "label": "Connect with your audience",
+                "at": 17.72
+              },
+              {
+                "label": "Videos look way better",
+                "at": 23.78
+              }
+            ]
+          }
+        },
+        {
+          "type": "rolling-number",
+          "start": 25.72,
+          "end": 30.3,
+          "params": {
+            "from": 0,
+            "to": 5,
+            "locale": "en-US",
+            "suffix": " TIPS"
+          }
+        }
+      ]
+    },
+    {
+      "id": "story",
+      "start": 30.3,
+      "end": 43.2,
+      "say": "Let's get into it. So I have been posting videos on YouTube for about a year now and what I can say is that even till now I still get nervous in front of the camera. For long this has kept me from creating videos on YouTube,",
+      "why": "Split story: rolling number on \"year\" 34.42 (\"about a year now\"); stamp on \"nervous\" 38.16 (his key line \"I still get nervous\").",
+      "layout": "split",
+      "facePos": {
+        "x": 0.4969,
+        "y": 0.475
+      },
+      "shots": [
+        {
+          "src": "take.mp4",
+          "from": 30.3,
+          "to": 43.2,
+          "at": 30.3
+        }
+      ],
+      "cards": [
+        {
+          "type": "rolling-number",
+          "start": 34.42,
+          "end": 37.6,
+          "params": {
+            "from": 0,
+            "to": 1,
+            "locale": "en-US",
+            "suffix": " YEAR"
+          }
+        },
+        {
+          "type": "stamp",
+          "start": 38.16,
+          "end": 41.4,
+          "params": {
+            "text": "NERVOUS"
+          }
+        }
+      ]
+    },
+    {
+      "id": "beat",
+      "start": 43.2,
+      "end": 46.6,
+      "say": "most of all because of the fear of judgment. Back in class I",
+      "why": "Full-graphics beat over the source's dark cutaway (no face there): typed title from \"most\" 43.30.",
+      "layout": "full-graphics",
+      "shots": [
+        {
+          "src": "take.mp4",
+          "from": 43.2,
+          "to": 46.6,
+          "at": 43.2
+        }
+      ],
+      "cards": [
+        {
+          "type": "typed-title",
+          "start": 43.3,
+          "end": 46.6,
+          "params": {
+            "text": "Fear of judgment",
+            "label": "Most of all"
+          }
+        }
+      ]
+    },
+    {
+      "id": "outro",
+      "start": 46.6,
+      "end": 54.8,
+      "say": "was never the person that would speak up. I was more the kind of guy that would sit still and agree to whatever they agreed to.",
+      "why": "Full-face outro; follow card on \"whatever\" 53.64. Handle @benettgraezer is the on-screen badge of the source video, used here as an illustrative handle only.",
+      "layout": "full-face",
+      "facePos": {
+        "x": 0.4938,
+        "y": 0.4819
+      },
+      "shots": [
+        {
+          "src": "take.mp4",
+          "from": 46.6,
+          "to": 54.8,
+          "at": 46.6
+        }
+      ],
+      "cards": [
+        {
+          "type": "follow-outro",
+          "start": 52.1,
+          "end": 54.8,
+          "params": {
+            "handle": "@benettgraezer"
+          }
+        }
+      ]
+    }
+  ],
+  "captions": {
+    "style": "word-build",
+    "groups": [
+      {
+        "words": [
+          [
+            "So",
+            0.02
+          ],
+          [
+            "one",
+            0.02
+          ],
+          [
+            "of",
+            0.26
+          ],
+          [
+            "the",
+            0.4
+          ]
+        ],
+        "end": 0.58
+      },
+      {
+        "words": [
+          [
+            "big",
+            0.58
+          ],
+          [
+            "reasons",
+            0.78
+          ],
+          [
+            "why",
+            1.18
+          ],
+          [
+            "many",
+            1.48
+          ]
+        ],
+        "end": 1.76
+      },
+      {
+        "words": [
+          [
+            "people",
+            1.76
+          ],
+          [
+            "are",
+            2.02
+          ],
+          [
+            "afraid",
+            2.24
+          ],
+          [
+            "to",
+            2.6
+          ]
+        ],
+        "end": 2.84
+      },
+      {
+        "words": [
+          [
+            "start",
+            2.84
+          ],
+          [
+            "a",
+            3.08
+          ],
+          [
+            "YouTube",
+            3.36
+          ],
+          [
+            "channel",
+            3.58
+          ]
+        ],
+        "end": 3.88
+      },
+      {
+        "words": [
+          [
+            "is",
+            3.88
+          ],
+          [
+            "because",
+            4.16
+          ],
+          [
+            "of",
+            4.48
+          ],
+          [
+            "the",
+            4.62
+          ]
+        ],
+        "end": 4.84
+      },
+      {
+        "words": [
+          [
+            "fear",
+            4.84
+          ],
+          [
+            "of",
+            5
+          ],
+          [
+            "speaking",
+            5.32
+          ],
+          [
+            "in",
+            5.62
+          ]
+        ],
+        "end": 5.92
+      },
+      {
+        "words": [
+          [
+            "front",
+            5.92
+          ],
+          [
+            "of",
+            6.06
+          ],
+          [
+            "the",
+            6.26
+          ],
+          [
+            "camera.",
+            6.44
+          ]
+        ],
+        "end": 7.12
+      },
+      {
+        "words": [
+          [
+            "I",
+            7.12
+          ],
+          [
+            "had",
+            7.26
+          ],
+          [
+            "this",
+            7.48
+          ],
+          [
+            "feeling",
+            7.76
+          ]
+        ],
+        "end": 7.94
+      },
+      {
+        "words": [
+          [
+            "when",
+            7.94
+          ],
+          [
+            "I",
+            8.14
+          ],
+          [
+            "started",
+            8.44
+          ],
+          [
+            "this",
+            8.66
+          ]
+        ],
+        "end": 8.98
+      },
+      {
+        "words": [
+          [
+            "YouTube",
+            8.98
+          ],
+          [
+            "channel",
+            9.36
+          ],
+          [
+            "and",
+            9.76
+          ],
+          [
+            "this",
+            10.18
+          ]
+        ],
+        "end": 10.42
+      },
+      {
+        "words": [
+          [
+            "can",
+            10.42
+          ],
+          [
+            "be",
+            10.6
+          ],
+          [
+            "really",
+            10.86
+          ],
+          [
+            "intimidating",
+            11.26
+          ]
+        ],
+        "end": 11.7
+      },
+      {
+        "words": [
+          [
+            "at",
+            11.7
+          ],
+          [
+            "first,",
+            12.18
+          ]
+        ],
+        "end": 12.88
+      },
+      {
+        "words": [
+          [
+            "but",
+            12.88
+          ],
+          [
+            "with",
+            12.92
+          ],
+          [
+            "the",
+            13.24
+          ],
+          [
+            "right",
+            13.42
+          ]
+        ],
+        "end": 13.58
+      },
+      {
+        "words": [
+          [
+            "amount",
+            13.58
+          ],
+          [
+            "of",
+            13.86
+          ],
+          [
+            "practice,",
+            14.18
+          ]
+        ],
+        "end": 14.52
+      },
+      {
+        "words": [
+          [
+            "you",
+            14.52
+          ],
+          [
+            "will",
+            14.84
+          ],
+          [
+            "not",
+            15.08
+          ],
+          [
+            "only",
+            15.3
+          ]
+        ],
+        "end": 15.64
+      },
+      {
+        "words": [
+          [
+            "look",
+            15.64
+          ],
+          [
+            "natural",
+            15.92
+          ],
+          [
+            "on",
+            16.36
+          ],
+          [
+            "camera",
+            16.7
+          ]
+        ],
+        "end": 17
+      },
+      {
+        "words": [
+          [
+            "but",
+            17
+          ],
+          [
+            "also",
+            17.24
+          ],
+          [
+            "connect",
+            17.72
+          ],
+          [
+            "and",
+            18.12
+          ]
+        ],
+        "end": 18.4
+      },
+      {
+        "words": [
+          [
+            "be",
+            18.4
+          ],
+          [
+            "more",
+            18.62
+          ],
+          [
+            "intimate",
+            19.04
+          ],
+          [
+            "with",
+            19.5
+          ]
+        ],
+        "end": 20
+      },
+      {
+        "words": [
+          [
+            "your",
+            20
+          ],
+          [
+            "audience,",
+            20.3
+          ]
+        ],
+        "end": 20.94
+      },
+      {
+        "words": [
+          [
+            "which",
+            20.94
+          ],
+          [
+            "in",
+            21.2
+          ],
+          [
+            "general",
+            21.42
+          ],
+          [
+            "will",
+            21.76
+          ]
+        ],
+        "end": 22.18
+      },
+      {
+        "words": [
+          [
+            "make",
+            22.18
+          ],
+          [
+            "your",
+            22.38
+          ],
+          [
+            "videos",
+            22.62
+          ],
+          [
+            "look",
+            22.94
+          ]
+        ],
+        "end": 23.48
+      },
+      {
+        "words": [
+          [
+            "way",
+            23.48
+          ],
+          [
+            "better.",
+            23.78
+          ]
+        ],
+        "end": 24.12
+      },
+      {
+        "words": [
+          [
+            "In",
+            24.12
+          ],
+          [
+            "this",
+            24.56
+          ],
+          [
+            "video",
+            24.82
+          ],
+          [
+            "I",
+            25.04
+          ]
+        ],
+        "end": 25.14
+      },
+      {
+        "words": [
+          [
+            "will",
+            25.14
+          ],
+          [
+            "give",
+            25.34
+          ],
+          [
+            "you",
+            25.46
+          ],
+          [
+            "5",
+            25.72
+          ]
+        ],
+        "end": 26.06
+      },
+      {
+        "words": [
+          [
+            "tips",
+            26.06
+          ],
+          [
+            "that",
+            26.52
+          ],
+          [
+            "will",
+            26.94
+          ],
+          [
+            "quickly",
+            27.24
+          ]
+        ],
+        "end": 27.54
+      },
+      {
+        "words": [
+          [
+            "improve",
+            27.54
+          ],
+          [
+            "your",
+            27.98
+          ],
+          [
+            "confidence",
+            28.36
+          ],
+          [
+            "in",
+            28.82
+          ]
+        ],
+        "end": 29.22
+      },
+      {
+        "words": [
+          [
+            "front",
+            29.22
+          ],
+          [
+            "of",
+            29.42
+          ],
+          [
+            "the",
+            29.66
+          ],
+          [
+            "camera.",
+            29.78
+          ]
+        ],
+        "end": 30.4
+      },
+      {
+        "words": [
+          [
+            "Let's",
+            30.4
+          ],
+          [
+            "get",
+            30.6
+          ],
+          [
+            "into",
+            30.82
+          ],
+          [
+            "it.",
+            31.04
+          ]
+        ],
+        "end": 31.46
+      },
+      {
+        "words": [
+          [
+            "So",
+            31.46
+          ],
+          [
+            "I",
+            31.56
+          ],
+          [
+            "have",
+            31.74
+          ],
+          [
+            "been",
+            31.94
+          ]
+        ],
+        "end": 32.08
+      },
+      {
+        "words": [
+          [
+            "posting",
+            32.08
+          ],
+          [
+            "videos",
+            32.42
+          ],
+          [
+            "on",
+            32.74
+          ],
+          [
+            "YouTube",
+            33.02
+          ]
+        ],
+        "end": 33.34
+      },
+      {
+        "words": [
+          [
+            "for",
+            33.34
+          ],
+          [
+            "about",
+            33.64
+          ],
+          [
+            "a",
+            34.1
+          ],
+          [
+            "year",
+            34.42
+          ]
+        ],
+        "end": 34.62
+      },
+      {
+        "words": [
+          [
+            "now",
+            34.62
+          ],
+          [
+            "and",
+            35
+          ],
+          [
+            "what",
+            35.62
+          ],
+          [
+            "I",
+            35.78
+          ]
+        ],
+        "end": 35.9
+      },
+      {
+        "words": [
+          [
+            "can",
+            35.9
+          ],
+          [
+            "say",
+            36.08
+          ],
+          [
+            "is",
+            36.3
+          ],
+          [
+            "that",
+            36.52
+          ]
+        ],
+        "end": 36.72
+      },
+      {
+        "words": [
+          [
+            "even",
+            36.72
+          ],
+          [
+            "till",
+            36.96
+          ],
+          [
+            "now",
+            37.14
+          ],
+          [
+            "I",
+            37.42
+          ]
+        ],
+        "end": 37.7
+      },
+      {
+        "words": [
+          [
+            "still",
+            37.7
+          ],
+          [
+            "get",
+            37.94
+          ],
+          [
+            "nervous",
+            38.16
+          ],
+          [
+            "in",
+            38.52
+          ]
+        ],
+        "end": 38.74
+      },
+      {
+        "words": [
+          [
+            "front",
+            38.74
+          ],
+          [
+            "of",
+            38.84
+          ],
+          [
+            "the",
+            39
+          ],
+          [
+            "camera.",
+            39.16
+          ]
+        ],
+        "end": 39.54
+      },
+      {
+        "words": [
+          [
+            "For",
+            39.54
+          ],
+          [
+            "long",
+            39.92
+          ],
+          [
+            "this",
+            40.06
+          ],
+          [
+            "has",
+            40.32
+          ]
+        ],
+        "end": 40.56
+      },
+      {
+        "words": [
+          [
+            "kept",
+            40.56
+          ],
+          [
+            "me",
+            40.74
+          ],
+          [
+            "from",
+            40.94
+          ],
+          [
+            "creating",
+            41.22
+          ]
+        ],
+        "end": 41.66
+      },
+      {
+        "words": [
+          [
+            "videos",
+            41.66
+          ],
+          [
+            "on",
+            42.08
+          ],
+          [
+            "YouTube,",
+            42.6
+          ]
+        ],
+        "end": 43.3
+      },
+      {
+        "words": [
+          [
+            "most",
+            43.3
+          ],
+          [
+            "of",
+            43.44
+          ],
+          [
+            "all",
+            43.6
+          ],
+          [
+            "because",
+            43.72
+          ]
+        ],
+        "end": 43.98
+      },
+      {
+        "words": [
+          [
+            "of",
+            43.98
+          ],
+          [
+            "the",
+            44.14
+          ],
+          [
+            "fear",
+            44.44
+          ],
+          [
+            "of",
+            44.72
+          ]
+        ],
+        "end": 45.2
+      },
+      {
+        "words": [
+          [
+            "judgment.",
+            45.2
+          ]
+        ],
+        "end": 45.9
+      },
+      {
+        "words": [
+          [
+            "Back",
+            45.9
+          ],
+          [
+            "in",
+            46.08
+          ],
+          [
+            "class",
+            46.32
+          ],
+          [
+            "I",
+            46.58
+          ]
+        ],
+        "end": 46.96
+      },
+      {
+        "words": [
+          [
+            "was",
+            46.96
+          ],
+          [
+            "never",
+            47.12
+          ],
+          [
+            "the",
+            47.34
+          ],
+          [
+            "person",
+            47.62
+          ]
+        ],
+        "end": 47.92
+      },
+      {
+        "words": [
+          [
+            "that",
+            47.92
+          ],
+          [
+            "would",
+            48.3
+          ],
+          [
+            "speak",
+            48.72
+          ],
+          [
+            "up.",
+            49
+          ]
+        ],
+        "end": 49.5
+      },
+      {
+        "words": [
+          [
+            "I",
+            49.5
+          ],
+          [
+            "was",
+            49.66
+          ],
+          [
+            "more",
+            49.84
+          ],
+          [
+            "the",
+            50.06
+          ]
+        ],
+        "end": 50.28
+      },
+      {
+        "words": [
+          [
+            "kind",
+            50.28
+          ],
+          [
+            "of",
+            50.42
+          ],
+          [
+            "guy",
+            50.58
+          ],
+          [
+            "that",
+            50.82
+          ]
+        ],
+        "end": 51.16
+      },
+      {
+        "words": [
+          [
+            "would",
+            51.16
+          ],
+          [
+            "sit",
+            51.48
+          ],
+          [
+            "still",
+            51.72
+          ],
+          [
+            "and",
+            52.1
+          ]
+        ],
+        "end": 53.02
+      },
+      {
+        "words": [
+          [
+            "agree",
+            53.02
+          ],
+          [
+            "to",
+            53.38
+          ],
+          [
+            "whatever",
+            53.64
+          ],
+          [
+            "they",
+            53.88
+          ]
+        ],
+        "end": 54.26
+      },
+      {
+        "words": [
+          [
+            "agreed",
+            54.26
+          ],
+          [
+            "to.",
+            54.46
+          ]
+        ],
+        "end": 54.8
+      }
+    ]
+  },
+  "sfx": [
+    {
+      "file": "sfx/drop_001.wav",
+      "at": 14.18,
+      "volume": 0.45
+    },
+    {
+      "file": "sfx/pluck_002.wav",
+      "at": 15.92,
+      "volume": 0.45
+    },
+    {
+      "file": "sfx/pluck_002.wav",
+      "at": 17.72,
+      "volume": 0.45
+    },
+    {
+      "file": "sfx/pluck_002.wav",
+      "at": 23.78,
+      "volume": 0.45
+    },
+    {
+      "file": "sfx/drop_002.wav",
+      "at": 25.72,
+      "volume": 0.45
+    },
+    {
+      "file": "sfx/drop_003.wav",
+      "at": 34.42,
+      "volume": 0.45
+    },
+    {
+      "file": "sfx/drop_004.wav",
+      "at": 38.16,
+      "volume": 0.45
+    },
+    {
+      "file": "sfx/drop_001.wav",
+      "at": 43.3,
+      "volume": 0.45
+    },
+    {
+      "file": "sfx/drop_002.wav",
+      "at": 52.1,
+      "volume": 0.45
+    },
+    {
+      "file": "sfx/pluck_002.wav",
+      "at": 52.95,
+      "volume": 0.45
+    }
+  ],
+  "voice": {
+    "src": "voice.wav"
+  }
+}
