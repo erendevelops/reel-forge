@@ -1,5 +1,7 @@
 import { createRequire } from 'node:module';
 import * as icons from 'simple-icons';
+/** simple-icons 13.0.0 (npm alias), only for marks removed from the current set since (e.g. OpenAI, removed in 16.0.0). */
+import * as legacyIcons from 'simple-icons-v13';
 
 /** An offline brand mark from the bundled `simple-icons` set: a 24×24 single-path SVG and the brand colour. */
 export type Logo = { svg: string; hex: string; title: string; slug: string };
@@ -27,12 +29,17 @@ const key = (s: string) => s.normalize('NFKD').toLowerCase().replace(/[^a-z0-9]+
 
 let index: Map<string, SiIcon> | undefined;
 
-function build(): Map<string, SiIcon> {
+function iconsOf(mod: object): Map<string, SiIcon> {
   const bySlug = new Map<string, SiIcon>();
-  for (const v of Object.values(icons) as unknown[]) {
+  for (const v of Object.values(mod) as unknown[]) {
     const i = v as SiIcon;
     if (i && typeof i === 'object' && typeof i.slug === 'string' && typeof i.svg === 'string') bySlug.set(i.slug, i);
   }
+  return bySlug;
+}
+
+function build(): Map<string, SiIcon> {
+  const bySlug = iconsOf(icons);
   const m = new Map<string, SiIcon>();
   // titles and slugs first (a slug wins over another icon's title), then simple-icons' own "aka" aliases
   for (const i of [...bySlug.values()].sort((a, b) => a.slug.localeCompare(b.slug))) if (!m.has(key(i.title))) m.set(key(i.title), i);
@@ -43,6 +50,11 @@ function build(): Map<string, SiIcon> {
     if (!i) continue;
     for (const a of d.aliases?.aka ?? []) if (!m.has(key(a))) m.set(key(a), i);
   }
+  // fallback: slugs removed from the current set since 13.0.0; never shadow a current title, slug or alias
+  const legacy = [...iconsOf(legacyIcons).values()].filter((i) => !bySlug.has(i.slug)).sort((a, b) => a.slug.localeCompare(b.slug));
+  for (const i of legacy) bySlug.set(i.slug, i);
+  for (const i of legacy) if (!m.has(key(i.slug))) m.set(key(i.slug), i);
+  for (const i of legacy) if (!m.has(key(i.title))) m.set(key(i.title), i);
   for (const [a, slug] of Object.entries(ALIASES)) {
     const i = bySlug.get(slug);
     if (i) m.set(a, i);
@@ -54,7 +66,8 @@ function build(): Map<string, SiIcon> {
 /**
  * Offline logo lookup by spoken name, title or slug (case/space/punctuation-insensitive, plus a small alias map:
  * "ChatGPT"/"GPT" → OpenAI, "claude" → Claude). `null` when the bundled set lacks it: the caller then falls back to
- * the tool's own site or repo (reel doc §6.4). Note: simple-icons 16 removed the OpenAI mark upstream.
+ * the tool's own site or repo (reel doc §6.4). The current simple-icons set is checked first, then simple-icons 13.0.0
+ * for slugs removed since (OpenAI was removed upstream in 16.0.0; the reel doc used its openai.svg from 13.0.0).
  */
 export function resolveLogo(name: string): Logo | null {
   const k = key(name);

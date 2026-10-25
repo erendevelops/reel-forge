@@ -30,11 +30,15 @@ describe('resolveLogo (offline, simple-icons)', () => {
     expect(l.hex).toMatch(/^[0-9A-F]{6}$/);
   });
 
-  it('ChatGPT/OpenAI: aliased, but simple-icons 16 removed the OpenAI mark upstream, so null offline', () => {
-    // OpenAI's icon was removed from simple-icons in v16.0.0; resolveLogo then returns null and the planner falls back
-    // to the tool's own site/repo (reel doc 6.4). The alias map still routes "chatgpt"/"gpt" to slug "openai".
-    expect(resolveLogo('ChatGPT')).toBeNull();
-    expect(resolveLogo('OpenAI')).toBeNull();
+  it('ChatGPT/GPT/OpenAI resolve to OpenAI via the simple-icons 13.0.0 fallback (removed from v16)', () => {
+    for (const q of ['ChatGPT', 'chat gpt', 'GPT', 'OpenAI', 'openai']) {
+      const l = resolveLogo(q);
+      expect(l?.title, q).toBe('OpenAI');
+      expect(l?.slug).toBe('openai');
+    }
+    expect(resolveLogo('ChatGPT')!.svg).toMatch(/^<svg[^>]*viewBox="0 0 24 24"/);
+    // the current set still wins where it has the mark
+    expect(resolveLogo('Claude')?.hex).toBe('D97757');
   });
 
   it('unknown returns null', () => {
@@ -61,6 +65,7 @@ describe('si: references compile to asset files', () => {
           { type: 'title-card', start: 0, end: 1, params: { n: 1, name: 'GitHub', logo: 'si:github' } },
           { type: 'numbered-list', start: 0, end: 3, params: { items: [{ n: 1, name: 'Claude', logo: 'si:claude', at: 0.5 }] } },
           { type: 'logo-pop', start: 1, end: 2, params: { img: 'si:claude', left: 100, top: 100 } },
+          { type: 'logo-pop', start: 2, end: 3, params: { img: 'si:openai', left: 100, top: 100 } },
         ],
       }],
       captions: { style: 'none', groups: [] }, sfx: [],
@@ -74,6 +79,10 @@ describe('si: references compile to asset files', () => {
     expect(gh).toMatch(/^<svg[^>]*fill="#FFFFFF"/); // near-black brand colour: white on the dark tile
     const cl = await fs.readFile(path.join(out, 'assets', 'si', 'claude.svg'), 'utf8');
     expect(cl).toMatch(/^<svg[^>]*fill="#D97757"/);
+    expect(indexHtml).toContain('src="assets/si/openai.svg"');
+    const oa = await fs.readFile(path.join(out, 'assets', 'si', 'openai.svg'), 'utf8');
+    // brand #412991 is too dark for the dark tile (luminance < 0.05): the mark is white, as OpenAI's own dark variant
+    expect(oa).toMatch(/^<svg[^>]*fill="#FFFFFF"[^>]*><title>OpenAI<\/title>/);
     // deterministic
     const again = await compile(v.plan, { outDir: path.join(tmp, 'out2'), assetsDir: path.join(tmp, 'none'), ratio: '9:16' });
     expect(again.indexHtml).toBe(indexHtml);
