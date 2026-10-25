@@ -26,7 +26,8 @@ export class JobBusyError extends Error {
   }
 }
 
-type Emit = (e: Omit<JobEvent, 't'> & { t?: string }) => void;
+type DistributiveOmit<T, K extends keyof T> = T extends unknown ? Omit<T, K> : never;
+export type Emit = (e: DistributiveOmit<JobEvent, 't'>) => void;
 export type Executor = (ctx: { projectId: string; spec: JobSpec; emit: Emit; signal: AbortSignal }) => Promise<JobState | { state: JobState; detail?: string }>;
 
 type Live = { projectId: string; jobId: string; events: JobEvent[]; listeners: Set<(e: JobEvent) => void>; abort: AbortController };
