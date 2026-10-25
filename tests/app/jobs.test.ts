@@ -95,6 +95,26 @@ describe('jobs', () => {
     expect((await done).at(-1)).toMatchObject({ type: 'state', state: 'cancelled' });
   });
 
+  it('rejects job ids that could escape the jobs folder', async () => {
+    const p = await newProject();
+    expect(() => subscribe(p.id, '../../../settings', () => {})).toThrow(/invalid job id/);
+    await expect(resumeJob(p.id, '..\\..\\x')).rejects.toThrow(/invalid job id/);
+  });
+
+  it('a failing log write does not leave the project busy', async () => {
+    process.env.FAKE_CLAUDE_MODE = 'hang';
+    const p = await newProject();
+    const { jobId } = await startJob(p.id, { kind: 'claude', prompt: 'a' });
+    // Make the jobs folder unwritable by replacing it with a file.
+    const dir = path.join(projectDir(p.id), 'jobs');
+    await rm(dir, { recursive: true, force: true });
+    await writeFile(dir, 'not a folder');
+    await cancelJob(p.id, jobId);
+    process.env.FAKE_CLAUDE_MODE = 'ok';
+    await rm(dir, { force: true });
+    await expect(startJob(p.id, { kind: 'claude', prompt: 'b' })).resolves.toMatchObject({ jobId: expect.stringMatching(/^job-/) });
+  });
+
   it('a running job left on disk by a dead server is marked failed', async () => {
     const p = await newProject();
     const dir = path.join(projectDir(p.id), 'jobs');

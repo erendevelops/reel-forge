@@ -43,7 +43,11 @@ export function registerExecutor(kind: JobKind, run: Executor): void {
 }
 
 const jobsDir = (projectId: string) => path.join(projectDir(projectId), 'jobs');
-const jobFile = (projectId: string, jobId: string) => path.join(jobsDir(projectId), `${jobId}.jsonl`);
+const JOB_ID = /^job-[a-z0-9-]+$/;
+function jobFile(projectId: string, jobId: string): string {
+  if (!JOB_ID.test(jobId)) throw new Error(`invalid job id: ${jobId}`);
+  return path.join(jobsDir(projectId), `${jobId}.jsonl`);
+}
 const isTerminal = (e: JobEvent) => e.type === 'state' && e.state !== 'running';
 
 registerExecutor('claude', async ({ projectId, spec, emit, signal }) => {
@@ -90,7 +94,8 @@ export async function startJob(projectId: string, spec: JobSpec): Promise<{ jobI
   const emit: Emit = (partial) => {
     const e = { t: new Date().toISOString(), ...partial } as JobEvent;
     job.events.push(e);
-    write = write.then(() => appendFile(file, `${JSON.stringify(e)}\n`, 'utf8'));
+    // A failed append (disk full, OneDrive lock) loses that line but never wedges the chain for later events.
+    write = write.then(() => appendFile(file, `${JSON.stringify(e)}\n`, 'utf8')).catch(() => undefined);
     for (const l of job.listeners) l(e);
   };
 
@@ -104,10 +109,13 @@ export async function startJob(projectId: string, spec: JobSpec): Promise<{ jobI
       end = { state: job.abort.signal.aborted ? 'cancelled' : 'failed', detail: (err as Error).message };
     }
     if (job.abort.signal.aborted) end = { state: 'cancelled' };
-    emit({ type: 'state', ...end });
-    await write;
-    runningByProject.delete(projectId);
-    live.delete(`${projectId}/${jobId}`);
+    try {
+      emit({ type: 'state', ...end });
+      await write;
+    } finally {
+      runningByProject.delete(projectId);
+      live.delete(`${projectId}/${jobId}`);
+    }
   })();
   return { jobId };
 }
@@ -131,6 +139,7 @@ async function readEvents(projectId: string, jobId: string): Promise<JobEvent[]>
 
 /** Replays everything so far, then streams live events. Returns an unsubscribe function. */
 export function subscribe(projectId: string, jobId: string, onEvent: (e: JobEvent) => void): () => void {
+  jobFile(projectId, jobId); // validates the id
   const job = live.get(`${projectId}/${jobId}`);
   if (job) {
     for (const e of job.events) onEvent(e);
@@ -172,6 +181,7 @@ export async function listJobs(projectId: string): Promise<{ jobId: string; stat
 }
 
 export async function resumeJob(projectId: string, jobId: string): Promise<{ jobId: string }> {
+  jobFile(projectId, jobId); // validates the id
   const events = await readEvents(projectId, jobId);
   const last = [...events].reverse().find((e) => e.type === 'state');
   if (!last || last.type !== 'state' || last.state !== 'paused-limit') throw new Error(`job ${jobId} is not paused by a usage limit`);
