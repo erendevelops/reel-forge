@@ -54,6 +54,12 @@ describe('runClaude', () => {
     expect(argv.text).toContain('-p --output-format stream-json --verbose --permission-mode acceptEdits --allowedTools Bash,Read');
   });
 
+  it('omits --allowedTools when the list is empty (an empty arg vanishes through cmd.exe)', async () => {
+    const { events } = await collect('ok', { allowedTools: [] });
+    const argv = (events.find((e) => e.kind === 'text') as { text: string }).text;
+    expect(argv).not.toContain('--allowedTools');
+  });
+
   it('passes --resume when resumeSession given', async () => {
     const { res, events } = await collect('ok', { resumeSession: 'sess-old' });
     expect(res.sessionId).toBe('sess-old');

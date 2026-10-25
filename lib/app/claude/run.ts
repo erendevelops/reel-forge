@@ -60,7 +60,7 @@ export function runClaude(o: RunOptions): Promise<{ sessionId: string | null; ok
     '--output-format', 'stream-json',
     '--verbose',
     '--permission-mode', 'acceptEdits',
-    '--allowedTools', o.allowedTools.join(','),
+    ...(o.allowedTools.length ? ['--allowedTools', o.allowedTools.join(',')] : []),
     ...(o.resumeSession ? ['--resume', o.resumeSession] : []),
   ];
 
