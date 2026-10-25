@@ -1,0 +1,165 @@
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import path from 'node:path';
+import { RATIO_SIZE } from '@/lib/compile';
+import { probe } from '@/lib/media/probe';
+import { prepareClip } from '@/lib/media/prepare';
+import { run } from '@/lib/media/run';
+import { transcribe, type Transcript } from '@/lib/media/transcribe';
+import { motionGaps, validatePlan, RATIOS, type Ratio } from '@/lib/plan';
+import { resolveLogo, logoSvgFile } from '@/lib/assets/logos';
+import { cropPath, faceTrack, type FaceTrack } from '@/lib/talking/reframe';
+import { planTrims } from '@/lib/talking/trim';
+import { repoPath } from '@/lib/root';
+import { getPreferences, getProject, listVersions, saveVersion } from '@/lib/app/workspace/store';
+import { parseArgs, projectId, resolveInProject } from './context';
+
+type Command = (args: string[]) => Promise<unknown>;
+
+const FONT = process.platform === 'darwin' ? '/System/Library/Fonts/Supplemental/Arial.ttf' : 'C\\:/Windows/Fonts/arial.ttf';
+
+const readJson = async (p: string) => JSON.parse(await readFile(resolveInProject(p), 'utf8'));
+
+function need(v: string | undefined, what: string): string {
+  if (!v) throw new Error(`missing ${what}`);
+  return v;
+}
+
+function ratio(v: string | undefined): Ratio {
+  if (!v || !(RATIOS as readonly string[]).includes(v)) throw new Error(`--ratio must be one of ${RATIOS.join(', ')}`);
+  return v as Ratio;
+}
+
+async function python(args: string[]): Promise<void> {
+  const env = { ...process.env, PYTHONIOENCODING: 'utf-8' };
+  try {
+    await run('python', args, { env });
+  } catch (err) {
+    if ((err as { code?: number }).code !== -1) throw err;
+    await run('python3', args, { env });
+  }
+}
+
+export const COMMANDS: Record<string, Command> = {
+  async project() {
+    const id = projectId();
+    return { project: await getProject(id), preferences: await getPreferences(), versions: await listVersions(id) };
+  },
+
+  async probe(args) {
+    return probe(resolveInProject(need(args[0], 'file')));
+  },
+
+  async sheet(args) {
+    const { pos, flags } = parseArgs(args);
+    const [src, out] = [resolveInProject(need(pos[0], 'video')), resolveInProject(need(pos[1], 'out.jpg'))];
+    const every = Number(flags.every ?? 2);
+    const { duration } = await probe(src);
+    const n = Math.max(1, Math.ceil(duration / every));
+    const cols = Math.min(10, n);
+    await mkdir(path.dirname(out), { recursive: true });
+    await run('ffmpeg', [
+      '-y', '-v', 'error', '-i', src, '-an', '-vf',
+      `fps=1/${every},scale=216:-1,drawtext=fontfile='${FONT}':text='%{pts\\:hms}':x=4:y=4:fontsize=16:fontcolor=yellow:box=1:boxcolor=black,tile=${cols}x${Math.ceil(n / cols)}`,
+      '-frames:v', '1', out,
+    ]);
+    return { out: path.relative(resolveInProject('.'), out) };
+  },
+
+  async cuts(args) {
+    const src = resolveInProject(need(args[0], 'video'));
+    const r = await run('ffmpeg', ['-v', 'info', '-i', src, '-vf', "select='gt(scene,0.3)',showinfo", '-f', 'null', '-']);
+    return { cuts: [...r.stderr.matchAll(/pts_time:([\d.]+)/g)].map((m) => Number(m[1])) };
+  },
+
+  async transcribe(args) {
+    const { pos, flags } = parseArgs(args);
+    return transcribe(resolveInProject(need(pos[0], 'audio')), { lang: flags.lang ?? 'auto', prompt: flags.prompt });
+  },
+
+  async prep(args) {
+    const { pos, flags } = parseArgs(args);
+    const [w, h] = RATIO_SIZE[ratio(flags.ratio)];
+    const out = resolveInProject(need(pos[1], 'out'));
+    await mkdir(path.dirname(out), { recursive: true });
+    await prepareClip(resolveInProject(need(pos[0], 'src')), out, {
+      from: Number(need(flags.from, '--from')),
+      duration: Number(need(flags.duration, '--duration')),
+      width: w,
+      height: h,
+      fps: flags.fps === '30' ? 30 : 60,
+      crop: flags.crop ? (await readJson(flags.crop)).path : undefined,
+    });
+    return { out: pos[1] };
+  },
+
+  async trims(args) {
+    const { pos, flags } = parseArgs(args);
+    const t = (await readJson(need(pos[0], 'transcript.json'))) as Transcript;
+    return { segments: planTrims(t, flags['max-gap'] ? { maxGap: Number(flags['max-gap']) } : {}) };
+  },
+
+  async facetrack(args) {
+    const [src, out] = [resolveInProject(need(args[0], 'video')), resolveInProject(need(args[1], 'out.json'))];
+    const track = await faceTrack(src);
+    await mkdir(path.dirname(out), { recursive: true });
+    await writeFile(out, JSON.stringify(track));
+    return { out: args[1], samples: track.boxes.length, detected: track.boxes.length };
+  },
+
+  async crop(args) {
+    const { pos, flags } = parseArgs(args);
+    const track = (await readJson(need(pos[0], 'track.json'))) as FaceTrack;
+    return { path: cropPath(track, { w: track.w, h: track.h }, ratio(flags.ratio)) };
+  },
+
+  async logo(args) {
+    const logo = resolveLogo(args.join(' '));
+    if (!logo) return { found: false };
+    const file = path.join('assets', 'si', `${logo.slug}.svg`);
+    const full = resolveInProject(file);
+    await mkdir(path.dirname(full), { recursive: true });
+    await writeFile(full, logoSvgFile(logo));
+    return { found: true, slug: logo.slug, title: logo.title, hex: logo.hex, file: file.split(path.sep).join('/') };
+  },
+
+  async beats(args) {
+    const src = resolveInProject(need(args[0], 'audio'));
+    const out = resolveInProject(path.join('analysis', `beats-${path.basename(src)}.json`));
+    await mkdir(path.dirname(out), { recursive: true });
+    await python([repoPath('tools', 'beats.py'), src, out]);
+    return JSON.parse(await readFile(out, 'utf8'));
+  },
+
+  async validate(args) {
+    const r = validatePlan(await readJson(need(args[0], 'plan.json')));
+    return r.ok ? { ok: true, errors: [] } : { ok: false, errors: r.errors };
+  },
+
+  async gaps(args) {
+    const r = validatePlan(await readJson(need(args[0], 'plan.json')));
+    if (!r.ok) throw new Error(r.errors.join('\n'));
+    return { gaps: motionGaps(r.plan) };
+  },
+
+  async save(args) {
+    const { pos, flags } = parseArgs(args);
+    const plan = await readJson(need(pos[0], 'plan.json'));
+    const id = projectId();
+    const project = await getProject(id);
+    const r = validatePlan(plan);
+    if (!r.ok) throw new Error(`invalid plan:\n${r.errors.join('\n')}`);
+    if (project.preset === 'talking-head') {
+      const gaps = motionGaps(r.plan);
+      if (gaps.length) {
+        throw new Error(`static for more than 3 s at: ${gaps.map((g) => `${g.from}–${g.to}`).join(', ')}. Add a visual change in each.`);
+      }
+    }
+    const version = await saveVersion(id, {
+      plan: r.plan,
+      by: 'claude',
+      parent: flags.parent ? Number(flags.parent) : null,
+      request: flags.request ?? null,
+    });
+    return { version };
+  },
+};
