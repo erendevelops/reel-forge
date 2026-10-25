@@ -10,6 +10,7 @@ import { LAYOUT_TWEEN_S, sceneFaces, type FaceState } from '../compile/layers';
 import { punchScaleExpr } from '../compile/punch';
 import type { Plan, Ratio } from '../plan';
 import { render } from './render';
+import { baseEncodeArgs, compositeEncodeArgs, type RenderProfile } from './profiles';
 
 export interface LayeredOpts {
   assetsDir: string;
@@ -18,6 +19,8 @@ export interface LayeredOpts {
   ratio: Ratio;
   /** x264 CRF of the delivered composite (the base track stays lossless ffv1). Default 10, v5's delivery setting (reel doc §8.1). */
   crf?: number;
+  /** Encode speed profile; default 'final' (deliverables). */
+  profile?: RenderProfile;
 }
 
 export interface LayeredResult {
@@ -115,7 +118,7 @@ export function baseArgs(plan: Plan, o: LayeredOpts, w: number, h: number, out: 
   if (!shots.length) parts.push('[0:v]null[vout]');
   args.push(
     '-filter_complex', parts.join(';'), '-map', '[vout]', '-an', '-t', n(plan.duration),
-    '-c:v', 'ffv1', '-level', '3', '-pix_fmt', 'yuv420p', ...TV_BT709_TAGS, out,
+    ...baseEncodeArgs(o.profile ?? 'final'), out,
   );
   return args;
 }
@@ -181,16 +184,21 @@ export async function renderLayered(plan: Plan, o: LayeredOpts): Promise<Layered
 
   // SFX are mixed from the plan above, so the overlay carries none.
   await compile({ ...plan, sfx: [] }, { outDir: proj, assetsDir: o.assetsDir, ratio: o.ratio, overlayOnly: true });
-  await render(proj, ovl, { fps: plan.fps, format: 'mov' });
+  await render(proj, ovl, { fps: plan.fps, format: 'mov', profile: o.profile ?? 'final' });
 
-  await run('ffmpeg', [
-    '-y', '-v', 'error', '-i', base, '-i', ovl, '-i', mix,
-    '-filter_complex', `[1:v]${BT709_TV},format=yuva420p[ov];`+'[0:v][ov]overlay=format=auto:eof_action=pass,format=yuv420p[v]',
-    '-map', '[v]', '-map', '2:a', '-t', n(plan.duration),
-    '-c:v', 'libx264', '-preset', 'slow', '-crf', String(o.crf ?? DELIVERY_CRF), '-g', '30', '-pix_fmt', 'yuv420p', ...TV_BT709_TAGS,
-    '-c:a', 'pcm_s16le', comp,
-  ], { timeoutMs: 30 * 60 * 1000 });
+  await run('ffmpeg', compositeArgs({ base, overlay: ovl, mix, out: comp, duration: plan.duration, profile: o.profile ?? 'final', crf: o.crf }), { timeoutMs: 30 * 60 * 1000 });
 
   await finishLoudness(comp, o.out, { I: -14, TP: -1.5 });
   return { base };
+}
+
+/** ffmpeg args compositing the alpha overlay onto the base track with the mixed audio (yuva420p: base luma never round-trips through RGB). */
+export function compositeArgs(o: { base: string; overlay: string; mix: string; out: string; duration: number; profile: RenderProfile; crf?: number }): string[] {
+  return [
+    '-y', '-v', 'error', '-i', o.base, '-i', o.overlay, '-i', o.mix,
+    '-filter_complex', `[1:v]${BT709_TV},format=yuva420p[ov];[0:v][ov]overlay=format=auto:eof_action=pass,format=yuv420p[v]`,
+    '-map', '[v]', '-map', '2:a', '-t', n(o.duration),
+    ...compositeEncodeArgs(o.profile, o.crf),
+    '-c:a', 'pcm_s16le', o.out,
+  ];
 }

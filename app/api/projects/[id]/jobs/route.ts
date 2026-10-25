@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { JobBusyError, listJobs, startJob } from '@/lib/app/jobs/jobs';
+import '@/lib/app/jobs/render-job'; // registers the `render` job executor
 import { NotFoundError } from '@/lib/app/workspace/store';
 
 type Ctx = { params: Promise<{ id: string }> };
