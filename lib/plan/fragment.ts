@@ -102,6 +102,12 @@ export function parseTimeline(src: string, duration?: number): { calls: TlCall[]
   };
   const checkStr = (s: string, where: string) => {
     if (/random/i.test(s)) fail(`${where}: GSAP random values ("random(…)", stagger from "random") are not allowed (deterministic only)`);
+    // a string value lands inside the page's inline <script>: never markup (</script>, <!--)
+    if (/</.test(s)) fail(`${where}: "<" is not allowed in a string value (no markup in the timeline)`);
+    // values may become CSS (backgroundImage, attr.style): same url()/image()/comment rules as css
+    const css: string[] = [];
+    checkCssValue(s, where, css);
+    if (css.length) fail(css[0]);
   };
   const value = (where: string): Lit => {
     const t = toks[k];
@@ -235,14 +241,21 @@ function checkUrls(v: string, where: string, errors: string[], assets: boolean):
   if (/url\(/i.test(v.replace(re, ''))) errors.push(`${where}: malformed url(`);
 }
 
+/** Value-level CSS checks shared by css rules, style attributes and timeline string values. */
+function checkCssValue(css: string, where: string, errors: string[]): void {
+  if (/\/\*/.test(css)) errors.push(`${where}: CSS comments (/* */) are not allowed`);
+  if (/(?:-webkit-)?image-set\s*\(|\bimage\s*\(|cross-fade\s*\(/i.test(css)) errors.push(`${where}: image()/image-set()/cross-fade() are not allowed`);
+  checkUrls(css, where, errors, true);
+}
+
 /** CSS checks shared by `css` rules and `style` attributes. */
 function checkCssText(css: string, where: string, errors: string[]): void {
+  checkCssValue(css, where, errors);
   if (/\\/.test(css)) errors.push(`${where}: backslash escapes (\\) are not allowed`);
   if (/@/.test(css)) errors.push(`${where}: at-rules (@import/@keyframes/@media/@font-face) are not allowed`);
   if (/expression\s*\(|-moz-binding|behavior\s*:/i.test(css)) errors.push(`${where}: expression()/binding/behavior are not allowed`);
   if (/\b(animation|transition)\b/i.test(css)) errors.push(`${where}: animation/transition properties are not allowed (CSS time is not seekable; use the timeline)`);
   if (/</.test(css)) errors.push(`${where}: "<" is not allowed`);
-  checkUrls(css, where, errors, true);
 }
 
 function tokenizeHtml(html: string, errors: string[]): HtmlTok[] | undefined {
@@ -357,14 +370,22 @@ const scopeUrls = (s: string, prefix: string) => s.replace(new RegExp(`url\\(\\s
 const fmtNum = (n: number) => String(Number(n.toFixed(6)));
 const IDENT_KEY = /^[A-Za-z_$][\w$]*$/;
 
-/** A literal printed back as JS (stable: insertion order, JSON strings). */
+/**
+ * A JS string literal safe inside an inline `<script>`: JSON with `<`, `>`, `&`, U+2028 and U+2029 as `\uXXXX`, so
+ * no `</script`, `<!--` or line terminator can ever appear in the page source.
+ */
+export function jsString(s: string): string {
+  return JSON.stringify(s).replace(/[<>&\u2028\u2029]/g, (c) => `\\u${c.charCodeAt(0).toString(16).padStart(4, '0')}`);
+}
+
+/** A literal printed back as JS (stable: insertion order, script-safe strings). */
 function printLit(v: Lit): string {
   if (v === null) return 'null';
   if (typeof v === 'number') return fmtNum(v);
-  if (typeof v === 'string') return JSON.stringify(v);
+  if (typeof v === 'string') return jsString(v);
   if (typeof v === 'boolean') return String(v);
   if (Array.isArray(v)) return `[${v.map(printLit).join(', ')}]`;
-  const parts = Object.entries(v).map(([k, x]) => `${IDENT_KEY.test(k) ? k : JSON.stringify(k)}: ${printLit(x)}`);
+  const parts = Object.entries(v).map(([k, x]) => `${IDENT_KEY.test(k) ? k : jsString(k)}: ${printLit(x)}`);
   return parts.length ? `{ ${parts.join(', ')} }` : '{}';
 }
 
@@ -402,7 +423,7 @@ export function namespaceFragment(params: FragmentParams | Record<string, unknow
   const css = rules.map((r) => `${scopeSelector(r.sel, prefix, id)} { ${scopeUrls(r.body, prefix)} }`).join('\n');
   const { calls } = parseTimeline(p.timeline);
   const timeline = calls
-    .map((c) => `tl.${c.method}(${JSON.stringify(scopeSelector(c.selector, prefix, id))}, ${c.vars.map(printLit).join(', ')}, ${fmtNum(Number((start + c.at).toFixed(3)))});`)
+    .map((c) => `tl.${c.method}(${jsString(scopeSelector(c.selector, prefix, id))}, ${c.vars.map(printLit).join(', ')}, ${fmtNum(Number((start + c.at).toFixed(3)))});`)
     .join('\n');
   return { html, css, timeline };
 }

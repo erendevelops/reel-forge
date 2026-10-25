@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { checkFragment, namespaceFragment } from '../../lib/plan/fragment';
+import { checkFragment, jsString, namespaceFragment } from '../../lib/plan/fragment';
 import { validatePlan } from '../../lib/plan';
 import { cardRegistry } from '../../lib/compile/cards';
 
@@ -104,6 +104,20 @@ describe('custom-animation fragment rules', () => {
     ['css url(//)', { css: '.a { background: url(//e.com/a.png); }' }, /url|external/],
     ['css url(../)', { css: '.a { background: url(../../secret.png); }' }, /url/],
     ['style attribute url', { html: '<div style="background: url(data:x)"></div>' }, /url/],
+    // re-review: </script> breakout through a timeline string, CSS image functions, comment evasion
+    ['</script> in a timeline string', { timeline: 'tl.set("#bar", { textContent: "</script><img src=x onerror=alert(1)>" }, 0);' }, /</],
+    ['</SCRIPT > in a timeline string', { timeline: 'tl.set("#bar", { textContent: "</SCRIPT >" }, 0);' }, /</],
+    ['<!-- in a timeline string', { timeline: 'tl.set("#bar", { textContent: "<!--" }, 0);' }, /</],
+    ['url() in a timeline string', { timeline: 'tl.set("#bar", { backgroundImage: "url(data:image/png;base64,AAAA)" }, 0);' }, /url/],
+    ['attr.style url in a timeline string', { timeline: 'tl.set("#bar", { attr: { style: "background: url(//e.com/a.png)" } }, 0);' }, /url|external/],
+    ['image-set() in a timeline string', { timeline: 'tl.set("#bar", { backgroundImage: "image-set(\'a.png\' 1x)" }, 0);' }, /image/],
+    ['css image-set()', { css: '.a { background: image-set("a.png" 1x); }' }, /image/],
+    ['css -webkit-image-set()', { css: '.a { background: -webkit-image-set("a.png" 1x); }' }, /image/],
+    ['css image()', { css: '.a { background: image("a.png"); }' }, /image/],
+    ['css cross-fade()', { css: '.a { background: cross-fade(url(#a), url(#b), 50%); }' }, /cross-fade/],
+    ['css comment u/**/rl evasion', { css: '.a { background: u/**/rl(data:x); }' }, /comment/],
+    ['style attribute comment', { html: '<div style="background: u/**/rl(data:x)"></div>' }, /comment/],
+    ['style attribute image-set', { html: '<div style="background: image-set(\'a.png\' 1x)"></div>' }, /image/],
   ];
   for (const [name, patch, msg] of bad) {
     it(`rejects ${name}`, () => {
@@ -116,6 +130,16 @@ describe('custom-animation fragment rules', () => {
   it('allows url(#id) and relative asset paths in css, url(#id) and #id hrefs in svg', () => {
     expect(checkFragment({ ...GOOD, css: '.a { background: url("img/a.png"); fill: url(#g); }' }, 3)).toEqual([]);
     expect(checkFragment({ ...GOOD, html: '<svg><use href="#g"/><rect style="fill: url(#g)" clip-path="url(#c)"/></svg>' }, 3)).toEqual([]);
+  });
+
+  it('printed JS strings can never close the inline <script>: < > & U+2028 U+2029 are \\u-escaped', () => {
+    for (const s of ['</script><img src=x onerror=alert(1)>', '</SCRIPT >', '<!--', 'a > b & c', 'x\u2028y\u2029z']) {
+      const js = jsString(s);
+      expect(js).not.toMatch(/[<>&\u2028\u2029]/);
+      expect(JSON.parse(js)).toBe(s);
+    }
+    const f = namespaceFragment({ ...GOOD, timeline: 'tl.set("#bar", { textContent: "a > b & c" }, 0)' }, 'c', 0);
+    expect(f.timeline).toContain('textContent: "a \\u003e b \\u0026 c"');
   });
 
   it('the compiled timeline is regenerated from the parsed literals (no source passthrough)', () => {
