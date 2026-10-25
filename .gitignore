@@ -5,5 +5,6 @@ out/
 !tests/fixtures/*.mp4
 tools/models/
 .next/
-workspace/
+/workspace/
 next-env.d.ts
+tsconfig.tsbuildinfo
