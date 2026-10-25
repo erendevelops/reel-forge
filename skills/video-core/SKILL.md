@@ -16,26 +16,27 @@ The app starts you with one of these in the prompt:
 |---|---|---|
 | **analyse** | Inventory `inputs/`, run the preset's analysis steps, write results under `analysis/` | A short summary in the reply. No plan. |
 | **plan** | Write `plan.json` from the analysis, using only the ticked option cards | `rf validate` clean, then `rf save plan.json --request "first cut"` |
-| **revise** | Apply the user's request (and their hand edits) to the latest version | `rf save plan.json --parent <n> --request "<what changed>"` |
+| **revise** | Start from `latest.plan` in `rf project` (it includes the user's hand edits; write it to `plan.json` first), apply the request | `rf save plan.json --parent <n> --request "<what changed>"` |
 
 The preset skill (`reel-faceless`, `reel-talking-head` or `app-video`) says what "analysis" and "plan" mean for
 that kind of video. Read this skill first, then that one.
 
 ## Everything mechanical is an `rf` command
 
-`rf` lives in the project folder (`rf.cmd` on Windows). Every command prints one JSON object, and exits 1 with
+`rf` lives in the project folder and is on your PATH (`rf.cmd` on Windows cmd, `rf` in bash). Every command prints one JSON object, and exits 1 with
 `{"error": …}` when something is wrong. Read the error, fix the input and run it again. Never work around rf with
 your own ffmpeg or Python, unless a preset skill tells you to.
 
 | Command | What it gives you |
 |---|---|
-| `rf project` | The project (preset, ratios, language, option cards), learned preferences, versions |
+| `rf project` | The project (preset, ratios, language, option cards), learned preferences, versions, and `latest.plan` |
 | `rf probe <file>` | Duration, size, rotation, fps, colour range, audio |
 | `rf sheet <video> <out.jpg> --every <s>` | A timestamped contact sheet to read as an image (much cheaper than frames) |
 | `rf cuts <video>` | Scene-change times (pacing of a reference reel) |
 | `rf transcribe <audio> --lang <tr\|en\|auto> --prompt "<names>"` | Word-level timestamps. Seed `--prompt` with proper nouns |
 | `rf prep <src> <out> --from <s> --duration <s> --ratio <r> --fps <30\|60> [--crop <crop.json>]` | A working clip (BT.709, colour untouched) |
 | `rf trims <transcript.json>` | Kept ranges after cutting dead air between words |
+| `rf trimtake <take> <trims.json> <out.mp4> --transcript <t.json>` | The take with those ranges cut out, plus `analysis/transcript-trimmed.json` re-timed onto it |
 | `rf facetrack <video> <out.json>` | Face boxes over time |
 | `rf crop <track.json> --ratio <r>` | The widest crop window for the ratio that keeps the face in frame |
 | `rf logo <name>` | The official logo of a named product, written into `assets/si/` (or `{found:false}`) |
@@ -46,7 +47,7 @@ your own ffmpeg or Python, unless a preset skill tells you to.
 
 ## Hard limits
 
-- Never render. Never write outside the project folder. Never modify anything in `inputs/`.
+- Never render. Never write outside the project folder. Never modify the user's original files in `inputs/`. Your own files go in `inputs/work/` (working clips) and `inputs/ext/` (downloaded assets).
 - Use **only** the option cards listed in `CLAUDE.md` / `rf project`. `rf save` rejects anything else.
 - Reply in the project's language (it's in `CLAUDE.md`). Captions follow the *spoken* language of the footage.
 

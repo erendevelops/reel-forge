@@ -9,12 +9,12 @@ When the transcript or the brief names a product, brand or tool, show its **offi
    - Find the repo: `https://api.github.com/search/repositories?q=<tool>`, top result by stars.
    - List images: `GET /repos/{repo}/git/trees/{branch}?recursive=1`, filtered to `\.(png|svg|jpg|webp)$` with `logo|icon|banner` in the path.
    - Fallback: README `<img src>` and markdown image URLs, or the product site's favicon / Open Graph image.
-   - Download into `assets/ext/` and record the source URL and licence in `analysis/assets.json`.
+   - Download into `inputs/ext/` and reference it as `ext/<file>` (plan paths are relative to `inputs/`). Record the source URL and licence in `analysis/assets.json`.
 3. **Never invent, redraw or approximate a logo.** If nothing official exists, use a real screenshot or a `typed-title` of the name instead.
 
 ## External images
 
-Product screenshots, sample outputs and banners come from the product's own repo or site, saved under `assets/ext/`
+Product screenshots, sample outputs and banners come from the product's own repo or site, saved under `inputs/ext/`
 with their source in `analysis/assets.json`. Prefer an image that shows a *result* (generated images, before/after)
 over one that shows text.
 
@@ -26,9 +26,10 @@ strict allowlist (`rf validate` reports every violation):
 - **`timeline`**: only top-level calls `tl.fromTo("<selector>", {from}, {to}, <seconds>)`, `tl.to(...)` and `tl.set(...)`.
   Times are **relative to the card start**. Values must be literals (numbers, strings, booleans, nested objects/arrays):
   no variables, loops, functions, arithmetic, template strings, `random`, or callbacks (`onComplete`…).
-- **`html`**: plain HTML/SVG elements with quoted attributes. No `<script>`, `<iframe>` or `on*` handlers, and no URLs except relative asset paths.
+- **`html`**: plain HTML/SVG elements with quoted attributes. `<img src="ext/shot.jpg">` is allowed for real images (relative to `inputs/`, no `..`). No `<script>`, `<iframe>`, `on*` handlers or URLs. Strip `xmlns="http://…"` from pasted SVGs (inline SVG doesn't need it, and any `http` is refused).
 - **`css`**: flat `selector { … }` rules. `url()` only for `#id` or a relative asset path. No `@import` or comments.
-- Selectors are scoped to the card automatically. Ids and classes are namespaced, so keep them short.
+- Selectors are scoped to the card automatically. Ids and classes are namespaced, so keep them short. `:nth-child()` isn't available: give each element its own class.
+- Pixel positions are used as written, in the card's region (1080×1920 on 9:16, 1920×1080 on 16:9). For a project with several ratios, put a per-ratio `html`/`css` in the scene's `ratioOverrides` (e.g. `"ratioOverrides": { "9:16": { "html": "…", "css": "…" } }`).
 - Never use `from` (only `fromTo`/`set`): scenes are re-seeked and `from` renders wrong.
 
 A growing bar with a label:

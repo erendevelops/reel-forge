@@ -40,7 +40,8 @@ Every item in `analysis/topics.json` should appear on screen near its `at` (±0.
 
 ## Footage
 
-- One shot per kept segment from `analysis/trims.json`, placed back to back on the timeline. These are the cuts.
+- The footage is the trimmed working clip `work/take-<ratio>.mp4` (the dead air is already cut). Use one shot per scene, with `from` = `at` = the scene start and `to` = the scene end, all in trimmed time.
+- Captions and card times come from `analysis/transcript-trimmed.json`, never the original transcript.
 - Set each scene's `facePos` from the face track. **Never zoom into the face**: no tighter crop, and no punch-ins unless ticked.
 
 ## Captions

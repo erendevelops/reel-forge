@@ -37,7 +37,7 @@ Everything is in **seconds** (floats). Frames only exist at render time.
 
 ## Paths
 
-`src`, `img` and `logo` are relative to the project's `inputs/` folder (e.g. `public/s01.mp4`, `ext/logo.png`).
+`src`, `img` and `logo` are relative to the project's `inputs/` folder (e.g. `public/s01.mp4`, `work/s03.mp4`, `ext/logo.png`).
 `si:<slug>` is a logo resolved by `rf logo` (needs topic assets ticked). `sfx/...` resolves to the bundled sounds.
 
 ## A complete minimal example

@@ -22,7 +22,9 @@ a phone frame, sheets, list rows, cards with counters, rings, calendar grids, st
 | Cascade | Items enter 0.02–0.04 s apart, scale 0.8 → 1 |
 | List update | The sheet drops away, existing rows shift down, the new row drops in from above |
 
-**Never pan over screenshots.** Real screenshots appear only in the outro, fanned in 3D behind the logo.
+**Never pan over screenshots.** Real screenshots appear only in the outro, fanned in 3D behind the logo: one `custom-animation` with an `<img src="ext/<screen>.jpg">` per screenshot (copy them into `inputs/ext/` first), each tweened in with `x`, `rotationY`, `rotationZ` and `y`.
+
+**Several ratios:** pixel positions in a fragment are used exactly as written. Write the 16:9 version in `params`, and a recomposed 9:16 (or 1:1) version in each scene's `ratioOverrides`, e.g. `"ratioOverrides": { "9:16": { "html": "…", "css": "…" } }`.
 
 ## Motion rules
 

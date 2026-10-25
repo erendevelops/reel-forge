@@ -57,7 +57,7 @@ export function buildPrompt(stage: Stage, ctx: PromptCtx): string {
       diffs.length ? `The user also edited the plan by hand since your last version; treat these as preferences:\n${JSON.stringify(diffs)}` : '',
       selectionLines(project),
       motion,
-      `Read the latest plan with \`rf project\`, edit plan.json, \`rf validate\`, then \`rf save plan.json --parent ${latest ?? 1} --request "<one line on what changed>"\`.`,
+      `Run \`rf project\` and write its \`latest.plan\` to plan.json first (it includes the user's hand edits), edit it, \`rf validate\`, then \`rf save plan.json --parent ${latest ?? 1} --request "<one line on what changed>"\`.`,
       'If the request states a lasting preference, end your reply with a line "PREFERENCE: <text>".',
     ].join('\n');
   }

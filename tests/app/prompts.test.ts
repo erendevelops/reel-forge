@@ -31,6 +31,8 @@ describe('stage prompts', () => {
       request: 'Fooocus part a bit longer',
     });
     expect(p).toContain('--parent 3');
+    expect(p).toContain('latest.plan');
+    expect(p).toMatch(/latest.plan/);
     expect(p).toContain('Fooocus part a bit longer');
     expect(p).toContain('caption 3');
     expect(p).toContain('s02');

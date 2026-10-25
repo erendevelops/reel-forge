@@ -5,8 +5,7 @@ description: Plan a short launch video for an app, rebuilt from the product's ow
 
 # app-video
 
-A 15–25 s product film made from the app's own material. The reference is Eren's prao launch video
-(`../prao/brag-output-2026-10-24-120841/prao-video-reference.md`). **The UI is rebuilt and animated acting**
+A 15–25 s product film made from the app's own material. The reference is Eren's prao launch video. **The UI is rebuilt and animated acting**
 (typing, tapping, counters rolling, lists updating) as `custom-animation` cards. The video never pans over
 screenshots; real screenshots appear only in the outro.
 

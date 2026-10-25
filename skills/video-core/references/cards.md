@@ -4,7 +4,7 @@ A card enters **on the word it illustrates** (within 0.1 s of that word's start 
 enough to read (about 0.5 s + 0.3 s per word on it). Enter slow, leave fast. Overlap the next element when the
 previous one is about a third done. Every card that appears gets a sound from its family below. No whooshes.
 
-Positions are in pixels of a 1080-wide frame unless noted. The compiler scales them per ratio.
+Card positions are in pixels of a 1080-wide frame; the compiler scales the built-in cards per ratio. A `custom-animation` is used exactly as written, so give it per-ratio `ratioOverrides` ([assets.md](assets.md)).
 
 ### `title-card`
 

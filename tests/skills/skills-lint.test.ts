@@ -13,7 +13,9 @@ function files(dir: string): string[] {
     return statSync(p).isDirectory() ? files(p) : p.endsWith('.md') ? [p] : [];
   });
 }
-const text = (skill: string) => files(path.join(SKILLS, skill)).map((f) => readFileSync(f, 'utf8')).join('\n');
+// Line endings are normalised so a skill saved with CRLF (Windows editors) still parses.
+const read = (f: string) => readFileSync(f, 'utf8').replace(/\r\n/g, '\n');
+const text = (skill: string) => files(path.join(SKILLS, skill)).map(read).join('\n');
 const blocks = (md: string, tag: string) => [...md.matchAll(new RegExp('```' + tag + '\\n([\\s\\S]*?)```', 'g'))].map((m) => m[1]);
 
 describe('skills lint', () => {
@@ -23,7 +25,7 @@ describe('skills lint', () => {
 
   for (const skill of skills) {
     describe(skill, () => {
-      const skillMd = readFileSync(path.join(SKILLS, skill, 'SKILL.md'), 'utf8');
+      const skillMd = read(path.join(SKILLS, skill, 'SKILL.md'));
 
       it('frontmatter has name = folder and a short description', () => {
         const fm = /^---\n([\s\S]*?)\n---/.exec(skillMd)?.[1] ?? '';
@@ -94,6 +96,27 @@ describe('skills lint', () => {
     expect(t).toMatch(/outro/);
     expect(t).toContain('look.background');
     expect(t).toContain('analysis/product.json');
+  });
+
+  it('asset downloads go under inputs/ (where the compiler resolves them), never assets/ext', () => {
+    for (const s of skills) expect(text(s), s).not.toMatch(/assets\/ext/);
+    expect(text('video-core')).toContain('inputs/ext/');
+  });
+
+  it('revisions start from the latest stored plan, not an old plan.json', () => {
+    expect(text('video-core')).toMatch(/latest\.plan/);
+  });
+
+  it('talking head builds the trimmed take with rf trimtake and re-timed captions', () => {
+    expect(text('reel-talking-head')).toContain('rf trimtake');
+    expect(text('reel-talking-head')).toContain('transcript-trimmed.json');
+  });
+
+  it('app-video outro uses <img> in a custom-animation and per-ratio overrides', () => {
+    const t = text('app-video');
+    expect(t).toContain('<img');
+    expect(t).toContain('ratioOverrides');
+    expect(t).not.toContain('../prao/');
   });
 
   it('video-core has at least one fragment example and one plan example', () => {
