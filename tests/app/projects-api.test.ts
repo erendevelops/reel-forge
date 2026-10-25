@@ -22,7 +22,7 @@ describe('POST /api/projects', () => {
     const res = await post({ name: 'Reel', mode: 'reel', preset: 'talking-head', ratios: ['9:16'], lang: 'tr', inputs: [] });
     expect(res.status).toBe(201);
     const p = await res.json();
-    expect(p).toMatchObject({ name: 'Reel', preset: 'talking-head', selection: null });
+    expect(p).toMatchObject({ name: 'Reel', preset: 'talking-head', selection: { topicAssets: true } });
     const list = await (await GET()).json();
     expect(list.map((x: { id: string }) => x.id)).toEqual([p.id]);
   });

@@ -49,6 +49,8 @@ export type RunOptions = {
   timeoutMs: number;
   onEvent: (e: ClaudeEvent) => void;
   signal?: AbortSignal;
+  /** Extra environment for the claude process (and the tools it runs). */
+  env?: Record<string, string>;
 };
 
 /** Drives the installed Claude Code CLI as an agent, using the user's subscription login. */
@@ -65,7 +67,7 @@ export function runClaude(o: RunOptions): Promise<{ sessionId: string | null; ok
   ];
 
   return new Promise((resolve) => {
-    const child = spawn(cmd, args, { cwd: o.cwd, shell, stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
+    const child = spawn(cmd, args, { cwd: o.cwd, shell, stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true, env: { ...process.env, ...o.env } });
     let sessionId: string | null = o.resumeSession ?? null;
     let stdoutAll = '';
     let stderr = '';

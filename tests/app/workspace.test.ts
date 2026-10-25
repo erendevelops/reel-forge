@@ -38,7 +38,7 @@ describe('workspace store', () => {
     const a = await createProject(base);
     const b = await createProject({ ...base, name: 'Second' });
     expect(a.id).toMatch(/^bes-bedava-arac-[a-z0-9]{6}$/);
-    expect(a.selection).toBeNull();
+    expect(a.selection).toMatchObject({ captions: 'word-build' }); // preset default (plan 3)
     expect(a.claudeSession).toBeNull();
     const list = await listProjects();
     expect(list.map((p) => p.id)).toEqual([b.id, a.id]);

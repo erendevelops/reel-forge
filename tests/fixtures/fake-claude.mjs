@@ -12,7 +12,7 @@ if (args.includes('--version')) {
 
 let stdin = '';
 process.stdin.on('data', (c) => (stdin += c));
-process.stdin.on('end', () => {
+process.stdin.on('end', async () => {
   const sid = args.includes('--resume') ? args[args.indexOf('--resume') + 1] : 'sess-1234';
   out({ type: 'system', subtype: 'hook_started', session_id: sid });
   out({ type: 'system', subtype: 'init', session_id: sid, cwd: process.cwd(), tools: ['Bash'] });
@@ -27,6 +27,18 @@ process.stdin.on('end', () => {
     out({ type: 'assistant', message: { content: [{ type: 'text', text: msg }] } });
     out({ type: 'result', subtype: 'success', is_error: true, result: msg, session_id: sid });
     process.exit(1);
+  }
+  if (mode === 'save') {
+    // Like a real plan job: write plan.json and store it through rf (env from the job runner).
+    const { copyFileSync } = await import('node:fs');
+    const { spawnSync } = await import('node:child_process');
+    const path = await import('node:path');
+    const root = process.env.REELFORGE_ROOT;
+    copyFileSync(path.join(root, 'tests/fixtures/plan-reel-v5.json'), 'plan.json');
+    const r = spawnSync(process.execPath, [path.join(root, 'node_modules/tsx/dist/cli.mjs'), '--tsconfig', path.join(root, 'tsconfig.json'), path.join(root, 'scripts/rf.ts'), 'save', 'plan.json'], { encoding: 'utf8' });
+    out({ type: 'assistant', message: { content: [{ type: 'text', text: `rf: ${r.stdout.trim()}` }] } });
+    out({ type: 'result', subtype: 'success', is_error: r.status !== 0, result: r.stdout.trim(), session_id: sid });
+    process.exit(r.status ?? 1);
   }
   if (mode === 'hang') {
     setInterval(() => {}, 1000);

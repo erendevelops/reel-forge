@@ -5,7 +5,9 @@ import { DEFAULT_ALLOWED_TOOLS, runClaude } from '@/lib/app/claude/run';
 import type { ClaudeEvent } from '@/lib/app/claude/events';
 import { claudeCommand } from '@/lib/app/settings';
 import { projectDir } from '@/lib/app/workspace/paths';
-import { getProject, updateProject } from '@/lib/app/workspace/store';
+import { getProject, listVersions, updateProject } from '@/lib/app/workspace/store';
+import { workspaceDir } from '@/lib/app/workspace/paths';
+import { REPO_ROOT } from '@/lib/root';
 
 export type JobKind = 'claude' | 'render';
 export type JobState = 'running' | 'done' | 'failed' | 'paused-limit' | 'cancelled';
@@ -28,7 +30,8 @@ export class JobBusyError extends Error {
 
 type DistributiveOmit<T, K extends keyof T> = T extends unknown ? Omit<T, K> : never;
 export type Emit = (e: DistributiveOmit<JobEvent, 't'>) => void;
-export type Executor = (ctx: { projectId: string; spec: JobSpec; emit: Emit; signal: AbortSignal }) => Promise<JobState | { state: JobState; detail?: string }>;
+/** `next`: a job to start once this one has released the project (e.g. the draft render after a plan). */
+export type Executor = (ctx: { projectId: string; spec: JobSpec; emit: Emit; signal: AbortSignal }) => Promise<JobState | { state: JobState; detail?: string; next?: JobSpec }>;
 
 type Live = { projectId: string; jobId: string; events: JobEvent[]; listeners: Set<(e: JobEvent) => void>; abort: AbortController };
 
@@ -54,6 +57,7 @@ registerExecutor('claude', async ({ projectId, spec, emit, signal }) => {
   const s = spec as ClaudeJobSpec;
   const project = await getProject(projectId);
   const claudeBinary = await claudeCommand();
+  const before = (await listVersions(projectId)).length;
   let error: Extract<ClaudeEvent, { kind: 'error' }> | null = null;
   const res = await runClaude({
     binary: claudeBinary,
@@ -63,13 +67,20 @@ registerExecutor('claude', async ({ projectId, spec, emit, signal }) => {
     allowedTools: DEFAULT_ALLOWED_TOOLS,
     timeoutMs: CLAUDE_TIMEOUT_MS,
     signal,
+    // rf (the skills' tool) finds its project and the repo through these.
+    env: { REELFORGE_PROJECT: projectId, REELFORGE_WORKSPACE: workspaceDir(), REELFORGE_ROOT: REPO_ROOT },
     onEvent: (event) => {
       if (event.kind === 'error') error = event;
       emit({ type: 'claude', event });
     },
   });
   if (res.sessionId && res.sessionId !== project.claudeSession) await updateProject(projectId, { claudeSession: res.sessionId });
-  if (res.ok) return 'done';
+  if (res.ok) {
+    const versions = await listVersions(projectId);
+    // A plan job that saved a version gets a draft render straight away.
+    if (versions.length > before) return { state: 'done', next: { kind: 'render', version: versions.at(-1)!.n, profile: 'draft' } };
+    return 'done';
+  }
   if (signal.aborted) return 'cancelled';
   const e = error as Extract<ClaudeEvent, { kind: 'error' }> | null;
   if (e?.code === 'limit') return { state: 'paused-limit', detail: e.resetsAt ?? e.message };
@@ -101,7 +112,7 @@ export async function startJob(projectId: string, spec: JobSpec): Promise<{ jobI
 
   emit({ type: 'state', state: 'running' });
   void (async () => {
-    let end: { state: JobState; detail?: string };
+    let end: { state: JobState; detail?: string; next?: JobSpec };
     try {
       const out = await run({ projectId, spec, emit, signal: job.abort.signal });
       end = typeof out === 'string' ? { state: out } : out;
@@ -109,13 +120,15 @@ export async function startJob(projectId: string, spec: JobSpec): Promise<{ jobI
       end = { state: job.abort.signal.aborted ? 'cancelled' : 'failed', detail: (err as Error).message };
     }
     if (job.abort.signal.aborted) end = { state: 'cancelled' };
+    const { next, ...final } = end;
     try {
-      emit({ type: 'state', ...end });
+      emit({ type: 'state', ...final });
       await write;
     } finally {
       runningByProject.delete(projectId);
       live.delete(`${projectId}/${jobId}`);
     }
+    if (next && final.state === 'done') await startJob(projectId, next).catch(() => undefined);
   })();
   return { jobId };
 }

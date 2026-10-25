@@ -21,6 +21,8 @@ export function ProjectClient({
   const [jobId, setJobId] = useState<string | null>(lastJobId);
   const [events, setEvents] = useState<JobEvent[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [request, setRequest] = useState('');
+  const claude = (body: object) => start(body, `/api/projects/${projectId}/claude`);
   const latest = versions.at(-1)?.n ?? null;
 
   useEffect(() => {
@@ -44,7 +46,14 @@ export function ProjectClient({
     <div className="grid grid-cols-[1fr_340px] gap-7">
       <div className="flex flex-col gap-3">
         <div className="meta uppercase tracking-widest">{d.versions}</div>
-        {versions.length === 0 && <p className="meta">{d.noVersions}</p>}
+        {versions.length === 0 && (
+          <div className="flex items-center gap-3">
+            <p className="meta">{d.noVersions}</p>
+            <button type="button" className="btn btn-primary" onClick={() => claude({ stage: 'plan' })}>
+              {d.makePlan}
+            </button>
+          </div>
+        )}
         {versions.map((v) => (
           <div key={v.n} className="card flex items-center gap-4 px-5 py-3">
             <span className="font-px">v{v.n}</span>
@@ -61,6 +70,20 @@ export function ProjectClient({
               {d.renderFinal}
             </button>
           </div>
+        )}
+        {latest && (
+          <form
+            className="flex gap-2 pt-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!request.trim()) return;
+              void claude({ stage: 'revise', request });
+              setRequest('');
+            }}
+          >
+            <input className="card flex-1 px-4 py-3" placeholder={d.tellClaude} value={request} onChange={(e) => setRequest(e.target.value)} />
+            <button type="submit" className="btn">{d.send}</button>
+          </form>
         )}
         {error && <p className="font-mono text-sm" style={{ color: '#e5484d' }}>{error}</p>}
       </div>

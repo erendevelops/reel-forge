@@ -5,6 +5,7 @@ import { PlanSchema, validatePlan, type Plan } from '@/lib/plan';
 import { readJson, writeJson } from './files';
 import { projectDir, projectsDir, versionDir, workspaceDir } from './paths';
 import { createQueue } from './queue';
+import { defaultSelection, installSkills } from '@/lib/app/claude/install';
 import {
   PreferencesSchema,
   ProjectSchema,
@@ -60,7 +61,7 @@ export async function createProject(input: NewProject): Promise<Project> {
     preset: input.preset,
     ratios: input.ratios,
     lang: input.lang,
-    selection: null,
+    selection: defaultSelection(input.preset),
     claudeSession: null,
     createdAt: ts,
     updatedAt: ts,
@@ -72,6 +73,7 @@ export async function createProject(input: NewProject): Promise<Project> {
     await cp(src, path.join(dir, 'inputs', path.basename(src)), { recursive: true, errorOnExist: false });
   }
   await writeJson(projectFile(project.id), project);
+  await installSkills(project, await getPreferences(), dir);
   return project;
 }
 
