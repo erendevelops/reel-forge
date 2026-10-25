@@ -115,6 +115,19 @@ describe('jobs', () => {
     await expect(startJob(p.id, { kind: 'claude', prompt: 'b' })).resolves.toMatchObject({ jobId: expect.stringMatching(/^job-/) });
   });
 
+  it('a second copy of the jobs module (Next dev bundles each route separately) sees running jobs', async () => {
+    process.env.FAKE_CLAUDE_MODE = 'hang';
+    const p = await newProject();
+    const { jobId } = await startJob(p.id, { kind: 'claude', prompt: 'a' });
+    const { vi } = await import('vitest');
+    vi.resetModules();
+    const other = await import('../../lib/app/jobs/jobs');
+    const listed = (await other.listJobs(p.id)).find((j) => j.jobId === jobId);
+    expect(listed?.state).toBe('running');
+    await expect(other.startJob(p.id, { kind: 'claude', prompt: 'b' })).rejects.toThrow(/already running/);
+    await cancelJob(p.id, jobId);
+  });
+
   it('a running job left on disk by a dead server is marked failed', async () => {
     const p = await newProject();
     const dir = path.join(projectDir(p.id), 'jobs');

@@ -36,9 +36,14 @@ export type Executor = (ctx: { projectId: string; spec: JobSpec; emit: Emit; sig
 
 type Live = { projectId: string; jobId: string; events: JobEvent[]; listeners: Set<(e: JobEvent) => void>; abort: AbortController };
 
-const live = new Map<string, Live>(); // key: `${projectId}/${jobId}`
-const runningByProject = new Map<string, string>();
-const executors = new Map<JobKind, Executor>();
+// One registry per process, not per module copy: Next dev bundles every route separately, and a copy that can't see a
+// running job would mark it "server restarted" and let a second job start on the same project.
+type Registry = { live: Map<string, Live>; running: Map<string, string>; executors: Map<JobKind, Executor> };
+const g = globalThis as typeof globalThis & { __reelforgeJobs?: Registry };
+const registry: Registry = (g.__reelforgeJobs ??= { live: new Map(), running: new Map(), executors: new Map() });
+const live = registry.live; // key: `${projectId}/${jobId}`
+const runningByProject = registry.running;
+const executors = registry.executors;
 
 const CLAUDE_TIMEOUT_MS = 60 * 60 * 1000;
 
