@@ -1,4 +1,5 @@
 import { spawn, spawnSync } from 'node:child_process';
+import { currentSignal } from './cancel';
 
 export interface RunOpts {
   cwd?: string;
@@ -31,6 +32,8 @@ function killTree(pid: number | undefined, child: { kill: (s?: NodeJS.Signals) =
 }
 
 export function run(cmd: string, args: string[], opts: RunOpts = {}): Promise<RunResult> {
+  const signal = currentSignal();
+  if (signal?.aborted) return Promise.reject(new RunError(cmd, -1, 'cancelled'));
   return new Promise((resolve, reject) => {
     const child = spawn(cmd, args, {
       shell: false,
@@ -48,14 +51,23 @@ export function run(cmd: string, args: string[], opts: RunOpts = {}): Promise<Ru
         killTree(child.pid, child);
       }, opts.timeoutMs);
     }
+    let cancelled = false;
+    const onAbort = () => {
+      cancelled = true;
+      killTree(child.pid, child);
+    };
+    signal?.addEventListener('abort', onAbort, { once: true });
     child.stdout.on('data', (d: Buffer) => out.push(d));
     child.stderr.on('data', (d: Buffer) => err.push(d));
     child.on('error', (e) => {
       if (timer) clearTimeout(timer);
+      signal?.removeEventListener('abort', onAbort);
       reject(new RunError(cmd, -1, String(e)));
     });
     child.on('close', (code) => {
       if (timer) clearTimeout(timer);
+      signal?.removeEventListener('abort', onAbort);
+      if (cancelled) return reject(new RunError(cmd, code ?? -1, 'cancelled'));
       const stdout = Buffer.concat(out).toString('utf8');
       const stderr = Buffer.concat(err).toString('utf8');
       if (timedOut) return reject(new RunError(cmd, code ?? -1, `timeout after ${opts.timeoutMs}ms\n${stderr}`));

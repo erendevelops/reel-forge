@@ -67,6 +67,44 @@ describe('render job', () => {
     expect(qaJson.pass).toBe(false);
   });
 
+  it('a failing ratio waits for the other ratios before the job fails', async () => {
+    const { p, n } = await setup(['9:16', '4:5']);
+    let slowEnded = 0;
+    const deps: RenderDeps = {
+      concurrency: 2,
+      renderLayered: async (_plan, opts) => {
+        if (opts.ratio === '9:16') throw new Error('boom');
+        await new Promise((r) => setTimeout(r, 300));
+        slowEnded = Date.now();
+        return { base: 'b' };
+      },
+      qa: async () => ({ pass: true, checks: [] }),
+      thumbnail: async () => undefined,
+    };
+    await expect(runRenderJob(p.id, n, 'draft', () => undefined, deps)).rejects.toThrow(/boom/);
+    expect(slowEnded).toBeGreaterThan(0); // still running when 9:16 failed, finished before the job settled
+  });
+
+  it('cancelling a render kills its processes', async () => {
+    const { p, n } = await setup(['9:16']);
+    const { run } = await import('../../lib/media/run');
+    const deps: RenderDeps = {
+      concurrency: 1,
+      renderLayered: async () => {
+        await run(process.execPath, ['-e', 'setTimeout(() => {}, 30000)']);
+        return { base: 'b' };
+      },
+      qa: async () => ({ pass: true, checks: [] }),
+      thumbnail: async () => undefined,
+    };
+    const ac = new AbortController();
+    const started = Date.now();
+    const job = runRenderJob(p.id, n, 'draft', () => undefined, deps, ac.signal);
+    setTimeout(() => ac.abort(), 200);
+    await expect(job).rejects.toThrow(/cancelled/);
+    expect(Date.now() - started).toBeLessThan(5000);
+  });
+
   it('draft render skips QA', async () => {
     const { p, n } = await setup(['9:16']);
     const log: { ratio: string; start: number; end: number }[] = [];

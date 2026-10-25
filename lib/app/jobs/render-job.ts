@@ -2,6 +2,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { mkdir } from 'node:fs/promises';
 import { run } from '@/lib/media/run';
+import { withSignal } from '@/lib/media/cancel';
 import { renderLayered } from '@/lib/render/layered';
 import { expectsAudio, qa, type QaReport } from '@/lib/render/qa';
 import { RATIO_SIZE } from '@/lib/compile';
@@ -32,19 +33,27 @@ export const defaultDeps = (): RenderDeps => ({
 
 const tag = (r: Ratio) => r.replace(':', 'x');
 
-/** Runs `items` through `fn` with at most `limit` in flight. */
-async function pool<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
-  const results: R[] = new Array(items.length);
+/**
+ * Runs `items` through `fn` with at most `limit` in flight. Every started item settles before this returns, so a failed
+ * item never releases the job while siblings still write files; the first error is rethrown afterwards.
+ */
+async function pool<T>(items: T[], limit: number, fn: (item: T) => Promise<void>, signal?: AbortSignal): Promise<void> {
   let next = 0;
+  let firstError: unknown = null;
   await Promise.all(
     Array.from({ length: Math.min(limit, items.length) }, async () => {
-      while (next < items.length) {
+      while (next < items.length && firstError === null && !signal?.aborted) {
         const i = next++;
-        results[i] = await fn(items[i]);
+        try {
+          await fn(items[i]);
+        } catch (err) {
+          firstError ??= err;
+        }
       }
     }),
   );
-  return results;
+  if (firstError !== null) throw firstError;
+  if (signal?.aborted) throw new Error('cancelled');
 }
 
 /** Renders every ratio of a version in parallel; final renders are QA-gated per ratio. */
@@ -54,6 +63,18 @@ export async function runRenderJob(
   profile: RenderProfile,
   emit: Emit,
   deps: RenderDeps = defaultDeps(),
+  signal?: AbortSignal,
+): Promise<{ outputs: Record<Ratio, string> }> {
+  return withSignal(signal, () => renderAll(projectId, version, profile, emit, deps, signal));
+}
+
+async function renderAll(
+  projectId: string,
+  version: number,
+  profile: RenderProfile,
+  emit: Emit,
+  deps: RenderDeps,
+  signal: AbortSignal | undefined,
 ): Promise<{ outputs: Record<Ratio, string> }> {
   const { plan } = await readVersion(projectId, version);
   const outDir = path.join(versionDir(projectId, version), 'render');
@@ -91,7 +112,7 @@ export async function runRenderJob(
     }
     outputs[ratio] = out;
     emit({ type: 'progress', step: `${ratio} done` });
-  });
+  }, signal);
 
   if (failed.length) throw new Error(`QA failed: ${failed.join(', ')}`);
   if (plan.selection.thumbnail) {
@@ -102,9 +123,9 @@ export async function runRenderJob(
   return { outputs };
 }
 
-registerExecutor('render', async ({ projectId, spec, emit }) => {
+registerExecutor('render', async ({ projectId, spec, emit, signal }) => {
   const s = spec as unknown as { version: number; profile: RenderProfile };
-  await runRenderJob(projectId, s.version, s.profile, emit);
+  await runRenderJob(projectId, s.version, s.profile, emit, defaultDeps(), signal);
   return 'done';
 });
 
