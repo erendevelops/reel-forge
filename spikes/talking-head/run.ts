@@ -21,7 +21,7 @@ import { prepareClip, prepareVoice } from '../../lib/media/prepare';
 import { probe } from '../../lib/media/probe';
 import { run } from '../../lib/media/run';
 import { renderLayered } from '../../lib/render/layered';
-import { qa, type QaExpect, type QaReport } from '../../lib/render/qa';
+import { expectsAudio, footageLumaRegion, qa, type QaExpect, type QaReport } from '../../lib/render/qa';
 import { RATIO_SIZE } from '../../lib/compile';
 import { validatePlan, type Plan, type Ratio } from '../../lib/plan';
 
@@ -115,6 +115,28 @@ function lumaRefs(plan: Plan, r: Ratio): NonNullable<QaExpect['lumaRefs']> {
   return refs;
 }
 
+/**
+ * Footage colour on the deliverable itself: full-face scenes above the captions, split scenes inside the face card
+ * (`footageLumaRegion` maps the card area back into the source frame), clear of the 0.4 s layout tween.
+ */
+function deliverableLumaRefs(plan: Plan, r: Ratio): NonNullable<QaExpect['deliverableLumaRefs']> {
+  const [w, h] = RATIO_SIZE[r];
+  const src = path.join(assetsFor(r), 'take.mp4');
+  const refs: NonNullable<QaExpect['deliverableLumaRefs']> = [];
+  for (const sc of plan.scenes) {
+    const layout = sc.layout ?? 'full-face';
+    if (layout !== 'full-face' && layout !== 'split') continue;
+    const { region, srcRegion } = footageLumaRegion(layout, w, h, sc.shots[0]?.aspect ?? w / h);
+    for (const f of [0.3, 0.7]) {
+      const outT = r3(sc.start + 0.45 + (sc.end - sc.start - 0.45) * f);
+      for (const sh of sc.shots) {
+        if (outT >= sh.at && outT < sh.at + sh.to - sh.from) refs.push({ src, srcT: r3(outT - sh.at + sh.from), outT, region, srcRegion });
+      }
+    }
+  }
+  return refs;
+}
+
 function summary(label: string, r: QaReport): void {
   console.log(`\n[${label}] QA ${r.pass ? 'PASS' : 'FAIL'}`);
   for (const c of r.checks) console.log(`  ${c.pass ? 'ok  ' : 'FAIL'} ${c.name}: ${c.detail}`);
@@ -131,7 +153,8 @@ async function renderAll(): Promise<void> {
     const seconds = r3((performance.now() - t0) / 1000);
     const report = await qa(out, {
       fps: plan.fps, frames: Math.round(plan.duration * plan.fps), duration: plan.duration, width: w, height: h,
-      lufs: -14, lumaRefs: lumaRefs(plan, r), lumaFile: base,
+      lufs: -14, lumaRefs: lumaRefs(plan, r), lumaFile: base, audio: expectsAudio(plan),
+      deliverableLumaRefs: deliverableLumaRefs(plan, r),
     });
     summary(r, report);
     await writeJson(path.join(OUT, `talking-${tag(r)}.qa.json`), report);

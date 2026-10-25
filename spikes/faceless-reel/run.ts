@@ -15,7 +15,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { compile } from '../../lib/compile';
 import { render } from '../../lib/render/render';
-import { qa, type QaExpect, type QaReport } from '../../lib/render/qa';
+import { expectsAudio, footageLumaRegion, qa, type QaExpect, type QaReport } from '../../lib/render/qa';
 import { renderLayered } from '../../lib/render/layered';
 import { finishLoudness } from '../../lib/media/prepare';
 import { run } from '../../lib/media/run';
@@ -49,10 +49,24 @@ function lumaRefs(plan: Plan): NonNullable<QaExpect['lumaRefs']> {
   });
 }
 
+/**
+ * Footage colour on the deliverable: the same shot midpoints, measured on the bottom strip below the captions
+ * (no card reaches it in this reel). Shots whose punch-in has started by the midpoint are skipped (scaled footage).
+ */
+function deliverableLumaRefs(plan: Plan): NonNullable<QaExpect['deliverableLumaRefs']> {
+  const { region } = footageLumaRegion('broll', 1080, 1920, undefined, { avoid: [[0, 0.86]] });
+  return plan.scenes.flatMap((s) => s.shots).flatMap((sh) => {
+    const mid = sh.at + (sh.to - sh.from) / 2;
+    if (sh.punch !== undefined && sh.punch <= mid) return [];
+    return [{ src: path.join(ASSETS, sh.src), srcT: r3(mid - sh.at + sh.from), outT: r3(mid), region }];
+  });
+}
+
 function expectFor(plan: Plan): QaExpect {
   return {
     fps: plan.fps, frames: Math.round(plan.duration * plan.fps), duration: plan.duration,
-    width: 1080, height: 1920, lufs: -14, lumaRefs: lumaRefs(plan),
+    width: 1080, height: 1920, lufs: -14, lumaRefs: lumaRefs(plan), audio: expectsAudio(plan),
+    deliverableLumaRefs: deliverableLumaRefs(plan),
   };
 }
 
@@ -94,7 +108,7 @@ async function footageOnly(plan: Plan, expect: QaExpect): Promise<void> {
   const base = path.join(OUT, 'layered-work', 'base.mkv');
   if (existsSync(base)) {
     // base.mkv has no audio stream and is ffv1; only the luma check is meaningful here
-    const lumaOnly = await qa(base, noLoud);
+    const lumaOnly = await qa(base, { ...noLoud, audio: false, deliverableLumaRefs: undefined });
     const luma = lumaOnly.checks.find((c) => c.name === 'luma')!;
     console.log(`  layered base.mkv luma ${luma.pass ? 'ok' : 'FAIL'}: ${luma.detail}`);
     res.layeredBaseLuma = luma;

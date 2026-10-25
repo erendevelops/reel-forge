@@ -50,7 +50,7 @@ describe('layered render', () => {
       const { base } = await renderLayered(v.plan, { assetsDir: assets, workDir: path.join(tmp, 'work'), out, ratio: '9:16' });
       // footage luma gate on the lossless base track: exact, overlays never enter it
       const report = await qa(out, {
-        fps: 60, frames: 180, duration: 3, width: 1080, height: 1920, lufs: -14,
+        fps: 60, frames: 180, duration: 3, width: 1080, height: 1920, lufs: -14, audio: true,
         lumaRefs: [{ src: clip, srcT: 0.2, outT: 0.2 }, { src: clip, srcT: 2.0, outT: 2.0 }], lumaFile: base,
       });
       expect(report.pass, JSON.stringify(report.checks)).toBe(true);

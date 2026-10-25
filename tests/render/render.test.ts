@@ -40,7 +40,7 @@ describe('render + qa', () => {
       const final = path.join(tmp, 'final.mp4');
       await finishLoudness(rendered, final, { I: -14, TP: -1.5 });
       const report = await qa(final, {
-        fps: 60, frames: 180, duration: 3, width: 1080, height: 1920, lufs: -14,
+        fps: 60, frames: 180, duration: 3, width: 1080, height: 1920, lufs: -14, audio: true,
         lumaRefs: [{ src: clip, srcT: 1.0, outT: 1.0 }],
       });
       await writeQa(tmp, report);
