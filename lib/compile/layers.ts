@@ -78,13 +78,16 @@ function renderLayouts(plan: Plan, ctx: CompileContext): { faceStyle: string; bg
 export function renderFootage(plan: Plan, ctx: CompileContext): Fragment {
   const html: string[] = [];
   const tl: string[] = [];
-  allShots(plan).forEach((sh, i) => {
+  // the face-aware framing: `object-position` keeps a high or low face inside the (split) face card's crop
+  const shots = plan.scenes.flatMap((sc) => sc.shots.map((sh) => ({ sh, facePos: sc.facePos })));
+  shots.forEach(({ sh, facePos }, i) => {
     const id = `shot-${i + 1}`;
     const dur = sh.to - sh.from;
+    const pos = facePos ? ` style="object-position: ${num(facePos.x * 100)}% ${num(facePos.y * 100)}%;"` : '';
     html.push(
       `<div id="${id}" class="shot">` +
         `<video id="${id}-video" class="clip" muted playsinline data-start="${num(sh.at)}" data-duration="${num(dur)}" ` +
-        `data-media-start="${num(sh.from)}" data-track-index="0" src="${ctx.assetsUrl(sh.src)}"></video></div>`,
+        `data-media-start="${num(sh.from)}" data-track-index="0"${pos} src="${ctx.assetsUrl(sh.src)}"></video></div>`,
     );
     if (sh.punch !== undefined) {
       const end = sh.at + dur;

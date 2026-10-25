@@ -17,16 +17,50 @@ export interface PrepareClipOpts {
 
 const n3 = (x: number) => Number(x.toFixed(3)).toString();
 
+/** Crop window position at source time `t`, linearly interpolated between samples (held past either end). */
+export function cropAt(sorted: CropPath, t: number): { x: number; y: number } {
+  if (t <= sorted[0].t) return { x: sorted[0].x, y: sorted[0].y };
+  for (let i = 1; i < sorted.length; i++) {
+    const a = sorted[i - 1];
+    const b = sorted[i];
+    if (t <= b.t) {
+      const f = b.t > a.t ? (t - a.t) / (b.t - a.t) : 1;
+      return { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f };
+    }
+  }
+  const z = sorted[sorted.length - 1];
+  return { x: z.x, y: z.y };
+}
+
+export type CropCommands = {
+  init: { x: number; y: number; w: number; h: number };
+  /** One entry per frame of the output grid (clip time), position interpolated between face samples. */
+  steps: { t: number; x: number; y: number }[];
+  script: string;
+};
+
 /**
- * `sendcmd` script for a crop path, in clip time (source time − `from`). Samples before `from` collapse into the
- * initial window. The window size is fixed by the first sample; only x/y move.
+ * `sendcmd` script for a crop path over clip time [0, length] (source time − `from`), one position per frame at
+ * `fps`, interpolated between the (≈10 Hz) samples so the window glides instead of holding then jumping.
+ * The window size is fixed by the first sample; only x/y move. Unchanged frames emit no command.
  */
-export function cropCommands(crop: CropPath, from: number): { init: { x: number; y: number; w: number; h: number }; script: string } {
+export function cropCommands(crop: CropPath, from: number, length: number, fps: number): CropCommands {
   const sorted = [...crop].sort((a, b) => a.t - b.t);
-  let init = sorted[0];
-  for (const c of sorted) if (c.t <= from) init = c;
-  const lines = sorted.filter((c) => c.t > from).map((c) => `${n3(c.t - from)} crop x ${Math.round(c.x)}, crop y ${Math.round(c.y)};`);
-  return { init: { x: Math.round(init.x), y: Math.round(init.y), w: init.w, h: init.h }, script: lines.join('\n') + '\n' };
+  const frames = Math.ceil(length * fps);
+  const steps: CropCommands['steps'] = [];
+  for (let k = 0; k <= frames; k++) {
+    const t = k / fps;
+    const p = cropAt(sorted, from + t);
+    steps.push({ t, x: Math.round(p.x), y: Math.round(p.y) });
+  }
+  const lines: string[] = [];
+  for (let k = 1; k < steps.length; k++) {
+    const s = steps[k];
+    const prev = steps[k - 1];
+    if (s.x !== prev.x || s.y !== prev.y) lines.push(`${n3(s.t)} crop x ${s.x}, crop y ${s.y};`);
+  }
+  const init = { x: steps[0].x, y: steps[0].y, w: sorted[0].w, h: sorted[0].h };
+  return { init, steps, script: lines.join('\n') + '\n' };
 }
 
 /** Working clip: trimmed [from, from+duration+0.3], optionally reframed by a crop path, BT.709 TV range, audio stripped. */
@@ -35,7 +69,7 @@ export async function prepareClip(src: string, out: string, o: PrepareClipOpts):
   let vf = scale;
   let cwd: string | undefined;
   if (o.crop?.length) {
-    const { init, script } = cropCommands(o.crop, o.from);
+    const { init, script } = cropCommands(o.crop, o.from, o.duration + 0.3, o.fps);
     // The command file is referenced by a bare name from a temp cwd, so no path ever needs filtergraph escaping.
     cwd = await fs.mkdtemp(path.join(os.tmpdir(), 'tbd-crop-'));
     await fs.writeFile(path.join(cwd, 'crop.cmd'), script, 'utf8');

@@ -5,7 +5,8 @@ import path from 'node:path';
 import { makeClip } from '../helpers/media';
 import { probe } from '../../lib/media/probe';
 import type { Transcript } from '../../lib/media/transcribe';
-import { planTrims, remapTimes, renderTrimmedTake } from '../../lib/talking/trim';
+import { run } from '../../lib/media/run';
+import { planTrims, remapTimes, renderTrimmedTake, snapSegments } from '../../lib/talking/trim';
 
 const tr = (ws: [number, number][]): Transcript => ({
   language: 'en',
@@ -92,4 +93,32 @@ describe('renderTrimmedTake', () => {
     expect(p.colorTransfer).toBe('bt709');
     expect([p.width, p.height]).toEqual([320, 240]);
   }, 60000);
+
+  it('snaps to the frame grid: video and audio agree after 10 joins, late words remap consistently', async () => {
+    const fps = 30;
+    const src = await makeClip(dir, { w: 160, h: 120, fps, seconds: 12, audio: true });
+    // 11 ranges with off-grid boundaries (each would be up to a frame off if left unsnapped)
+    const segs = Array.from({ length: 11 }, (_, i) => ({ from: i + 0.013, to: i + 0.511 + (i % 3) * 0.017 }));
+    const out = path.join(dir, 'joins.mp4');
+    const used = await renderTrimmedTake(src, segs, out);
+    expect(used).toEqual(snapSegments(segs, fps));
+    for (const s of used) {
+      expect(Math.abs(s.from * fps - Math.round(s.from * fps))).toBeLessThan(1e-4);
+      expect(Math.abs(s.to * fps - Math.round(s.to * fps))).toBeLessThan(1e-4);
+    }
+    const { stdout } = await run('ffprobe', ['-v', 'error', '-show_entries', 'stream=codec_type,duration', '-of', 'json', out]);
+    const streams = JSON.parse(stdout).streams as { codec_type: string; duration: string }[];
+    const v = Number(streams.find((s) => s.codec_type === 'video')!.duration);
+    const a = Number(streams.find((s) => s.codec_type === 'audio')!.duration);
+    const total = used.reduce((acc, s) => acc + s.to - s.from, 0);
+    expect(Math.abs(v - total)).toBeLessThanOrEqual(1 / fps + 1e-6);
+    expect(Math.abs(a - v)).toBeLessThanOrEqual(1 / fps + 1e-6);
+    // a word 0.2 s into the last range lands 0.2 s after the sum of the earlier (snapped) ranges, inside the video
+    const last = used[used.length - 1];
+    const word = { w: 'late', start: last.from + 0.2, end: last.from + 0.3 };
+    const [m] = remapTimes({ language: 'en', words: [word] }, used).words;
+    const before = used.slice(0, -1).reduce((acc, s) => acc + s.to - s.from, 0);
+    expect(m.start).toBeCloseTo(before + 0.2, 6);
+    expect(m.end).toBeLessThanOrEqual(v + 1e-6);
+  }, 120000);
 });

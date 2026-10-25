@@ -5,7 +5,8 @@ import path from 'node:path';
 import { run } from '../../lib/media/run';
 import { probe } from '../../lib/media/probe';
 import { makeClip } from '../helpers/media';
-import { prepareClip, finishLoudness, lumaStats } from '../../lib/media/prepare';
+import { prepareClip, finishLoudness, lumaStats, cropCommands } from '../../lib/media/prepare';
+import { cropPath } from '../../lib/talking/reframe';
 
 let dir: string;
 beforeAll(async () => {
@@ -82,7 +83,7 @@ describe('prepareClip', () => {
       { t: 1.0, x: 1312, y: 0, w: 608, h: 1080 },
     ];
     await prepareClip(src, out, { from: 0, duration: 2, width: 270, height: 480, fps: 30, crop });
-    expect((await lumaStats(out, 0.4, 54, 96)).yavg).toBeGreaterThan(200);
+    expect((await lumaStats(out, 0.05, 54, 96)).yavg).toBeGreaterThan(200);
     expect((await lumaStats(out, 1.5, 54, 96)).yavg).toBeLessThan(40);
   });
 
@@ -93,6 +94,25 @@ describe('prepareClip', () => {
     const p = await probe(out);
     expect(p.fps).toBe(60);
     expect(Math.abs(p.duration - (opts.duration + 0.3))).toBeLessThanOrEqual(0.05);
+  });
+});
+
+describe('cropCommands', () => {
+  it('interpolates the crop per frame: no frame step exceeds its share of the per-sample limit', () => {
+    // a face drifting at the full 2%/sample rate limit, sampled at 10 Hz
+    const boxes = Array.from({ length: 31 }, (_, i) => ({ t: i / 10, x: 0.1 + i * 0.03, y: 0.3, bw: 0.1, bh: 0.2 }));
+    const crop = cropPath({ w: 1920, h: 1080, boxes }, { w: 1920, h: 1080 }, '9:16');
+    const fps = 60;
+    const { steps, script } = cropCommands(crop, 0.5, 2, fps);
+    expect(steps).toHaveLength(2 * fps + 1);
+    const perSample = Math.max(...crop.slice(1).map((c, i) => Math.abs(c.x - crop[i].x)));
+    expect(perSample).toBeGreaterThan(0);
+    const share = perSample * (1 / fps) / 0.1; // one frame's share of one 0.1 s sample step
+    for (let k = 1; k < steps.length; k++) {
+      expect(Math.abs(steps[k].x - steps[k - 1].x)).toBeLessThanOrEqual(Math.ceil(share) + 1);
+    }
+    // many small commands, not one jump per sample
+    expect(script.trim().split(/\r?\n/).length).toBeGreaterThan(2 * 10 * 2);
   });
 });
 

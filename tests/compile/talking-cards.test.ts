@@ -30,7 +30,7 @@ function talkingPlan(): Plan {
     scenes: [
       { id: 'hook', start: 0, end: 2, say: '', why: '', layout: 'full-face', shots: [{ src: 'face.mp4', from: 0, to: 2, at: 0 }], cards: [] },
       {
-        id: 'steps', start: 2, end: 6, say: '', why: '', layout: 'split',
+        id: 'steps', start: 2, end: 6, say: '', why: '', layout: 'split', facePos: { x: 0.5, y: 0.22 },
         shots: [{ src: 'face.mp4', from: 2, to: 6, at: 2 }],
         cards: [
           { type: 'checklist', start: 2, end: 6, params: { items: [{ label: 'Kurulum', at: 2.5 }, { label: 'Kayıt', at: 3.2 }, { label: 'Yayın', at: 4.1 }] } },
@@ -158,6 +158,12 @@ describe('layouts', () => {
   it('first scene layout is the initial inline state, no tween at 0', () => {
     expect(tl).not.toMatch(/tl\.fromTo\("#face"[^\n]*, 0\);/);
     expect(html).toMatch(/<div id="face"[^>]*style="[^"]*width: 1080px; height: 1920px;/);
+  });
+
+  it('split face card framing follows the scene facePos (default centre)', () => {
+    // shot-2 belongs to the steps scene (facePos y 0.22: a high face); the others keep the default
+    expect(html).toMatch(/id="shot-2-video"[^>]*style="object-position: 50% 22%;"/);
+    expect(html).not.toMatch(/id="shot-1-video"[^>]*object-position/);
   });
 
   it('cards in split scenes sit in the top half', () => {

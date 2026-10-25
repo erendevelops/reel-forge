@@ -52,6 +52,8 @@ export const SceneSchema = z
     say: z.string(),
     why: z.string(),
     layout: LayoutSchema.optional(),
+    /** Face centre in the scene's footage, 0–1 of width/height (e.g. `facePosition(track)`); default centre. */
+    facePos: z.object({ x: z.number().min(0).max(1), y: z.number().min(0).max(1) }).optional(),
     shots: z.array(ShotSchema),
     cards: z.array(CardSchema),
     ratioOverrides: z.record(RatioSchema, z.record(z.string(), z.unknown())).optional(),

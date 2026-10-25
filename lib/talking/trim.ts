@@ -1,4 +1,5 @@
 import { run } from '../media/run';
+import { probe } from '../media/probe';
 import type { Transcript } from '../media/transcribe';
 
 /** A kept range of the source take, in source seconds. */
@@ -70,14 +71,36 @@ export function remapTimes(t: Transcript, segs: Segment[]): Transcript {
 const n = (x: number) => Number(x.toFixed(6)).toString();
 
 /**
- * Plays the kept ranges back to back: hard video cuts (`trim` + `concat`), a 0.03 s `acrossfade` at every audio
- * join. No colour filters; the encode follows the working-clip rules (TV range, BT.709 tags, like prepareClip).
+ * Kept ranges snapped to the source frame grid (k / fps). Video `trim` keeps whole frames while audio is
+ * sample-exact, so unsnapped boundaries leave each piece up to a frame off and the error accumulates across joins.
+ * Callers remap word times with the snapped ranges (`renderTrimmedTake` returns the ones it used).
  */
-export async function renderTrimmedTake(src: string, segs: Segment[], out: string): Promise<void> {
+export function snapSegments(segs: Segment[], fps: number): Segment[] {
+  const out: Segment[] = [];
+  for (const s of segs) {
+    const from = Math.round(s.from * fps);
+    const to = Math.round(s.to * fps);
+    if (to > from) out.push({ from: r6(from / fps), to: r6(to / fps) });
+  }
+  return out;
+}
+
+/**
+ * Plays the kept ranges back to back: hard video cuts (`trim` + `concat`), a 0.03 s `acrossfade` at every audio
+ * join. Ranges are snapped to the source frame grid first; the snapped ranges are returned so callers can
+ * `remapTimes` with exactly what was rendered. No colour filters; the encode follows the working-clip rules
+ * (TV range, BT.709 tags, like prepareClip).
+ */
+export async function renderTrimmedTake(src: string, segsIn: Segment[], out: string): Promise<Segment[]> {
+  const { fps } = await probe(src);
+  if (!(fps > 0)) throw new Error(`renderTrimmedTake: cannot read frame rate of ${src}`);
+  const segs = snapSegments(segsIn, fps);
   if (!segs.length) throw new Error('renderTrimmedTake: no segments');
+  const half = 0.5 / fps;
   const parts: string[] = [];
   segs.forEach((s, i) => {
-    parts.push(`[0:v]trim=start=${n(s.from)}:end=${n(s.to)},setpts=PTS-STARTPTS[v${i}]`);
+    // half-frame offsets select exactly the frames k..m-1 of a range [k/fps, m/fps), immune to float rounding
+    parts.push(`[0:v]trim=start=${n(Math.max(0, s.from - half))}:end=${n(s.to - half)},setpts=PTS-STARTPTS[v${i}]`);
     // every piece but the last carries XFADE extra so the crossfade overlap doesn't shorten the audio
     const end = i < segs.length - 1 ? s.to + XFADE : s.to;
     parts.push(`[0:a]atrim=start=${n(s.from)}:end=${n(end)},asetpts=PTS-STARTPTS[a${i}]`);
@@ -103,4 +126,5 @@ export async function renderTrimmedTake(src: string, segs: Segment[], out: strin
     '-c:a', 'aac', '-b:a', '320k', '-ar', '48000',
     out,
   ], { timeoutMs: 30 * 60 * 1000 });
+  return segs;
 }

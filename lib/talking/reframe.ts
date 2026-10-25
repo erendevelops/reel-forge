@@ -42,8 +42,9 @@ export async function faceTrack(video: string, o: { fps?: number; model?: string
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
 /**
- * One axis of the follow: exponential smoothing toward the face centre, then the minimum shift that keeps the
- * face box (± margin) inside the window, then the per-sample step limit, then the frame edges.
+ * One axis of the follow: exponential smoothing toward the face centre, then the
+ * per-sample step limit, then the minimum shift that keeps the face box (± margin) inside the window (containment
+ * wins over the step limit), then the frame edges.
  */
 function follow(lo: number[], hi: number[], win: number, span: number, margin: number, smoothing: number): number[] {
   const out: number[] = [];
@@ -53,11 +54,12 @@ function follow(lo: number[], hi: number[], win: number, span: number, margin: n
     const target = (lo[i] + hi[i]) / 2 - win / 2;
     s = i === 0 ? target : smoothing * s + (1 - smoothing) * target;
     let x = s;
-    if (hi[i] - lo[i] + 2 * margin <= win) {
-      x = Math.max(x, hi[i] + margin - win);
-      x = Math.min(x, lo[i] - margin);
-    }
     if (i > 0) x = clamp(x, out[i - 1] - maxStep, out[i - 1] + maxStep);
+    // containment wins over the step limit: move only as far beyond it as keeps the face (± margin) inside
+    if (hi[i] - lo[i] + 2 * margin <= win) {
+      x = Math.max(x, Math.ceil(hi[i] + margin - win));
+      x = Math.min(x, Math.floor(lo[i] - margin));
+    }
     x = Math.round(clamp(x, 0, span - win));
     out.push(x);
     s = x;
@@ -68,7 +70,8 @@ function follow(lo: number[], hi: number[], win: number, span: number, margin: n
 /**
  * Crop window per face sample for reframing `src` to `target`: the largest window of the target ratio, following
  * the face with exponential smoothing (default 0.85), keeping the whole face box inside with an 8% margin, and
- * never moving more than 2% of the width (height, vertically) per sample. Integer pixels; even sizes.
+ * moving at most 2% of the width (height, vertically) per sample unless more is needed to keep the face inside.
+ * Integer pixels; even sizes.
  */
 export function cropPath(track: FaceTrack, src: { w: number; h: number }, target: Ratio, o: { smoothing?: number } = {}): CropPath {
   const smoothing = o.smoothing ?? 0.85;
@@ -82,4 +85,16 @@ export function cropPath(track: FaceTrack, src: { w: number; h: number }, target
   const xs = follow(b.map((q) => q.x * src.w), b.map((q) => (q.x + q.bw) * src.w), w, src.w, MARGIN * w, smoothing);
   const ys = follow(b.map((q) => q.y * src.h), b.map((q) => (q.y + q.bh) * src.h), h, src.h, MARGIN * h, smoothing);
   return b.map((q, i) => ({ t: q.t, x: xs[i], y: ys[i], w, h }));
+}
+
+/** Median face centre of a track (0–1), for a scene's `facePos`; centre when no face was found. */
+export function facePosition(track: FaceTrack): { x: number; y: number } {
+  if (!track.boxes.length) return { x: 0.5, y: 0.5 };
+  const med = (v: number[]) => {
+    const s = [...v].sort((a, b) => a - b);
+    const m = s.length >> 1;
+    return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+  };
+  const r = (v: number) => Number(v.toFixed(4));
+  return { x: r(med(track.boxes.map((b) => b.x + b.bw / 2))), y: r(med(track.boxes.map((b) => b.y + b.bh / 2))) };
 }
