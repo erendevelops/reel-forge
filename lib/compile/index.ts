@@ -8,6 +8,7 @@ import { cardRegistry } from './cards';
 import { renderCaptions } from './captions';
 import { audioDuration, layoutRegion, renderFootage, renderLayoutMask, renderMusic, renderSfx, renderVoice } from './layers';
 import { type CompileContext, type Fragment, type Region, RATIO_SIZE, num } from './types';
+import { type Logo, logoRef, logoSvgFile, resolveLogo } from '../assets/logos';
 
 export * from './types';
 export { cardRegistry } from './cards';
@@ -86,12 +87,21 @@ async function fonts(outDir: string): Promise<string> {
 export async function compile(plan: Plan, o: CompileOptions): Promise<{ indexHtml: string }> {
   const [width, height] = RATIO_SIZE[o.ratio];
   const used = new Set<string>();
+  const logos = new Map<string, Logo>();
   const ctx: CompileContext = {
     width,
     height,
     fps: plan.fps,
     ratio: o.ratio,
     assetsUrl: (p) => {
+      // `si:<slug>`: a topic logo from the bundled simple-icons set, written into the project as an SVG
+      const ref = logoRef(p);
+      if (ref !== undefined) {
+        const logo = resolveLogo(ref);
+        if (!logo) throw new Error(`unknown logo ${p} (not in the bundled simple-icons set)`);
+        logos.set(logo.slug, logo);
+        return `assets/si/${encodeURIComponent(logo.slug)}.svg`;
+      }
       const rel = normAsset(p);
       used.add(rel);
       return `assets/${rel.split('/').map(encodeURIComponent).join('/')}`;
@@ -137,6 +147,11 @@ export async function compile(plan: Plan, o: CompileOptions): Promise<{ indexHtm
   // copy assets
   for (const rel of [...used].sort()) {
     await copyFile(resolveAsset(rel, o.assetsDir), path.join(o.outDir, 'assets', ...rel.split('/')));
+  }
+  for (const [slug, logo] of [...logos].sort(([a], [b]) => a.localeCompare(b))) {
+    const f = path.join(o.outDir, 'assets', 'si', `${slug}.svg`);
+    await fs.mkdir(path.dirname(f), { recursive: true });
+    await fs.writeFile(f, logoSvgFile(logo), 'utf8');
   }
   await copyFile(require.resolve('gsap/dist/gsap.min.js'), path.join(o.outDir, 'assets', 'gsap.min.js'));
   const fontCss = await fonts(o.outDir);

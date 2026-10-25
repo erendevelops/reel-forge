@@ -26,7 +26,7 @@ function talkingPlan(): Plan {
     fps: 60,
     duration: 12,
     ratios: ['9:16'],
-    selection: { captions: 'none', layouts: ['full-face', 'split', 'full-graphics'], cards: ['checklist', 'rolling-number', 'typed-title', 'stamp', 'bar-chart', 'follow-outro'], sfx: false, music: false, punchIns: false, thumbnail: false },
+    selection: { captions: 'none', layouts: ['full-face', 'split', 'full-graphics'], cards: ['checklist', 'rolling-number', 'typed-title', 'stamp', 'bar-chart', 'follow-outro', 'custom-animation'], sfx: false, music: false, punchIns: false, thumbnail: false, topicAssets: true },
     scenes: [
       { id: 'hook', start: 0, end: 2, say: '', why: '', layout: 'full-face', shots: [{ src: 'face.mp4', from: 0, to: 2, at: 0 }], cards: [] },
       {
@@ -34,6 +34,15 @@ function talkingPlan(): Plan {
         shots: [{ src: 'face.mp4', from: 2, to: 6, at: 2 }],
         cards: [
           { type: 'checklist', start: 2, end: 6, params: { items: [{ label: 'Kurulum', at: 2.5 }, { label: 'Kayıt', at: 3.2 }, { label: 'Yayın', at: 4.1 }] } },
+          {
+            type: 'custom-animation', start: 4.5, end: 6,
+            params: {
+              html: '<svg viewBox="0 0 100 50" class="flow"><circle id="dot" cx="10" cy="25" r="6" fill="#16A34A"/></svg>',
+              css: '.flow { width: 70%; }',
+              timeline: 'const d = 0.6;\ntl.fromTo("#dot", { x: 0 }, { x: 80, duration: d, ease: "power2.inOut" }, 0.1);',
+              label: 'a dot flows right',
+            },
+          },
         ],
       },
       {
@@ -46,7 +55,8 @@ function talkingPlan(): Plan {
       },
       {
         id: 'outro', start: 9, end: 12, say: '', why: '', layout: 'split',
-        shots: [{ src: 'face.mp4', from: 9, to: 12, at: 9 }],
+        // a horizontal source in the split card: the card takes the source's 16:9 aspect
+        shots: [{ src: 'face.mp4', from: 9, to: 12, at: 9, aspect: 16 / 9 }],
         cards: [
           { type: 'stamp', start: 9, end: 10, params: { text: 'BİTTİ' } },
           { type: 'bar-chart', start: 9.5, end: 11, params: { bars: [{ label: 'Ocak', value: 10 }, { label: 'Şubat', value: 25 }] } },
@@ -137,15 +147,19 @@ describe('talking-head cards', () => {
 });
 
 describe('layouts', () => {
-  it('split puts the face in a rounded 70% card on #F7F3EA', () => {
+  it('split shows the whole source frame in a rounded card at the source aspect on #F7F3EA', () => {
     expect(html).toContain('#F7F3EA');
-    // steps scene (2 s) turns into split: 70% wide, 28 px radius, 0.4 s expo.out
+    // steps scene (2 s) turns into split; its shot has no aspect, so the source is the 9:16 working clip:
+    // the card is the tallest 9:16 box in the bottom half (880 px: half height minus two 40 px gaps), 28 px radius
     const t = tl.split('\n').find((l) => l.startsWith('tl.fromTo("#face"') && l.endsWith(', 2);'))!;
     expect(t).toBeDefined();
-    expect(t).toContain(`width: ${0.7 * 1080}`);
-    expect(t).toContain('borderRadius: 28');
+    expect(t).toContain('{ x: 292.5, y: 1000, width: 495, height: 880, borderRadius: 28');
     expect(t).toContain('duration: 0.4, ease: "expo.out"');
     expect(t).toContain('immediateRender: false');
+    // outro: a 16:9 source gets a 16:9 card (92% wide), centred in the bottom half
+    const o = tl.split('\n').find((l) => l.startsWith('tl.fromTo("#face"') && l.endsWith(', 9);'))!;
+    expect(o).toContain('width: 993.6, height: 558.9, borderRadius: 28');
+    expect(Math.abs(993.6 / 558.9 - 16 / 9)).toBeLessThan(0.001);
   });
 
   it('full-graphics hides the face; split brings it back', () => {
@@ -160,10 +174,19 @@ describe('layouts', () => {
     expect(html).toMatch(/<div id="face"[^>]*style="[^"]*width: 1080px; height: 1920px;/);
   });
 
-  it('split face card framing follows the scene facePos (default centre)', () => {
-    // shot-2 belongs to the steps scene (facePos y 0.22: a high face); the others keep the default
-    expect(html).toMatch(/id="shot-2-video"[^>]*style="object-position: 50% 22%;"/);
-    expect(html).not.toMatch(/id="shot-1-video"[^>]*object-position/);
+  it('split face card never crops into the face: contain, no facePos crop', () => {
+    // shot-2 (steps, split, facePos y 0.22) and shot-4 (outro, split) are contained; full-face shot-1 stays cover
+    expect(html).toMatch(/id="shot-2-video"[^>]*style="object-fit: contain;"/);
+    expect(html).toMatch(/id="shot-4-video"[^>]*style="object-fit: contain;"/);
+    expect(html).not.toMatch(/id="shot-2-video"[^>]*object-position/);
+    expect(html).not.toMatch(/id="shot-1-video"[^>]*style=/);
+  });
+
+  it('custom-animation compiles into the page: scoped, offset, valid JS', () => {
+    expect(html).toContain('id="steps-custom-animation-1-dot"');
+    expect(tl).toContain('tl.fromTo("#steps-custom-animation-1 #steps-custom-animation-1-dot", { x: 0 }, { x: 80, duration: d, ease: "power2.inOut" }, 4.6);');
+    const script = /<script>\n([\s\S]*?)<\/script>/.exec(html)![1];
+    expect(() => new Function('gsap', script)).not.toThrow();
   });
 
   it('cards in split scenes sit in the top half', () => {

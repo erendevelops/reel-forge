@@ -10,6 +10,7 @@ import { stamp } from './stamp';
 import { barChart } from './bar-chart';
 import { typedTitle } from './typed-title';
 import { followOutro } from './follow-outro';
+import { customAnimation } from './custom-animation';
 
 function notImplemented(type: CardType): CardTemplate {
   return {
@@ -31,6 +32,7 @@ const implemented: Partial<Record<CardType, CardTemplate>> = {
   'bar-chart': barChart,
   'typed-title': typedTitle,
   'follow-outro': followOutro,
+  'custom-animation': customAnimation,
 };
 
 export const cardRegistry: Record<CardType, CardTemplate> = Object.fromEntries(

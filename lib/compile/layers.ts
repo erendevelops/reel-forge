@@ -11,13 +11,17 @@ export function allShots(plan: Plan): Shot[] {
 /** Talking-head layouts (onur.builds reel): beige graphics panel, face as a rounded card at the bottom. */
 export const LAYOUT_BG = '#F7F3EA';
 const FACE_RADIUS = 28;
-const FACE_WIDTH = 0.7;
+/** Widest the split face card may be, as a fraction of the frame width. */
+const FACE_MAX_WIDTH = 0.92;
 const LAYOUT_TWEEN = { duration: 0.4, ease: 'expo.out' };
 
 /** Position is a transform (x/y: sub-pixel, no layout snapping under frame seeking); size is width/height. */
 export type FaceState = { x: number; y: number; width: number; height: number; borderRadius: number; opacity: number };
 
 const sceneLayout = (s: Scene): Layout => s.layout ?? 'full-face';
+
+/** The scene's source aspect (w/h): its first shot's `aspect`, else the frame's (a working clip at output size). */
+export const sceneAspect = (s: Scene, width: number, height: number): number => s.shots[0]?.aspect ?? width / height;
 
 /** Graphics region of a layout: `split` keeps graphics in the top 50%; every other layout uses the whole frame. */
 export function layoutRegion(layout: Layout | undefined, ctx: CompileContext): Region {
@@ -33,21 +37,27 @@ export function layoutRegion(layout: Layout | undefined, ctx: CompileContext): R
 /** Top of the full-face card band as a fraction of height (below the caption block at 0.677). */
 export const FULL_FACE_CARD_TOP = 0.78;
 
-/** The face card rectangle (px) of a layout in a W×H frame: `split` is the rounded card in the bottom half, else full frame. */
-export function faceRect(layout: Layout, width: number, height: number): { x: number; y: number; w: number; h: number } {
+/**
+ * The face card rectangle (px) of a layout in a W×H frame. `split`: the largest box of the source's own `aspect`
+ * (w/h, default the frame's) that fits the bottom half (92% wide at most, 40 px gaps), centred there — the whole
+ * source frame shows, never a crop into the face (spec §6 "Never zoom into the face"). Other layouts: full frame.
+ */
+export function faceRect(layout: Layout, width: number, height: number, aspect = width / height): { x: number; y: number; w: number; h: number } {
   if (layout === 'split') {
     const gap = (40 * Math.min(width, height)) / 1080;
-    const w = FACE_WIDTH * width;
-    return { x: (width - w) / 2, y: height / 2 + gap, w, h: height / 2 - 2 * gap };
+    const maxH = height / 2 - 2 * gap;
+    const w = Math.min(FACE_MAX_WIDTH * width, maxH * aspect);
+    const h = w / aspect;
+    return { x: (width - w) / 2, y: height / 2 + gap + (maxH - h) / 2, w, h };
   }
   return { x: 0, y: 0, w: width, h: height };
 }
 
-/** `prev` is the face geometry before this layout; `full-graphics` keeps it and only hides the face. */
-export function faceState(layout: Layout, ctx: { width: number; height: number }, prev: FaceState | undefined): FaceState {
+/** `prev` is the face geometry before this layout; `full-graphics` keeps it and only hides the face. `aspect`: the source's w/h. */
+export function faceState(layout: Layout, ctx: { width: number; height: number }, prev: FaceState | undefined, aspect?: number): FaceState {
   const full = { x: 0, y: 0, width: ctx.width, height: ctx.height, borderRadius: 0, opacity: 1 };
   if (layout === 'split') {
-    const r = faceRect('split', ctx.width, ctx.height);
+    const r = faceRect('split', ctx.width, ctx.height, aspect);
     return { x: r.x, y: r.y, width: r.w, height: r.h, borderRadius: FACE_RADIUS, opacity: 1 };
   }
   if (layout === 'full-graphics') return { ...(prev ?? full), opacity: 0 };
@@ -63,12 +73,13 @@ const same = (a: FaceState, b: FaceState) => (Object.keys(a) as (keyof FaceState
  */
 function renderLayouts(plan: Plan, ctx: CompileContext): { faceStyle: string; bg: string; css: string; timeline: string } {
   const tl: string[] = [];
-  let face = faceState(sceneLayout(plan.scenes[0]), ctx, undefined);
+  const asp = (s: Scene) => sceneAspect(s, ctx.width, ctx.height);
+  let face = faceState(sceneLayout(plan.scenes[0]), ctx, undefined, asp(plan.scenes[0]));
   let bg = bgOpacity(sceneLayout(plan.scenes[0]));
   const init = face;
   const initBg = bg;
   for (const s of plan.scenes.slice(1)) {
-    const next = faceState(sceneLayout(s), ctx, face);
+    const next = faceState(sceneLayout(s), ctx, face, asp(s));
     const nextBg = bgOpacity(sceneLayout(s));
     if (!same(face, next)) tl.push(tlFromTo('#face', face, { ...next, ...LAYOUT_TWEEN, immediateRender: false }, s.start));
     if (bg !== nextBg) tl.push(tlFromTo('#layout-bg', { opacity: bg }, { opacity: nextBg, ...LAYOUT_TWEEN, immediateRender: false }, s.start));
@@ -100,7 +111,7 @@ export function sceneFaces(plan: Plan, width: number, height: number): SceneFace
   const out: SceneFace[] = [];
   let face: FaceState | undefined;
   for (const s of plan.scenes) {
-    const next = faceState(sceneLayout(s), { width, height }, face);
+    const next = faceState(sceneLayout(s), { width, height }, face, sceneAspect(s, width, height));
     out.push({ start: s.start, from: face ?? next, to: next });
     face = next;
   }
@@ -137,22 +148,29 @@ export function renderLayoutMask(plan: Plan, ctx: CompileContext): Fragment {
   };
 }
 
-/** Footage: one muted `<video class="clip">` per shot inside a wrapper the punch-in scales, all inside `#face`. */
+/**
+ * Footage: one muted `<video class="clip">` per shot inside a wrapper the punch-in scales, all inside `#face`.
+ * Split scenes show the whole source frame (`object-fit: contain` in a card of the source's aspect); full-frame
+ * scenes cover, panned by `facePos` (a pan, never a zoom). Punch-ins only when `selection.punchIns` is ticked.
+ */
 export function renderFootage(plan: Plan, ctx: CompileContext): Fragment {
   const html: string[] = [];
   const tl: string[] = [];
-  // the face-aware framing: `object-position` keeps a high or low face inside the (split) face card's crop
-  const shots = plan.scenes.flatMap((sc) => sc.shots.map((sh) => ({ sh, facePos: sc.facePos })));
-  shots.forEach(({ sh, facePos }, i) => {
+  const shots = plan.scenes.flatMap((sc) => sc.shots.map((sh) => ({ sh, facePos: sc.facePos, split: sceneLayout(sc) === 'split' })));
+  shots.forEach(({ sh, facePos, split }, i) => {
     const id = `shot-${i + 1}`;
     const dur = sh.to - sh.from;
-    const pos = facePos ? ` style="object-position: ${num(facePos.x * 100)}% ${num(facePos.y * 100)}%;"` : '';
+    const pos = split
+      ? ' style="object-fit: contain;"'
+      : facePos
+        ? ` style="object-position: ${num(facePos.x * 100)}% ${num(facePos.y * 100)}%;"`
+        : '';
     html.push(
       `<div id="${id}" class="shot">` +
         `<video id="${id}-video" class="clip" muted playsinline data-start="${num(sh.at)}" data-duration="${num(dur)}" ` +
         `data-media-start="${num(sh.from)}" data-track-index="0"${pos} src="${ctx.assetsUrl(sh.src)}"></video></div>`,
     );
-    if (sh.punch !== undefined) {
+    if (sh.punch !== undefined && plan.selection.punchIns) {
       // v5 spring until it settles or the shot ends; the ease is the spring's own time curve (see punch.ts)
       const d = Math.min(PUNCH_SETTLE, sh.at + dur - sh.punch);
       if (d > 0) {

@@ -48,14 +48,15 @@ function resolveAsset(assetsDir: string, rel: string): string {
   return existsSync(bundled) ? bundled : own;
 }
 
-type ShotPlace = { face: { start: number; from: FaceState; to: FaceState }; facePos: { x: number; y: number } };
+type ShotPlace = { face: { start: number; from: FaceState; to: FaceState }; facePos: { x: number; y: number }; fit: 'cover' | 'contain' };
 
 const isFull = (f: FaceState, w: number, h: number) => f.x === 0 && f.y === 0 && f.width === w && f.height === h;
 
 /**
- * Layout placement (the HTML `#face` + `object-fit: cover; object-position: facePos`), per frame in timeline time t:
- * the face rect tweens from → to with GSAP expo.out over the layout tween, the footage is cover-scaled into it and
- * positioned by facePos. Returns the scale filter and the overlay x/y expressions, or none for a full-frame face.
+ * Layout placement (the HTML `#face` + the shot's object-fit), per frame in timeline time t: the face rect tweens
+ * from → to with GSAP expo.out over the layout tween. `contain` (split: the card has the source's aspect) scales the
+ * whole source frame into it, centred — no crop into the face; `cover` fills it, panned by facePos. Scales are from
+ * the clip's own size (iw/ih). Returns the scale filter and the overlay x/y expressions, or none for a full-frame face.
  */
 function placement(p: ShotPlace, W: number, H: number): { scale: string; x: string; y: string } | undefined {
   const { from: a, to: b, start } = p.face;
@@ -63,19 +64,21 @@ function placement(p: ShotPlace, W: number, H: number): { scale: string; x: stri
   const e = `if(gte(t-${n(start)},${LAYOUT_TWEEN_S}),1,if(lte(t,${n(start)}),0,1-pow(2,-10*(t-${n(start)})/${LAYOUT_TWEEN_S})))`;
   const lerp = (u: number, v: number) => (u === v ? n(u) : `(${n(u)}+(${n(v - u)})*${e})`);
   const rx = lerp(a.x, b.x), ry = lerp(a.y, b.y), rw = lerp(a.width, b.width), rh = lerp(a.height, b.height);
-  const s = `max(${rw}/${W},${rh}/${H})`;
+  const s = `${p.fit === 'contain' ? 'min' : 'max'}(${rw}/iw,${rh}/ih)`;
+  const pos = p.fit === 'contain' ? { x: 0.5, y: 0.5 } : p.facePos;
   return {
-    scale: `scale=w='trunc(${W}*${s}/2)*2':h='trunc(${H}*${s}/2)*2':eval=frame:flags=lanczos`,
-    x: `${rx}+(${rw}-overlay_w)*${n(p.facePos.x)}`,
-    y: `${ry}+(${rh}-overlay_h)*${n(p.facePos.y)}`,
+    scale: `scale=w='trunc(iw*${s}/2)*2':h='trunc(ih*${s}/2)*2':eval=frame:flags=lanczos`,
+    x: `${rx}+(${rw}-overlay_w)*${n(pos.x)}`,
+    y: `${ry}+(${rh}-overlay_h)*${n(pos.y)}`,
   };
 }
 
 /** Per-shot filter chain: trim, optional per-frame scale+crop punch-in (no zoompan), shift to timeline, layout scale. */
-function shotChain(idx: number, label: string, sh: Plan['scenes'][number]['shots'][number], w: number, h: number, place?: { scale: string }): string {
+function shotChain(idx: number, label: string, sh: Plan['scenes'][number]['shots'][number], w: number, h: number, punchIns: boolean, place?: { scale: string }): string {
   const dur = sh.to - sh.from;
   const f = [`trim=start=${n(sh.from)}:duration=${n(dur)}`, 'setpts=PTS-STARTPTS'];
-  if (sh.punch !== undefined && sh.punch < sh.at + dur) {
+  // punch-ins only when the "soft punch-ins" card is ticked (spec §6 "Never zoom into the face")
+  if (punchIns && sh.punch !== undefined && sh.punch < sh.at + dur) {
     // the same v5 spring as the HTML layer (compile/punch.ts), evaluated per frame for the rest of the shot
     const s = punchScaleExpr(sh.punch - sh.at);
     f.push(`scale=w='trunc(iw*${s}/2)*2':h='trunc(ih*${s}/2)*2':eval=frame:flags=bicubic`, `crop=${w}:${h}`);
@@ -85,16 +88,19 @@ function shotChain(idx: number, label: string, sh: Plan['scenes'][number]['shots
   return `[${idx}:v]${f.join(',')}[${label}]`;
 }
 
-/** Base track: shots on black at their `at` times, no colour filters, working-clip encode rules. */
-async function buildBase(plan: Plan, o: LayeredOpts, w: number, h: number, out: string): Promise<void> {
+/** ffmpeg arguments of the base track: shots on black at their `at` times, no colour filters, working-clip encode rules. */
+export function baseArgs(plan: Plan, o: LayeredOpts, w: number, h: number, out: string): string[] {
   const faces = sceneFaces(plan, w, h);
-  const shots = plan.scenes.flatMap((sc, si) => sc.shots.map((sh) => ({ ...sh, place: placement({ face: faces[si], facePos: sc.facePos ?? { x: 0.5, y: 0.5 } }, w, h) })));
+  const shots = plan.scenes.flatMap((sc, si) => sc.shots.map((sh) => ({
+    ...sh,
+    place: placement({ face: faces[si], facePos: sc.facePos ?? { x: 0.5, y: 0.5 }, fit: sc.layout === 'split' ? 'contain' : 'cover' }, w, h),
+  })));
   const args = ['-y', '-v', 'error', '-f', 'lavfi', '-i', `color=c=black:s=${w}x${h}:r=${plan.fps}:d=${n(plan.duration)},format=yuv420p,${BT709_TV}`];
   for (const sh of shots) args.push('-i', resolveAsset(o.assetsDir, sh.src));
   const parts: string[] = [];
   let cur = '0:v';
   shots.forEach((sh, i) => {
-    parts.push(shotChain(i + 1, `s${i}`, sh, w, h, sh.place));
+    parts.push(shotChain(i + 1, `s${i}`, sh, w, h, plan.selection.punchIns, sh.place));
     const last = i === shots.length - 1;
     const pos = sh.place ? `:x='${sh.place.x}':y='${sh.place.y}':eval=frame` : '';
     parts.push(
@@ -107,7 +113,11 @@ async function buildBase(plan: Plan, o: LayeredOpts, w: number, h: number, out: 
     '-filter_complex', parts.join(';'), '-map', '[vout]', '-an', '-t', n(plan.duration),
     '-c:v', 'ffv1', '-level', '3', '-pix_fmt', 'yuv420p', ...TV_TAGS, out,
   );
-  await run('ffmpeg', args, { timeoutMs: 30 * 60 * 1000 });
+  return args;
+}
+
+async function buildBase(plan: Plan, o: LayeredOpts, w: number, h: number, out: string): Promise<void> {
+  await run('ffmpeg', baseArgs(plan, o, w, h, out), { timeoutMs: 30 * 60 * 1000 });
 }
 
 /** Voice + music + SFX mixed by ffmpeg from the plan (levels from the cues), exactly plan.duration long. */

@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const CARD_TYPES = [
   'title-card', 'numbered-list', 'logo-pop', 'rolling-number', 'checklist',
-  'bar-chart', 'stamp', 'typed-title', 'follow-outro',
+  'bar-chart', 'stamp', 'typed-title', 'follow-outro', 'custom-animation',
 ] as const;
 export const CAPTION_STYLES = ['word-build', 'one-word', 'serif-small', 'none'] as const;
 export const LAYOUTS = ['full-face', 'split', 'full-graphics', 'broll'] as const;
@@ -28,11 +28,20 @@ export const SelectionSchema = z.object({
   music: z.boolean(),
   punchIns: z.boolean(),
   thumbnail: z.boolean(),
+  /**
+   * "Topic assets & animations" (spec §6): Claude may resolve logos for named tools (`si:<slug>` references) and
+   * author `custom-animation` fragments. Off unless ticked (the talking-head preset will tick it by default).
+   */
+  topicAssets: z.boolean().default(false),
 });
 
-/** `from`/`to` are source in/out; `at` is the timeline position; `punch` is a timeline time. */
+/**
+ * `from`/`to` are source in/out; `at` is the timeline position; `punch` is a timeline time. `aspect` is the clip's
+ * own width/height (default: the output frame's, i.e. a working clip prepared at the output size); the split face
+ * card takes this aspect so the whole source frame shows, never cropped into the face.
+ */
 export const ShotSchema = z
-  .object({ src: z.string().min(1), from: sec, to: sec, at: sec, punch: sec.optional() })
+  .object({ src: z.string().min(1), from: sec, to: sec, at: sec, punch: sec.optional(), aspect: z.number().finite().positive().optional() })
   .refine((s) => s.to > s.from, { message: 'shot "to" must be greater than "from"' });
 
 export const CardSchema = z
@@ -52,7 +61,10 @@ export const SceneSchema = z
     say: z.string(),
     why: z.string(),
     layout: LayoutSchema.optional(),
-    /** Face centre in the scene's footage, 0–1 of width/height (e.g. `facePosition(track)`); default centre. */
+    /**
+     * Face centre in the scene's footage, 0–1 of width/height (e.g. `facePosition(track)`); default centre. Only pans a
+     * full-frame cover (never zooms); the split face card shows the whole source frame and ignores it.
+     */
     facePos: z.object({ x: z.number().min(0).max(1), y: z.number().min(0).max(1) }).optional(),
     shots: z.array(ShotSchema),
     cards: z.array(CardSchema),
