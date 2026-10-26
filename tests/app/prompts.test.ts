@@ -5,7 +5,7 @@ import type { Project, VersionOrigin } from '../../lib/app/workspace/schema';
 
 const project = (over: Partial<Project> = {}): Project => ({
   id: 'p-abc123', name: 'P', mode: 'reel', preset: 'talking-head', ratios: ['9:16'], lang: 'en',
-  selection: defaultSelection('talking-head'), claudeSession: null, cardsConfirmed: true, transcriptChecked: false, music: null, createdAt: '', updatedAt: '', ...over,
+  selection: defaultSelection('talking-head'), claudeSession: null, cardsConfirmed: true, transcriptChecked: false, music: null, references: [], createdAt: '', updatedAt: '', ...over,
 });
 const prefs = { rules: [{ text: 'calm 2–4 s shots', addedAt: '', source: 'v2' }] };
 const v = (n: number, by: 'claude' | 'user', diff: unknown = null): VersionOrigin => ({ n, by, parent: n > 1 ? n - 1 : null, request: null, diff, createdAt: '' });

@@ -3,9 +3,11 @@ import { listJobs } from '@/lib/app/jobs/jobs';
 import { analysisState, hasFinalRender, projectStage } from '@/lib/app/flow';
 import { StageBar } from '@/components/StageBar';
 import { getSettings } from '@/lib/app/settings';
+import { defaultSelection } from '@/lib/app/claude/install';
 import { NotFoundError, getProject, listVersions } from '@/lib/app/workspace/store';
 import { t } from '@/lib/i18n';
 import { ProjectClient } from './ProjectClient';
+import { CardsClient } from './CardsClient';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,7 +31,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         </span>
       </div>
       <StageBar lang={language} stage={stage} />
-      <ProjectClient lang={language} projectId={id} stage={stage} versions={versions} lastJobId={jobs[0]?.jobId ?? null} />
+      {stage === 'cards' ? (
+        <CardsClient lang={language} project={project} selection={project.selection ?? defaultSelection(project.preset)} />
+      ) : (
+        <ProjectClient lang={language} projectId={id} stage={stage} versions={versions} lastJobId={jobs[0]?.jobId ?? null} />
+      )}
     </div>
   );
 }

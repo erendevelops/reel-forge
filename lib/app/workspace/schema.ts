@@ -21,6 +21,8 @@ export const ProjectSchema = z.object({
   cardsConfirmed: z.boolean().default(false),
   transcriptChecked: z.boolean().default(false),
   music: MusicPickSchema.nullable().default(null),
+  /** Reference reels the user pasted (spec §11 screen 3); https only. */
+  references: z.array(z.string().url().regex(/^https:\/\//, 'must be an https URL')).max(5).default([]),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

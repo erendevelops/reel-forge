@@ -41,6 +41,7 @@ export function buildPrompt(stage: Stage, ctx: PromptCtx): string {
     body = [
       `Stage: analyse. Inventory inputs/, run the ${skill} analysis steps with rf and write the results under analysis/.`,
       project.selection?.music ? 'Music is on: write analysis/music-candidates.json (3–4 royalty-free tracks).' : '',
+      project.references.length ? `Reference reels: ${project.references.join(' ')}. Download each with yt-dlp into analysis/refs/ and watch them densely (video-core look.md §5).` : '',
       'Do not write a plan yet. End with a short summary of what you found.',
     ].join('\n');
   } else if (stage === 'plan') {
