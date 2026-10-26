@@ -41,6 +41,7 @@ export const tr = {
   music: { title: 'MÜZİĞİ SEÇ', pick: 'Bunu seç', more: 'Başka öner', drop: 'Parçayı indirip buraya bırak (mp3, wav, m4a, ogg, flac; en fazla 50 MB)' },
   preview: { play: 'Oynat', pause: 'Durdur', building: 'Önizleme hazırlanıyor…' },
   storyboard: { why: 'Neden?', save: 'Kaydet', undo: 'Geri al', approve: 'Onayla ve render al', ask: 'Claude’a bir değişiklik söyle', askScene: 'Bu sahne', askAll: 'Tüm video', seconds: 'sn', colors: 'Renkler', animNote: 'Animasyonlar Claude ile değişir.', sounds: 'Sesler', at: 'zaman', volume: 'ses', start: 'başlangıç', end: 'bitiş', version: 'Sürüm', branched: 'eski bir sürümden dallandı', changeCards: 'Kartları değiştir', review: 'İncelemeye git' },
+  review: { title: 'İNCELEME', qa: 'Kalite kontrolleri', fix: 'Claude’dan düzeltme iste', compare: 'Karşılaştır', playBoth: 'İkisini birlikte oynat', feedback: 'Geri bildirim', toStoryboard: 'Senaryoya dön', noRender: 'Bu sürümün henüz render’ı yok.', changes: 'Değişenler' },
   stages: { footage: 'Görüntü', transcript: 'Metin', storyboard: 'Senaryo', render: 'Render', review: 'İnceleme' },
   guard: {
     host: 'Bu adres üzerinden erişime izin verilmiyor.',

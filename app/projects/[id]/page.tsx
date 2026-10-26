@@ -11,6 +11,7 @@ import { CardsClient } from './CardsClient';
 import { TranscriptClient } from './TranscriptClient';
 import { MusicClient } from './MusicClient';
 import { StoryboardClient } from './StoryboardClient';
+import { ReviewClient } from './ReviewClient';
 import { readVersion } from '@/lib/app/workspace/store';
 import { CandidatesSchema, type Candidate } from '@/lib/app/music';
 import { readFile } from 'node:fs/promises';
@@ -20,8 +21,9 @@ import { TranscriptSchema, type Transcript } from '@/lib/app/transcript';
 
 export const dynamic = 'force-dynamic';
 
-export default async function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ProjectPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ view?: string }> }) {
   const { id } = await params;
+  const { view } = await searchParams;
   const { language } = await getSettings();
   const project = await getProject(id).catch((err) => {
     if (err instanceof NotFoundError) notFound();
@@ -29,7 +31,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   });
   const [versions, jobs, analysis] = await Promise.all([listVersions(id), listJobs(id), analysisState(id)]);
   const latest = versions.at(-1)?.n;
-  const stage = projectStage(project, { analysed: analysis.analysed, hasTranscript: analysis.transcriptFile !== null, versions, rendered: latest ? await hasFinalRender(id, latest) : false });
+  const derived = projectStage(project, { analysed: analysis.analysed, hasTranscript: analysis.transcriptFile !== null, versions, rendered: latest ? await hasFinalRender(id, latest) : false });
+  // once there are versions, the user can move between the storyboard and review
+  const stage = versions.length && (view === 'storyboard' || view === 'review') ? view : derived;
   const d = t(language).newProject.presets;
   const board = (stage === 'storyboard' || stage === 'review') && latest ? { n: latest, plan: (await readVersion(id, latest)).plan } : null;
   let candidates: Candidate[] = [];
@@ -51,7 +55,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         </span>
       </div>
       <StageBar lang={language} stage={stage} />
-      {stage === 'storyboard' && board ? (
+      {stage === 'review' && latest ? (
+        <ReviewClient lang={language} projectId={id} versions={versions} current={latest} lastJobId={jobs[0]?.jobId ?? null} />
+      ) : stage === 'storyboard' && board ? (
         <StoryboardClient lang={language} project={{ id, mode: project.mode, preset: project.preset, ratios: project.ratios }} versions={versions} initial={board} lastJobId={jobs[0]?.jobId ?? null} />
       ) : stage === 'music' ? (
         <MusicClient lang={language} projectId={id} candidates={candidates} picked={project.music} />

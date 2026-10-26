@@ -142,6 +142,9 @@ export function StoryboardClient({
           <a className="meta font-mono text-xs" href={`/projects/${project.id}/cards`}>
             {d.changeCards}
           </a>
+          <a className="meta font-mono text-xs" href={`/projects/${project.id}?view=review`}>
+            {d.review}
+          </a>
           <span className="flex-1" />
           {edits.length > 0 && (
             <>
