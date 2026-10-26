@@ -49,12 +49,15 @@ describe('POST /api/projects/[id]/confirm', () => {
     expect(started[0].prompt).toContain('https://www.instagram.com/reels/Dej4G75uvrI/');
   });
 
-  it('answers 409 while a job runs but keeps the selection', async () => {
+  it('answers 409 while a job runs: keeps the selection but stays on the cards (no analysis started)', async () => {
     const p = await make();
     busy = true;
-    const res = await call(p.id, { selection: defaultSelection('talking-head'), ratios: ['9:16'], references: [] });
+    const selection = { ...defaultSelection('talking-head'), cards: ['stamp' as const] };
+    const res = await call(p.id, { selection, ratios: ['9:16'], references: [] });
     expect(res.status).toBe(409);
-    expect((await getProject(p.id)).cardsConfirmed).toBe(true);
+    const saved = await getProject(p.id);
+    expect(saved.cardsConfirmed).toBe(false);
+    expect(saved.selection?.cards).toEqual(['stamp']);
   });
 
   it('refuses non-https references and an empty ratio list', async () => {

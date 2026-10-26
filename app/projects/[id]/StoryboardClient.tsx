@@ -89,7 +89,20 @@ export function StoryboardClient({
   }, [versions]);
 
   useEffect(() => {
-    if (jobId && !job.running) router.refresh();
+    if (!jobId || job.running) return;
+    router.refresh();
+    // a plan job hands over to the automatic draft render: follow that one so Approve shows it running
+    // (it starts a moment after this job's end event)
+    const timer = setTimeout(() => {
+      void fetch(`/api/projects/${project.id}/jobs`)
+        .then((r) => (r.ok ? r.json() : []))
+        .then((jobs: { jobId: string; state: string }[]) => {
+          const next = jobs.find((j) => j.state === 'running');
+          if (next && next.jobId !== jobId) setJobId(next.jobId);
+        })
+        .catch(() => undefined);
+    }, 1500);
+    return () => clearTimeout(timer);
   }, [jobId, job.running, router]);
 
   useEffect(() => {

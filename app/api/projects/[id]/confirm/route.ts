@@ -16,12 +16,15 @@ export async function POST(req: Request, { params }: Ctx) {
   const parsed = Body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   try {
-    const project = await updateProject(id, { ...parsed.data, cardsConfirmed: true });
+    // the choice is saved even when busy; the project only moves past the cards once the analysis has started
+    const project = await updateProject(id, parsed.data);
     const versions = await listVersions(id);
     // after the first plan, changing cards only saves them
     if (versions.length) return NextResponse.json({ jobId: null }, { status: 200 });
     const prompt = buildPrompt('analyse', { project, preferences: await getPreferences(), versions });
-    return NextResponse.json(await startJob(id, { kind: 'claude', prompt }), { status: 201 });
+    const job = await startJob(id, { kind: 'claude', prompt });
+    await updateProject(id, { cardsConfirmed: true });
+    return NextResponse.json(job, { status: 201 });
   } catch (err) {
     if (err instanceof JobBusyError) return NextResponse.json({ error: err.message }, { status: 409 });
     if (err instanceof NotFoundError) return NextResponse.json({ error: err.message }, { status: 404 });

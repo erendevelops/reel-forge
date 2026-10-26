@@ -31,14 +31,30 @@ export function ReviewClient({ lang, projectId, versions, current, lastJobId }: 
     for (const n of new Set([current, pair.a, pair.b])) {
       if (views[n]) continue;
       void fetch(`/api/projects/${projectId}/versions/${n}`)
-        .then((r) => r.json())
-        .then((v: Omit<Loaded, 'n'>) => setViews((cur) => ({ ...cur, [n]: { ...v, n } })));
+        .then(async (r) => {
+          if (!r.ok) throw new Error(`v${n}: ${r.statusText}`);
+          return (await r.json()) as Omit<Loaded, 'n'>;
+        })
+        .then((v) => setViews((cur) => ({ ...cur, [n]: { ...v, n } })))
+        .catch((e: Error) => setError(e.message));
     }
   }, [projectId, current, pair, views]);
 
   useEffect(() => {
-    if (jobId && !job.running) router.refresh();
-  }, [jobId, job.running, router]);
+    if (!jobId || job.running) return;
+    router.refresh();
+    // a revise job hands over to the automatic draft render: follow that one (it starts a moment after this one ends)
+    const timer = setTimeout(() => {
+      void fetch(`/api/projects/${projectId}/jobs`)
+        .then((r) => (r.ok ? r.json() : []))
+        .then((jobs: { jobId: string; state: string }[]) => {
+          const next = jobs.find((j) => j.state === 'running');
+          if (next && next.jobId !== jobId) setJobId(next.jobId);
+        })
+        .catch(() => undefined);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [jobId, job.running, router, projectId]);
 
   async function revise(request: string) {
     setError(null);
