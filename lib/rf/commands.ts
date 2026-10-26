@@ -13,7 +13,7 @@ import { planTrims, remapTimes, renderTrimmedTake, type Segment } from '@/lib/ta
 import { repoPath } from '@/lib/root';
 import { BUNDLED_ASSETS, resolveAsset } from '@/lib/media/assets';
 import { readdirSync } from 'node:fs';
-import { getPreferences, getProject, listVersions, readVersion, saveVersion } from '@/lib/app/workspace/store';
+import { getPreferences, getProject, listVersions, readVersion, saveVersion, validateForProject } from '@/lib/app/workspace/store';
 import { parseArgs, projectId, resolveInProject } from './context';
 
 type Command = (args: string[]) => Promise<unknown>;
@@ -66,12 +66,6 @@ function missingSfx(plan: unknown): string[] {
 let sfxFiles: string[] | undefined;
 function sfxIndex(): string[] {
   return (sfxFiles ??= (readdirSync(path.join(BUNDLED_ASSETS, 'sfx'), { recursive: true }) as string[]).map((f) => `sfx/${f.split(path.sep).join('/')}`));
-}
-
-async function withProjectSelection(plan: unknown): Promise<unknown> {
-  const { selection } = await getProject(projectId());
-  if (!selection || typeof plan !== 'object' || plan === null) return plan;
-  return { ...(plan as object), selection };
 }
 
 export const COMMANDS: Record<string, Command> = {
@@ -195,7 +189,7 @@ export const COMMANDS: Record<string, Command> = {
 
   async validate(args) {
     const plan = await readJson(need(args[0], 'plan.json'));
-    const r = validatePlan(await withProjectSelection(plan));
+    const r = await validateForProject(projectId(), plan);
     const errors = [...(r.ok ? [] : r.errors), ...missingSfx(plan)];
     return errors.length ? { ok: false, errors } : { ok: true, errors: [] };
   },
@@ -208,7 +202,7 @@ export const COMMANDS: Record<string, Command> = {
   async preview(args) {
     const { pos, flags } = parseArgs(args);
     const plan = await readJson(need(pos[0], 'plan.json'));
-    const r = validatePlan(await withProjectSelection(plan));
+    const r = await validateForProject(projectId(), plan);
     if (!r.ok) throw new Error(`invalid plan:\n${r.errors.join('\n')}`);
     const ratio = (flags.ratio ?? r.plan.ratios[0]) as Ratio;
     if (!RATIOS.includes(ratio)) throw new Error(`--ratio must be one of ${RATIOS.join(', ')}`);
@@ -234,7 +228,7 @@ export const COMMANDS: Record<string, Command> = {
     const plan = await readJson(need(pos[0], 'plan.json'));
     const id = projectId();
     const project = await getProject(id);
-    const r = validatePlan(await withProjectSelection(plan));
+    const r = await validateForProject(projectId(), plan);
     const errors = [...(r.ok ? [] : r.errors), ...missingSfx(plan)];
     if (!r.ok || errors.length) throw new Error(`invalid plan:\n${errors.join('\n')}`);
     if (project.preset === 'talking-head') {

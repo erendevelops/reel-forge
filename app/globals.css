@@ -142,3 +142,6 @@ body {
 .dropzone { border: 1.5px dashed var(--line); border-radius: 16px; background: #fff; cursor: pointer; }
 .dropzone:hover { border-color: var(--brand-d); }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+/* live preview */
+.preview-box { position: relative; width: 100%; overflow: hidden; border-radius: 16px; background: #111; }

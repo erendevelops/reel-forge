@@ -39,6 +39,7 @@ export const tr = {
   },
   transcript: { title: 'METNİ KONTROL ET', hint: 'Yanlış duyulan kelimeye tıklayıp düzelt. Zamanlar değişmez.', confirm: 'Onayla' },
   music: { title: 'MÜZİĞİ SEÇ', pick: 'Bunu seç', more: 'Başka öner', drop: 'Parçayı indirip buraya bırak (mp3, wav, m4a, ogg, flac; en fazla 50 MB)' },
+  preview: { play: 'Oynat', pause: 'Durdur', building: 'Önizleme hazırlanıyor…' },
   stages: { footage: 'Görüntü', transcript: 'Metin', storyboard: 'Senaryo', render: 'Render', review: 'İnceleme' },
   guard: {
     host: 'Bu adres üzerinden erişime izin verilmiyor.',

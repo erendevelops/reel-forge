@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { cp, mkdir, readdir } from 'node:fs/promises';
 import path from 'node:path';
-import { PlanSchema, validatePlan, type Plan } from '@/lib/plan';
+import { PlanSchema, validatePlan, type Plan, type ValidationResult } from '@/lib/plan';
 import { readJson, writeJson } from './files';
 import { projectDir, projectsDir, versionDir, workspaceDir } from './paths';
 import { createQueue } from './queue';
@@ -185,4 +185,14 @@ export function addPreference(rule: { text: string; source: string }): Promise<P
     await writeJson(prefsFile(), next);
     return next;
   });
+}
+
+/**
+ * Validates a plan against the project's own option cards, never the copy inside the plan (Claude or a hand edit
+ * could change that copy). Used by `rf validate`/`rf save`, the preview and user versions.
+ */
+export async function validateForProject(id: string, plan: unknown): Promise<ValidationResult> {
+  const { selection } = await getProject(id);
+  if (!selection || typeof plan !== 'object' || plan === null) return validatePlan(plan);
+  return validatePlan({ ...(plan as object), selection });
 }
