@@ -9,12 +9,14 @@ import { getPreferences, getProject, listVersions, updateProject } from '@/lib/a
 import { writeClaudeMd } from '@/lib/app/claude/install';
 import { workspaceDir } from '@/lib/app/workspace/paths';
 import { REPO_ROOT } from '@/lib/root';
+import { extractPreference } from '@/lib/app/claude/preference';
 
 export type JobKind = 'claude' | 'render';
 export type JobState = 'running' | 'done' | 'failed' | 'paused-limit' | 'cancelled';
 export type JobEvent =
   | { t: string; type: 'claude'; event: ClaudeEvent }
   | { t: string; type: 'progress'; step: string; pct?: number }
+  | { t: string; type: 'preference'; text: string }
   | { t: string; type: 'state'; state: JobState; detail?: string };
 
 export type ClaudeJobSpec = { kind: 'claude'; prompt: string; resumeSession?: string | null };
@@ -70,6 +72,7 @@ registerExecutor('claude', async ({ projectId, spec, emit, signal }) => {
   const pathKey = Object.keys(process.env).find((k) => k.toUpperCase() === 'PATH') ?? 'PATH';
   const sep = process.platform === 'win32' ? ';' : ':';
   let error: Extract<ClaudeEvent, { kind: 'error' }> | null = null;
+  let reply = '';
   const res = await runClaude({
     binary: claudeBinary,
     cwd: projectDir(projectId),
@@ -90,11 +93,15 @@ registerExecutor('claude', async ({ projectId, spec, emit, signal }) => {
     },
     onEvent: (event) => {
       if (event.kind === 'error') error = event;
+      if (event.kind === 'result') reply = event.text;
       emit({ type: 'claude', event });
     },
   });
   if (res.sessionId && res.sessionId !== project.claudeSession) await updateProject(projectId, { claudeSession: res.sessionId });
   if (res.ok) {
+    // a lasting preference Claude proposed: the app offers to save it (spec §9)
+    const pref = extractPreference(reply);
+    if (pref) emit({ type: 'preference', text: pref });
     const versions = await listVersions(projectId);
     // A plan job that saved a version gets a draft render straight away.
     if (versions.length > before) return { state: 'done', next: { kind: 'render', version: versions.at(-1)!.n, profile: 'draft' } };

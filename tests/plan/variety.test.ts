@@ -22,6 +22,16 @@ describe('variety rules', () => {
     expect(errs.join('\n')).toMatch(/restates the spoken line/);
   });
 
+  it('a logo shown by two cards in the same scene (title card + its list row) counts once', () => {
+    const errs = checkVariety(plan([
+      scene('s', 0, [
+        { type: 'title-card', start: 0, end: 2, params: { n: 1, name: 'Claude', logo: 'si:claude' } },
+        { type: 'numbered-list', start: 0, end: 3, params: { items: [{ n: 1, name: 'Claude', logo: 'si:claude', at: 1 }] } },
+      ]),
+    ]));
+    expect(errs.join('\n')).not.toMatch(/logo/);
+  });
+
   it('allows keyboard typing runs and varied plans; exempts faceless B-roll reels', () => {
     const typing = [1, 2, 3, 4].map((i) => ({ file: 'sfx/keyboard/keypress-001.wav', at: i / 10, volume: 1 }));
     expect(checkVariety(plan([scene('a', 0, [{ type: 'stamp', start: 0, end: 2, params: { text: 'KALKTI' } }], 'kural kalktı')], typing))).toEqual([]);

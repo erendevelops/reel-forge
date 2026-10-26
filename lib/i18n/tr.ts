@@ -1,6 +1,6 @@
 export const tr = {
   brand: 'REELFORGE',
-  nav: { projects: 'Projeler', setup: 'Kurulum' },
+  nav: { projects: 'Projeler', setup: 'Kurulum', settings: 'Ayarlar' },
   common: { busy: 'Bu projede zaten bir iş çalışıyor. Bitince tekrar dene.', start: 'Başlat' },
   cards: {
     title: 'EDİTİNİ KUR',
@@ -42,6 +42,7 @@ export const tr = {
   preview: { play: 'Oynat', pause: 'Durdur', building: 'Önizleme hazırlanıyor…' },
   storyboard: { why: 'Neden?', save: 'Kaydet', undo: 'Geri al', approve: 'Onayla ve render al', ask: 'Claude’a bir değişiklik söyle', askScene: 'Bu sahne', askAll: 'Tüm video', seconds: 'sn', colors: 'Renkler', animNote: 'Animasyonlar Claude ile değişir.', sounds: 'Sesler', at: 'zaman', volume: 'ses', start: 'başlangıç', end: 'bitiş', version: 'Sürüm', branched: 'eski bir sürümden dallandı', changeCards: 'Kartları değiştir', review: 'İncelemeye git' },
   review: { title: 'İNCELEME', qa: 'Kalite kontrolleri', fix: 'Claude’dan düzeltme iste', compare: 'Karşılaştır', playBoth: 'İkisini birlikte oynat', feedback: 'Geri bildirim', toStoryboard: 'Senaryoya dön', noRender: 'Bu sürümün henüz render’ı yok.', changes: 'Değişenler' },
+  settings: { title: 'AYARLAR', language: 'Dil', preferences: 'Öğrenilen tercihler', none: 'Henüz tercih yok. Geri bildirimlerinden kalıcı olanları burada saklarsın.', remove: 'Sil', claude: 'Claude Code yolu (boş: otomatik)', workspace: 'Çalışma klasörü', copy: 'Kopyala', savePreference: 'Sonraki projeler için sakla', dismiss: 'Şimdilik değil', offer: 'Claude bunu kalıcı bir tercih olarak önerdi:' },
   stages: { footage: 'Görüntü', transcript: 'Metin', storyboard: 'Senaryo', render: 'Render', review: 'İnceleme' },
   guard: {
     host: 'Bu adres üzerinden erişime izin verilmiyor.',

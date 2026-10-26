@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AskClaude } from '@/components/AskClaude';
 import { JobLog } from '@/components/JobLog';
+import { PreferenceOffer } from '@/components/PreferenceOffer';
 import { PreviewPlayer } from '@/components/PreviewPlayer';
 import { SceneDetail } from '@/components/SceneDetail';
 import { SceneList } from '@/components/SceneList';
@@ -56,6 +57,7 @@ export function StoryboardClient({
   const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
   const [jobId, setJobId] = useState<string | null>(lastJobId);
+  const [dismissed, setDismissed] = useState<string | null>(null);
   const job = useJob(project.id, jobId);
   const known = useRef(versions.at(-1)?.n ?? 0);
 
@@ -180,6 +182,7 @@ export function StoryboardClient({
         <button type="button" className="btn btn-primary" disabled={job.running || edits.length > 0} onClick={() => void start(`/api/projects/${project.id}/jobs`, { kind: 'render', version: n, profile: 'final' })}>
           {d.approve}
         </button>
+        {job.preference && job.preference !== dismissed && <PreferenceOffer lang={lang} text={job.preference} projectId={project.id} onDone={() => setDismissed(job.preference)} />}
         {error && <p className="whitespace-pre-wrap font-mono text-sm" style={{ color: '#e5484d' }}>{error}</p>}
       </div>
     </div>

@@ -26,7 +26,7 @@ export function checkVariety(plan: Plan): string[] {
 
   // logos
   const logos = new Map<string, string[]>();
-  for (const s of plan.scenes) for (const c of s.cards) for (const ref of logoRefs(c)) logos.set(ref, [...(logos.get(ref) ?? []), s.id]);
+  for (const s of plan.scenes) for (const ref of new Set(s.cards.flatMap(logoRefs))) logos.set(ref, [...(logos.get(ref) ?? []), s.id]);
   for (const [ref, scenes] of logos) if (scenes.length > 1) errors.push(`logo ${ref} appears ${scenes.length} times (scenes ${scenes.join(', ')}); show a logo once, then build on it`);
 
   // templates

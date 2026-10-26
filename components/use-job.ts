@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import type { JobEvent } from '@/lib/app/jobs/jobs';
 
-/** Live events of a job (replayed from the start), and whether it is still running. */
-export function useJob(projectId: string, jobId: string | null): { events: JobEvent[]; running: boolean } {
+/** Live events of a job (replayed), whether it still runs, and a preference Claude proposed in it. */
+export function useJob(projectId: string, jobId: string | null): { events: JobEvent[]; running: boolean; preference: string | null } {
   const [events, setEvents] = useState<JobEvent[]>([]);
   useEffect(() => {
     setEvents([]);
@@ -15,5 +15,6 @@ export function useJob(projectId: string, jobId: string | null): { events: JobEv
     return () => es.close();
   }, [projectId, jobId]);
   const last = [...events].reverse().find((e) => e.type === 'state');
-  return { events, running: !!jobId && (!last || (last.type === 'state' && last.state === 'running')) };
+  const pref = [...events].reverse().find((e) => e.type === 'preference');
+  return { events, running: !!jobId && (!last || (last.type === 'state' && last.state === 'running')), preference: pref?.type === 'preference' ? pref.text : null };
 }

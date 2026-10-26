@@ -23,6 +23,7 @@ export function TopBar({
       <nav className="topbar-nav font-mono">
         <a href="/projects">{d.nav.projects}</a>
         <a href="/setup">{d.nav.setup}</a>
+        <a href="/settings">{d.nav.settings}</a>
       </nav>
       <span className="topbar-spacer" />
       <LanguageSwitch lang={lang} onChange={onLanguageChange} />

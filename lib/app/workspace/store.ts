@@ -196,3 +196,27 @@ export async function validateForProject(id: string, plan: unknown): Promise<Val
   if (!selection || typeof plan !== 'object' || plan === null) return validatePlan(plan);
   return validatePlan({ ...(plan as object), selection });
 }
+
+export class PreferenceIndexError extends Error {}
+
+/** Edits the text of rule `index` (Settings). */
+export function updatePreference(index: number, text: string): Promise<Preferences> {
+  return queueFor('__preferences')(async () => {
+    const prefs = await getPreferences();
+    if (!prefs.rules[index]) throw new PreferenceIndexError(`no preference ${index}`);
+    const next = { rules: prefs.rules.map((r, i) => (i === index ? { ...r, text } : r)) };
+    await writeJson(prefsFile(), next);
+    return next;
+  });
+}
+
+/** Removes rule `index` (Settings). */
+export function removePreference(index: number): Promise<Preferences> {
+  return queueFor('__preferences')(async () => {
+    const prefs = await getPreferences();
+    if (!prefs.rules[index]) throw new PreferenceIndexError(`no preference ${index}`);
+    const next = { rules: prefs.rules.filter((_, i) => i !== index) };
+    await writeJson(prefsFile(), next);
+    return next;
+  });
+}

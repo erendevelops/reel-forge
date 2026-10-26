@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { CompareVersions, type VersionView } from '@/components/CompareVersions';
 import { JobLog } from '@/components/JobLog';
+import { PreferenceOffer } from '@/components/PreferenceOffer';
 import { QaSummary } from '@/components/QaSummary';
 import { postJob } from '@/components/post-job';
 import { useJob } from '@/components/use-job';
@@ -23,6 +24,7 @@ export function ReviewClient({ lang, projectId, versions, current, lastJobId }: 
   const [feedback, setFeedback] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [jobId, setJobId] = useState<string | null>(lastJobId);
+  const [dismissed, setDismissed] = useState<string | null>(null);
   const job = useJob(projectId, jobId);
 
   useEffect(() => {
@@ -84,6 +86,7 @@ export function ReviewClient({ lang, projectId, versions, current, lastJobId }: 
         <a className="meta font-mono text-xs" href={`/projects/${projectId}?view=storyboard`}>
           {d.toStoryboard}
         </a>
+        {job.preference && job.preference !== dismissed && <PreferenceOffer lang={lang} text={job.preference} projectId={projectId} onDone={() => setDismissed(job.preference)} />}
         {error && <p className="font-mono text-sm" style={{ color: '#e5484d' }}>{error}</p>}
       </div>
     </div>

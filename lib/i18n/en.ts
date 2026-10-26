@@ -2,7 +2,7 @@ import type { Dictionary } from './tr';
 
 export const en: Dictionary = {
   brand: 'REELFORGE',
-  nav: { projects: 'Projects', setup: 'Setup' },
+  nav: { projects: 'Projects', setup: 'Setup', settings: 'Settings' },
   common: { busy: 'A job is already running for this project. Try again when it finishes.', start: 'Start' },
   cards: {
     title: 'BUILD YOUR EDIT',
@@ -44,6 +44,7 @@ export const en: Dictionary = {
   preview: { play: 'Play', pause: 'Pause', building: 'Building the preview…' },
   storyboard: { why: 'Why?', save: 'Save', undo: 'Undo', approve: 'Approve & render', ask: 'Tell Claude a change', askScene: 'This scene', askAll: 'Whole video', seconds: 's', colors: 'Colours', animNote: 'Animations change through Claude.', sounds: 'Sounds', at: 'at', volume: 'volume', start: 'start', end: 'end', version: 'Version', branched: 'branched from an older version', changeCards: 'Change cards', review: 'Go to review' },
   review: { title: 'REVIEW', qa: 'Quality checks', fix: 'Ask Claude to fix', compare: 'Compare', playBoth: 'Play both', feedback: 'Feedback', toStoryboard: 'Back to the storyboard', noRender: 'This version has no render yet.', changes: 'What changed' },
+  settings: { title: 'SETTINGS', language: 'Language', preferences: 'Learned preferences', none: 'No preferences yet. The lasting ones from your feedback are kept here.', remove: 'Remove', claude: 'Claude Code path (empty: automatic)', workspace: 'Workspace folder', copy: 'Copy', savePreference: 'Keep for next projects', dismiss: 'Not now', offer: 'Claude suggests keeping this as a lasting preference:' },
   stages: { footage: 'Footage', transcript: 'Transcript', storyboard: 'Storyboard', render: 'Render', review: 'Review' },
   guard: {
     host: 'Access through this address is not allowed.',
