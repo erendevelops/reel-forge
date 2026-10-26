@@ -136,3 +136,15 @@ describe('validatePlan', () => {
     expect(validatePlan(load()).ok).toBe(true);
   });
 });
+
+describe('mojibake gate', () => {
+  it('rejects text with the U+FFFD replacement character and says how to fix it', async () => {
+    const { readFileSync } = await import('node:fs');
+    const path = await import('node:path');
+    const plan = JSON.parse(readFileSync(path.join(__dirname, '../fixtures/plan-reel-v5.json'), 'utf8'));
+    plan.captions.groups[0].words[0][0] = 'bilgisayar\uFFFDn\uFFFDzda';
+    const r = validatePlan(plan);
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.errors.join('\n')).toMatch(/encoding="utf-8"/);
+  });
+});

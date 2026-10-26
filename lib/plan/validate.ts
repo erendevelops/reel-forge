@@ -28,6 +28,10 @@ export function validatePlan(input: unknown): ValidationResult {
   const plan = parsed.data;
   const errors: string[] = [];
   if (plan.mode === 'app' && !plan.look?.background) errors.push('app videos need look.background (the brand ground colour)');
+  // U+FFFD means text was decoded with the wrong encoding somewhere (Windows' ANSI default for Turkish ı/ş/ğ).
+  if (JSON.stringify(plan).includes('�')) {
+    errors.push('text contains the replacement character "�" (broken encoding): re-read every file with encoding="utf-8" (Python: open(path, encoding="utf-8")), rebuild the text, and save again');
+  }
 
   // 1. selection
   const sel = plan.selection;
