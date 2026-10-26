@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { RATIO_SIZE } from '@/lib/compile';
+import { RATIO_SIZE, compile } from '@/lib/compile';
+import { npx } from '@/lib/media/npx';
 import { probe } from '@/lib/media/probe';
 import { prepareClip } from '@/lib/media/prepare';
 import { run } from '@/lib/media/run';
@@ -10,6 +11,8 @@ import { resolveLogo, logoSvgFile } from '@/lib/assets/logos';
 import { cropPath, faceTrack, type FaceTrack } from '@/lib/talking/reframe';
 import { planTrims, remapTimes, renderTrimmedTake, type Segment } from '@/lib/talking/trim';
 import { repoPath } from '@/lib/root';
+import { BUNDLED_ASSETS, resolveAsset } from '@/lib/media/assets';
+import { readdirSync } from 'node:fs';
 import { getPreferences, getProject, listVersions, readVersion, saveVersion } from '@/lib/app/workspace/store';
 import { parseArgs, projectId, resolveInProject } from './context';
 
@@ -43,6 +46,28 @@ async function python(args: string[]): Promise<void> {
  * The option cards are the user's, never the plan's: validation always uses the project's selection, so a plan that
  * edits its own `selection` to allow an unticked card is still refused.
  */
+/** Sound files the plan names that neither the project inputs nor the bundled library have (the render would fail). */
+function missingSfx(plan: unknown): string[] {
+  const cues = (plan as { sfx?: { file?: unknown }[] })?.sfx ?? [];
+  const errors: string[] = [];
+  for (const c of cues) {
+    if (typeof c?.file !== 'string') continue;
+    try {
+      resolveAsset(c.file, resolveInProject('inputs'));
+    } catch {
+      const base = path.posix.basename(c.file);
+      const hit = sfxIndex().find((f) => path.posix.basename(f) === base);
+      errors.push(`sfx: ${c.file} does not exist${hit ? ` (did you mean ${hit}?)` : ' (see the catalog in video-core/references/sfx.md)'}`);
+    }
+  }
+  return [...new Set(errors)];
+}
+
+let sfxFiles: string[] | undefined;
+function sfxIndex(): string[] {
+  return (sfxFiles ??= (readdirSync(path.join(BUNDLED_ASSETS, 'sfx'), { recursive: true }) as string[]).map((f) => `sfx/${f.split(path.sep).join('/')}`));
+}
+
 async function withProjectSelection(plan: unknown): Promise<unknown> {
   const { selection } = await getProject(projectId());
   if (!selection || typeof plan !== 'object' || plan === null) return plan;
@@ -169,8 +194,33 @@ export const COMMANDS: Record<string, Command> = {
   },
 
   async validate(args) {
-    const r = validatePlan(await withProjectSelection(await readJson(need(args[0], 'plan.json'))));
-    return r.ok ? { ok: true, errors: [] } : { ok: false, errors: r.errors };
+    const plan = await readJson(need(args[0], 'plan.json'));
+    const r = validatePlan(await withProjectSelection(plan));
+    const errors = [...(r.ok ? [] : r.errors), ...missingSfx(plan)];
+    return errors.length ? { ok: false, errors } : { ok: true, errors: [] };
+  },
+
+  /**
+   * Stills of the plan at given times (`--at 3,8.5`), so Claude sees its scenes before saving: compiles the page
+   * into `.preview/<ratio>/` and snapshots it with HyperFrames (no video render, no vision upload). Returns the PNGs
+   * and a contact sheet.
+   */
+  async preview(args) {
+    const { pos, flags } = parseArgs(args);
+    const plan = await readJson(need(pos[0], 'plan.json'));
+    const r = validatePlan(await withProjectSelection(plan));
+    if (!r.ok) throw new Error(`invalid plan:\n${r.errors.join('\n')}`);
+    const ratio = (flags.ratio ?? r.plan.ratios[0]) as Ratio;
+    if (!RATIOS.includes(ratio)) throw new Error(`--ratio must be one of ${RATIOS.join(', ')}`);
+    const at = String(need(flags.at, '--at <s,s,…>')).split(',').map(Number).filter((t) => Number.isFinite(t) && t >= 0 && t <= r.plan.duration);
+    if (!at.length) throw new Error(`--at needs times within 0–${r.plan.duration}`);
+    const dir = resolveInProject(path.join('.preview', ratio.replace(':', 'x')));
+    const out = resolveInProject(path.join('analysis', 'preview'));
+    await compile(r.plan, { outDir: dir, assetsDir: resolveInProject('inputs'), ratio });
+    const [cmd, a] = npx(['-y', 'hyperframes@0.8.191', 'snapshot', dir, '--at', at.join(','), '--no-end', '--describe', 'false', '-o', out]);
+    await run(cmd, a, { timeoutMs: 10 * 60 * 1000 });
+    const files = (readdirSync(out) as string[]).filter((f) => /\.(png|jpe?g)$/i.test(f)).map((f) => path.posix.join('analysis/preview', f));
+    return { stills: files };
   },
 
   async gaps(args) {
@@ -185,7 +235,8 @@ export const COMMANDS: Record<string, Command> = {
     const id = projectId();
     const project = await getProject(id);
     const r = validatePlan(await withProjectSelection(plan));
-    if (!r.ok) throw new Error(`invalid plan:\n${r.errors.join('\n')}`);
+    const errors = [...(r.ok ? [] : r.errors), ...missingSfx(plan)];
+    if (!r.ok || errors.length) throw new Error(`invalid plan:\n${errors.join('\n')}`);
     if (project.preset === 'talking-head') {
       const gaps = motionGaps(r.plan);
       if (gaps.length) {

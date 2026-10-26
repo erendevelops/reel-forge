@@ -42,12 +42,13 @@ your own ffmpeg or Python, unless a preset skill tells you to.
 | `rf logo <name>` | The official logo of a named product, written into `assets/si/` (or `{found:false}`) |
 | `rf beats <audio>` | Tempo, beat times and the drop of a music track |
 | `rf validate <plan.json>` | Every contract and selection error in the plan |
+| `rf preview <plan.json> --at <s,s,…> [--ratio <r>]` | Stills of the plan at those times (`analysis/preview/contact-sheet.jpg`). Look at your scenes before saving |
 | `rf gaps <plan.json>` | Stretches longer than 3 s with nothing visual happening |
 | `rf save <plan.json> [--parent <n>] [--request <text>]` | Validates and stores a new version. The app then renders a draft |
 
 ## Hard limits
 
-- Never render. Never write outside the project folder. Never modify the user's original files in `inputs/`. Your own files go in `inputs/work/` (working clips) and `inputs/ext/` (downloaded assets).
+- Never render a video (`rf preview` stills are how you look). Never write outside the project folder. Never modify the user's original files in `inputs/`. Your own files go in `inputs/work/` (working clips) and `inputs/ext/` (downloaded assets).
 - Use **only** the option cards listed in `CLAUDE.md` / `rf project`. `rf save` rejects anything else.
 - Reply in the project's language (it's in `CLAUDE.md`). Captions follow the *spoken* language of the footage.
 

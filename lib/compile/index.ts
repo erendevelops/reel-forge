@@ -4,8 +4,8 @@ import { normAsset, resolveAsset } from '../media/assets';
 import type { Card, CardType, Plan, Ratio } from '../plan';
 import { cardRegistry } from './cards';
 import { renderCaptions } from './captions';
-import { audioDuration, layoutRegion, renderFootage, renderLayoutMask, renderMusic, renderSfx, renderVoice } from './layers';
-import { type CompileContext, type Fragment, type Region, RATIO_SIZE, num } from './types';
+import { audioDuration, layoutRegion, panelColour, renderFootage, renderLayoutMask, renderMusic, renderSfx, renderVoice } from './layers';
+import { type CompileContext, type Fragment, type Region, RATIO_SIZE, num, sz } from './types';
 import { type Logo, logoRef, logoSvgFile, resolveLogo } from '../assets/logos';
 import { repoRequire } from '../root';
 
@@ -86,14 +86,16 @@ const CSP = [
 ].join('; ');
 
 /** The look tokens as CSS variables on `#root` (templates fall back to their own palette when a token is unset). */
-function kitVars(plan: Plan): string {
+function kitVars(plan: Plan, ctx: CompileContext): string {
+  // every token always has a value (a scene script's bare `var(--card)` must never go blank); unset ones fall back to
+  // the talking-head palette the built-in cards use
   const l = plan.look;
-  if (!l) return '';
-  const v: [string, string | number | undefined][] = [
-    ['bg', l.background], ['ink', l.ink], ['card', l.card], ['accent', l.accent], ['muted', l.muted],
-    ['positive', l.positive], ['negative', l.negative], ['radius', l.radius === undefined ? undefined : `${l.radius}px`],
+  const v: [string, string][] = [
+    ['bg', l?.background ?? panelColour(plan)], ['ink', l?.ink ?? '#111111'], ['card', l?.card ?? '#FFFFFF'],
+    ['accent', l?.accent ?? '#F5B700'], ['muted', l?.muted ?? '#8A857A'], ['positive', l?.positive ?? '#16A34A'],
+    ['negative', l?.negative ?? '#E5322D'], ['radius', `${l?.radius ?? num(sz(ctx, 36))}px`],
   ];
-  return v.filter(([, x]) => x !== undefined).map(([k, x]) => ` --${k}: ${x};`).join('');
+  return v.map(([k, x]) => ` --${k}: ${x};`).join('');
 }
 
 /** Compiles a plan into a HyperFrames project at `outDir` (index.html + assets/). Deterministic. */
@@ -149,7 +151,9 @@ export async function compile(plan: Plan, o: CompileOptions): Promise<{ indexHtm
   });
   cards.sort((a, b) => a.layer - b.layer || a.seq - b.seq);
   for (const c of cards) frags.push(cardRegistry[c.card.type].render(c.card, c.id, { ...ctx, region: c.region }));
-  frags.push(renderCaptions(plan.captions, ctx));
+  // captions over a graphics-only panel get a dark outline (white on cream is unreadable)
+  const panels = plan.scenes.filter((sc) => sc.layout === 'full-graphics').map((sc) => [sc.start, sc.end] as [number, number]);
+  frags.push(renderCaptions(plan.captions, ctx, panels));
 
   const sfxDur = await Promise.all(plan.sfx.map((c) => audioDuration(resolveAsset(c.file, o.assetsDir))));
   const audio = [
@@ -192,7 +196,7 @@ window.__timelines["main"] = tl;
 ${fontCss}
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html, body { width: ${width}px; height: ${height}px; overflow: hidden; background: ${bg}; }
-#root { position: relative; width: ${width}px; height: ${height}px; overflow: hidden; background: ${bg}; font-family: '${plan.look?.font ?? 'Inter'}', sans-serif;${kitVars(plan)} }
+#root { position: relative; width: ${width}px; height: ${height}px; overflow: hidden; background: ${bg}; font-family: '${plan.look?.font ?? 'Inter'}', sans-serif;${kitVars(plan, ctx)} }
 ${css.join('\n')}
 </style>
 </head>

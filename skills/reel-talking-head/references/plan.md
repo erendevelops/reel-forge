@@ -29,7 +29,9 @@ and use its variables in every scene.
 
 ## 4. Footage
 
-- The footage is the trimmed working clip `work/take-<ratio>.mp4`. One shot per scene with `from` = `at` = the scene start and `to` = the scene end, in trimmed time.
+- The footage is the trimmed take. One shot per scene with `from` = `at` = the scene start and `to` = the scene end, in trimmed time.
+  - `full-face` scenes: the working clip `work/take-<ratio>.mp4` (cropped to the ratio).
+  - `split` scenes: the **uncropped** trimmed take `work/take-trimmed.mp4` with `"aspect": <its width/height>` (e.g. `1.7778` for 1280×720), so the face card shows the whole frame with the room around the speaker (onur.builds). A take that is already vertical gets a wide 4:3 window of it automatically.
 - Set each scene's `facePos` from the face track (it pans the full-frame crop and frames the 4:3 face card). **Never zoom into the face.** No punch-ins unless ticked.
 
 ## 5. Sound
@@ -40,6 +42,7 @@ for the follow button. Pick 4–6 families for the whole video and rotate files 
 
 ## 6. Before saving
 
-1. `rf validate plan.json`: fix every error (variety errors name the repeat and what to do instead).
-2. `rf gaps plan.json` must be `[]`. Fix gaps with real beats in the scene (another row, a recount, a stamp), never filler.
-3. `rf save plan.json --request "first cut"`.
+1. `rf preview plan.json --at <the middle of every scene>` and read `analysis/preview/contact-sheet.jpg` ([look.md](../../video-core/references/look.md) §3–4). Fix and preview again until every frame looks finished.
+2. `rf validate plan.json`: fix every error (variety errors name the repeat and what to do instead).
+3. `rf gaps plan.json` must be `[]`. Fix gaps with real beats in the scene (another row, a recount, a stamp), never filler.
+4. `rf save plan.json --request "first cut"`.

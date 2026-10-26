@@ -55,7 +55,24 @@ Then make the sequence varied:
 - **Vary the sound with the gesture** ([sfx.md](sfx.md)); never the same file twice in a row.
 - **Layouts breathe**: split (graphics top, wide face card bottom) → graphics only for a concept → full face for the personal line → split again. The face card is a wide 4:3 window of the whole frame, not a strip and not a zoom.
 
-## 3. Watching references
+## 3. Size and fill
+
+Eren watches on a phone. The second talking-head draft had a lone 500 px label card and a small logo floating in an
+empty cream half: that reads as unfinished.
+
+- **Fill the region.** A split panel (1080×960) holds 2–4 elements that together span its width (cards ~900 px wide, 90 px side margins) and most of its height by the end of the scene. A `full-graphics` scene fills the frame like a poster.
+- **Big type:** values 72–110 px, row text 40–48 px, headlines 64–90 px, small-caps labels 22–26 px. Nothing else under 32 px.
+- **Objects, not dots:** draw the thing (a gauge with its arc and ticks, a phone with its screen, a classroom with desks and a hand raised), with enough detail to read at a glance.
+- Keep the caption band (y 1280–1480 on 9:16) clear in `full-graphics` scenes.
+
+## 4. Look before you save: `rf preview`
+
+`rf preview plan.json --at <t1,t2,…>` renders stills of your plan (about 25 s) into `analysis/preview/` with a
+`contact-sheet.jpg`. **Always** preview the settled middle of every scene (and the end of each building scene) and
+read the sheet. Fix anything empty, small, overlapping, cut off, unreadable, or that looks like the previous scene,
+then preview again. Do this before `rf save`.
+
+## 5. Watching references
 
 When the user gives reference reels, **watch them densely** before planning: `rf sheet <ref> analysis/ref-<n>.jpg --every 0.5`
 in 10 s chunks (`rf prep` a chunk first if needed), and write `analysis/references.md` listing, per reference: the kit

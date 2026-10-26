@@ -55,4 +55,8 @@ Fire each at the start of its motion. Nothing louder than the music's peaks.
 
 ## Before saving
 
+`rf preview plan.json --at <the middle and end of every scene>` and compare `analysis/preview/contact-sheet.jpg` with
+the app's screenshots: same colours, same components, same strings, readable at phone size, nothing empty or cut
+off, no two scenes alike. Fix and preview again.
+
 `rf validate plan.json` (fragment errors name the card and the line), then `rf save plan.json --request "first cut"`.
