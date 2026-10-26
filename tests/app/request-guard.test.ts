@@ -25,6 +25,14 @@ describe('rejectReason', () => {
     expect(rejectReason({ ...base, origin: 'http://localhost:4000', secFetchSite: null }, 'tr')).toMatch(/Başka bir siteden/);
   });
 
+  it('lets the sandboxed preview frame load its own files (opaque origin, cross-site GET) but nothing else', () => {
+    const frame = { method: 'GET', host: 'localhost:3000', origin: null, secFetchSite: 'cross-site' };
+    expect(rejectReason({ ...frame, path: '/api/projects/p-1/preview/9x16/assets/player.js' }, 'en')).toBeNull();
+    expect(rejectReason({ ...frame, path: '/api/projects/p-1/files/versions/v1/render/final-9x16.mp4' }, 'en')).toMatch(/another site/);
+    expect(rejectReason({ ...frame, method: 'POST', origin: 'null', path: '/api/projects/p-1/preview' }, 'en')).toMatch(/another site/);
+    expect(rejectReason({ ...frame, method: 'POST', origin: 'null', path: '/api/projects/p-1/preview/9x16/index.html' }, 'en')).toMatch(/another site/);
+  });
+
   it('allows GET without origin', () => {
     expect(rejectReason({ method: 'GET', host: '127.0.0.1:3000', origin: null, secFetchSite: null }, 'en')).toBeNull();
   });

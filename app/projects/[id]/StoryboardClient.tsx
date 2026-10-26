@@ -56,6 +56,9 @@ export function StoryboardClient({
   const [playing, setPlaying] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
+  const [incoming, setIncoming] = useState<number | null>(null);
+  const [seekReq, setSeekReq] = useState<{ t: number; n: number } | undefined>(undefined);
+  const previewSeq = useRef(0);
   const [jobId, setJobId] = useState<string | null>(lastJobId);
   const [dismissed, setDismissed] = useState<string | null>(null);
   const job = useJob(project.id, jobId);
@@ -78,7 +81,9 @@ export function StoryboardClient({
     const latest = versions.at(-1)?.n ?? 0;
     if (latest > known.current) {
       known.current = latest;
-      void load(latest);
+      // never drop unsaved edits: offer the new version instead
+      if (edits.length) setIncoming(latest);
+      else void load(latest);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [versions]);
@@ -89,8 +94,10 @@ export function StoryboardClient({
 
   useEffect(() => {
     const timer = setTimeout(async () => {
+      const seq = ++previewSeq.current;
       const res = await fetch(`/api/projects/${project.id}/preview`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ plan, ratio }) });
       const out = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
+      if (seq !== previewSeq.current) return; // a newer build was asked for meanwhile
       if (out.url) setSrc(out.url);
       else if (out.error) setError(out.error);
     }, 400);
@@ -133,7 +140,10 @@ export function StoryboardClient({
   const seekTo = (id: string) => {
     setSelected(id);
     const s = plan.scenes.find((x) => x.id === id);
-    if (s) setTime(s.start);
+    if (s) {
+      setTime(s.start);
+      setSeekReq((r) => ({ t: s.start, n: (r?.n ?? 0) + 1 }));
+    }
   };
 
   return (
@@ -160,6 +170,21 @@ export function StoryboardClient({
           )}
         </div>
         {note && <p className="meta font-mono text-xs">{note}</p>}
+        {incoming && (
+          <p className="meta flex items-center gap-2 font-mono text-xs">
+            {`v${incoming} ${d.ready}`}
+            <button
+              type="button"
+              className="btn"
+              onClick={() => {
+                setIncoming(null);
+                void load(incoming);
+              }}
+            >
+              {d.open}
+            </button>
+          </p>
+        )}
         <SceneList lang={lang} plan={plan} selected={selected} current={playing ? current : null} onSelect={seekTo} />
       </div>
       <div className="side flex flex-col gap-4">
@@ -172,7 +197,7 @@ export function StoryboardClient({
             ))}
           </div>
         )}
-        <PreviewPlayer lang={lang} src={src} ratio={ratio} duration={plan.duration} time={time} playing={playing} onTime={setTime} onPlaying={setPlaying} />
+        <PreviewPlayer lang={lang} src={src} ratio={ratio} duration={plan.duration} time={time} playing={playing} onTime={setTime} onPlaying={setPlaying} seek={seekReq} />
         <SceneDetail lang={lang} plan={plan} sceneId={selected} app={project.mode === 'app'} onEdit={edit} />
         {job.running ? (
           <JobLog lang={lang} events={job.events} onResume={() => void start(`/api/projects/${project.id}/jobs/${jobId}/resume`, {})} />

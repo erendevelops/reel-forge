@@ -17,7 +17,11 @@ export type GuardInput = {
   origin: string | null;
   secFetchSite: string | null;
   allowedHosts?: string[];
+  /** Request path, for the one cross-site exception: the sandboxed preview frame (opaque origin) loading its own files. */
+  path?: string;
 };
+
+const PREVIEW_FILE = /^\/api\/projects\/[a-z0-9-]+\/preview\/[^/]+\/.+/;
 
 function hostnameOf(host: string): string {
   if (host.startsWith('[')) return host.slice(1, host.indexOf(']'));
@@ -34,14 +38,16 @@ function isLocalHostname(hostname: string, allowed: string[]): boolean {
 
 /** Returns a reason when the request must be refused, otherwise null. */
 export function rejectReason(
-  { method, host, origin, secFetchSite, allowedHosts = [] }: GuardInput,
+  { method, host, origin, secFetchSite, allowedHosts = [], path }: GuardInput,
   lang: Language,
 ): string | null {
   const d = t(lang).guard;
   if (!host || !isLocalHostname(hostnameOf(host), allowedHosts)) return d.host;
-  if (secFetchSite === 'cross-site' || secFetchSite === 'same-site') return d.crossSite;
-
   const safe = method === 'GET' || method === 'HEAD' || method === 'OPTIONS';
+  // a sandboxed preview has no origin, so its page and asset GETs look cross-site; they are static, read-only files
+  const previewFile = (method === 'GET' || method === 'HEAD') && !!path && PREVIEW_FILE.test(path);
+  if ((secFetchSite === 'cross-site' || secFetchSite === 'same-site') && !previewFile) return d.crossSite;
+
   if (!safe && origin) {
     let originHost: string;
     try {

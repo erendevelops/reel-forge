@@ -11,6 +11,7 @@ export function middleware(req: NextRequest) {
       origin: req.headers.get('origin'),
       secFetchSite: req.headers.get('sec-fetch-site'),
       allowedHosts: allowedHostsFromEnv(),
+      path: req.nextUrl.pathname,
     },
     lang,
   );

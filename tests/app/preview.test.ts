@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { buildPreview } from '../../lib/preview/build';
@@ -34,10 +34,47 @@ describe('buildPreview', () => {
     const a = await buildPreview(p.id, plan(), '9:16');
     const b = await buildPreview(p.id, plan(), '9:16');
     expect(a.key).toBe(b.key);
-    expect(a.url).toBe(`/api/projects/${p.id}/preview/9x16/index.html?k=${a.key}`);
-    const html = await readFile(path.join(projectDir(p.id), '.preview', '9x16', 'index.html'), 'utf8');
+    expect(a.url).toBe(`/api/projects/${p.id}/preview/9x16-${a.key}/index.html`);
+    const html = await readFile(path.join(projectDir(p.id), '.preview', `9x16-${a.key}`, 'index.html'), 'utf8');
     expect(html).toContain('<script src="assets/player.js"></script>');
-    expect(await readFile(path.join(projectDir(p.id), '.preview', '9x16', 'assets', 'player.js'), 'utf8')).toBe(PLAYER_JS);
+    expect(await readFile(path.join(projectDir(p.id), '.preview', `9x16-${a.key}`, 'assets', 'player.js'), 'utf8')).toBe(PLAYER_JS);
+  });
+
+  it('builds different plans into different folders, so a slow build never overwrites a newer one', async () => {
+    const p = await createProject({ name: 'th', mode: 'reel', preset: 'talking-head', ratios: ['9:16'], lang: 'tr', inputs: [] });
+    const other = plan();
+    other.scenes[0].cards[0].params = { text: 'YENİ' };
+    const [a, b] = await Promise.all([buildPreview(p.id, plan(), '9:16'), buildPreview(p.id, other, '9:16')]);
+    expect(a.url).not.toBe(b.url);
+    const dirOf = (u: string) => u.split('/preview/')[1].split('/index.html')[0];
+    expect(await readFile(path.join(projectDir(p.id), '.preview', dirOf(a.url), 'index.html'), 'utf8')).toContain('KALKTI');
+    expect(await readFile(path.join(projectDir(p.id), '.preview', dirOf(b.url), 'index.html'), 'utf8')).toContain('YENİ');
+  });
+
+  it('a new build reuses the media files of the previous build instead of copying them again', async () => {
+    const p = await createProject({ name: 'th', mode: 'reel', preset: 'talking-head', ratios: ['9:16'], lang: 'tr', inputs: [] });
+    await mkdir(path.join(projectDir(p.id), 'inputs', 'work'), { recursive: true });
+    await writeFile(path.join(projectDir(p.id), 'inputs', 'work', 'take.mp4'), Buffer.alloc(2048));
+    const withShot = (text: string): Plan => {
+      const pl = plan();
+      pl.scenes[0].shots = [{ src: 'work/take.mp4', from: 0, to: 3, at: 0 }];
+      pl.scenes[0].cards[0].params = { text };
+      return pl;
+    };
+    const a = await buildPreview(p.id, withShot('A'), '9:16');
+    const b = await buildPreview(p.id, withShot('B'), '9:16');
+    const file = (u: string) => path.join(projectDir(p.id), '.preview', u.split('/preview/')[1].split('/index.html')[0], 'assets', 'work', 'take.mp4');
+    expect((await stat(file(b.url))).ino).toBe((await stat(file(a.url))).ino);
+  });
+
+  it('serves preview pages with a sandbox CSP, so even a page opened in a tab has no app origin', async () => {
+    const p = await createProject({ name: 'th', mode: 'reel', preset: 'talking-head', ratios: ['9:16'], lang: 'tr', inputs: [] });
+    const { url } = await buildPreview(p.id, plan(), '9:16');
+    const { GET } = await import('../../app/api/projects/[id]/preview/[...path]/route');
+    const parts = url.split('/preview/')[1].split('?')[0].split('/');
+    const res = await GET(new Request(`http://localhost${url}`), { params: Promise.resolve({ id: p.id, path: parts }) });
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-security-policy')).toContain('sandbox allow-scripts');
   });
 
   it('throws the validation errors for a plan the selection does not allow', async () => {

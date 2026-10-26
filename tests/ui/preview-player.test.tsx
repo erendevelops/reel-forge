@@ -17,3 +17,18 @@ describe('PreviewPlayer', () => {
     expect(post).toHaveBeenCalledWith({ rf: 'play' }, '*');
   });
 });
+
+describe('PreviewPlayer isolation and seeking', () => {
+  it('runs the preview in a sandboxed frame without the app origin', () => {
+    const { container } = render(<PreviewPlayer lang="tr" src="/p/index.html?k=1" ratio="9:16" duration={10} time={0} playing={false} onPlaying={vi.fn()} onTime={vi.fn()} />);
+    expect(container.querySelector('iframe')!.getAttribute('sandbox')).toBe('allow-scripts');
+  });
+
+  it('seeks the frame when the parent asks (a scene click)', () => {
+    const props = { lang: 'tr' as const, src: '/p/index.html?k=1', ratio: '9:16' as const, duration: 10, time: 0, playing: false, onPlaying: vi.fn(), onTime: vi.fn() };
+    const { container, rerender } = render(<PreviewPlayer {...props} />);
+    const post = vi.spyOn(container.querySelector('iframe')!.contentWindow!, 'postMessage');
+    rerender(<PreviewPlayer {...props} time={6.16} seek={{ t: 6.16, n: 1 }} />);
+    expect(post).toHaveBeenCalledWith({ rf: 'seek', t: 6.16 }, '*');
+  });
+});

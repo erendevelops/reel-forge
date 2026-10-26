@@ -46,7 +46,7 @@ function resolveUnder(root: string, rel: string): string | null {
  * A file under `root` as an HTTP response: MIME type from the extension and `Range: bytes=a-b` support (206 / 416),
  * which video seeking needs. Anything outside `root` (`..`, absolute paths, drive letters, encoded traversal) is 404.
  */
-export async function fileResponse(root: string, rel: string, req: Request): Promise<Response> {
+export async function fileResponse(root: string, rel: string, req: Request, extra: Record<string, string> = {}): Promise<Response> {
   const file = resolveUnder(root, rel);
   if (!file) return notFound();
   const info = await stat(file).catch(() => null);
@@ -56,6 +56,7 @@ export async function fileResponse(root: string, rel: string, req: Request): Pro
     'content-type': TYPES[path.extname(file).toLowerCase()] ?? 'application/octet-stream',
     'accept-ranges': 'bytes',
     'cache-control': 'no-store',
+    ...extra,
   };
   const range = /^bytes=(\d*)-(\d*)$/.exec(req.headers.get('range') ?? '');
   if (range && (range[1] || range[2])) {

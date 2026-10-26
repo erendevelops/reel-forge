@@ -18,6 +18,7 @@ export function PreviewPlayer({
   playing,
   onTime,
   onPlaying,
+  seek,
 }: {
   lang: Language;
   src: string | null;
@@ -27,6 +28,8 @@ export function PreviewPlayer({
   playing: boolean;
   onTime: (t: number) => void;
   onPlaying: (p: boolean) => void;
+  /** A seek the parent asks for (a scene click); `n` makes repeated seeks to the same time distinct. */
+  seek?: { t: number; n: number };
 }) {
   const d = t(lang).preview;
   const frame = useRef<HTMLIFrameElement>(null);
@@ -51,6 +54,10 @@ export function PreviewPlayer({
     return () => window.removeEventListener('message', on);
   }, [onTime]);
 
+  useEffect(() => {
+    if (seek) frame.current?.contentWindow?.postMessage({ rf: 'seek', t: seek.t }, '*');
+  }, [seek]);
+
   function toggle() {
     const next = !playing;
     send({ rf: next ? 'play' : 'pause' });
@@ -65,6 +72,7 @@ export function PreviewPlayer({
             ref={frame}
             src={src}
             title="preview"
+            sandbox="allow-scripts"
             onLoad={() => send({ rf: 'seek', t: time })}
             style={{ width: w, height: h, transform: `scale(${scale})`, transformOrigin: '0 0', border: 0 }}
           />

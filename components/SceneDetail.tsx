@@ -1,10 +1,33 @@
 'use client';
 
+import { useState } from 'react';
 import { t, type Language } from '@/lib/i18n';
 import { editableParams, type Edit } from '@/lib/app/edits';
 import type { Plan } from '@/lib/plan/schema';
 
 const KIT = ['background', 'card', 'ink', 'muted', 'accent'] as const;
+
+/** A number input that keeps what is typed and commits on blur/Enter, so "1" on the way to "12" is never refused. */
+function NumberField({ value, step, onCommit, ...rest }: { value: number; step: number; onCommit: (v: number) => void } & Omit<React.InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange'>) {
+  const [draft, setDraft] = useState<string | null>(null);
+  const commit = () => {
+    if (draft !== null && draft.trim() !== '' && Number.isFinite(Number(draft)) && Number(draft) !== value) onCommit(Number(draft));
+    setDraft(null);
+  };
+  return (
+    <input
+      {...rest}
+      type="number"
+      step={step}
+      value={draft ?? String(value)}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') commit();
+      }}
+    />
+  );
+}
 
 /**
  * The selected scene's details: Claude's reason, each card's editable text/numbers and timing, list item times, the
@@ -14,7 +37,6 @@ export function SceneDetail({ lang, plan, sceneId, app, onEdit }: { lang: Langua
   const d = t(lang).storyboard;
   const scene = plan.scenes.find((s) => s.id === sceneId);
   if (!scene) return null;
-  const num = (v: string) => Number(v);
   const cues = plan.sfx.map((c, i) => ({ c, i })).filter(({ c }) => c.at >= scene.start && c.at < scene.end);
   return (
     <div className="flex flex-col gap-3">
@@ -29,22 +51,21 @@ export function SceneDetail({ lang, plan, sceneId, app, onEdit }: { lang: Langua
             {editableParams(card).map((p) => (
               <label key={p.key} className="field">
                 <span className="meta font-mono">{p.key}</span>
-                <input
-                  aria-label={p.key}
-                  type={p.kind === 'number' ? 'number' : 'text'}
-                  value={String(card.params[p.key])}
-                  onChange={(e) => onEdit({ op: 'card-param', scene: scene.id, card: ci, key: p.key, value: p.kind === 'number' ? num(e.target.value) : e.target.value })}
-                />
+                {p.kind === 'number' ? (
+                  <NumberField aria-label={p.key} step={1} value={card.params[p.key] as number} onCommit={(v) => onEdit({ op: 'card-param', scene: scene.id, card: ci, key: p.key, value: v })} />
+                ) : (
+                  <input aria-label={p.key} value={String(card.params[p.key])} onChange={(e) => onEdit({ op: 'card-param', scene: scene.id, card: ci, key: p.key, value: e.target.value })} />
+                )}
               </label>
             ))}
             <div className="flex gap-2">
               <label className="field">
                 <span className="meta font-mono">{d.start}</span>
-                <input type="number" step={0.01} value={card.start} onChange={(e) => onEdit({ op: 'card-time', scene: scene.id, card: ci, start: num(e.target.value), end: card.end })} />
+                <NumberField step={0.01} value={card.start} onCommit={(v) => onEdit({ op: 'card-time', scene: scene.id, card: ci, start: v, end: card.end })} />
               </label>
               <label className="field">
                 <span className="meta font-mono">{d.end}</span>
-                <input type="number" step={0.01} value={card.end} onChange={(e) => onEdit({ op: 'card-time', scene: scene.id, card: ci, start: card.start, end: num(e.target.value) })} />
+                <NumberField step={0.01} value={card.end} onCommit={(v) => onEdit({ op: 'card-time', scene: scene.id, card: ci, start: card.start, end: v })} />
               </label>
             </div>
             {Array.isArray(items) &&
@@ -52,7 +73,7 @@ export function SceneDetail({ lang, plan, sceneId, app, onEdit }: { lang: Langua
                 typeof it.at === 'number' ? (
                   <label key={ii} className="field">
                     <span className="meta font-mono">{it.name ?? it.label ?? ii + 1}</span>
-                    <input type="number" step={0.01} value={it.at} onChange={(e) => onEdit({ op: 'item-at', scene: scene.id, card: ci, item: ii, at: num(e.target.value) })} />
+                    <NumberField step={0.01} value={it.at} onCommit={(v) => onEdit({ op: 'item-at', scene: scene.id, card: ci, item: ii, at: v })} />
                   </label>
                 ) : null,
               )}
@@ -65,8 +86,8 @@ export function SceneDetail({ lang, plan, sceneId, app, onEdit }: { lang: Langua
           {cues.map(({ c, i }) => (
             <div key={i} className="flex items-center gap-2">
               <span className="meta flex-1 truncate font-mono">{c.file.replace(/^sfx\//, '')}</span>
-              <input aria-label={`${d.at} ${i}`} className="w-20" type="number" step={0.01} value={c.at} onChange={(e) => onEdit({ op: 'sfx', index: i, at: num(e.target.value) })} />
-              <input aria-label={`${d.volume} ${i}`} className="w-16" type="number" step={0.05} value={c.volume} onChange={(e) => onEdit({ op: 'sfx', index: i, volume: num(e.target.value) })} />
+              <NumberField aria-label={`${d.at} ${i}`} className="w-20" step={0.01} value={c.at} onCommit={(v) => onEdit({ op: 'sfx', index: i, at: v })} />
+              <NumberField aria-label={`${d.volume} ${i}`} className="w-16" step={0.05} value={c.volume} onCommit={(v) => onEdit({ op: 'sfx', index: i, volume: v })} />
             </div>
           ))}
         </div>

@@ -85,3 +85,49 @@ describe('StoryboardClient', () => {
     await act(async () => {});
   });
 });
+
+describe('StoryboardClient review fixes', () => {
+  it('a version Claude saves while edits are pending does not wipe them; it is offered instead', async () => {
+    const { rerender } = mount();
+    await userEvent.click(screen.getByText('02 · 0:06'));
+    fireEvent.change(screen.getByLabelText('name'), { target: { value: 'Fooocus AI' } });
+    const v2 = [...versions, { n: 2, by: 'claude' as const, parent: 1, request: 'shorter', diff: null, createdAt: '' }];
+    rerender(<StoryboardClient lang="tr" project={project} versions={v2} initial={{ n: 1, plan: v5() }} lastJobId={null} />);
+    expect(screen.getByRole('button', { name: `${tr.storyboard.save} (1)` })).toBeTruthy();
+    expect(screen.getByText(new RegExp(`v2 ${tr.storyboard.ready}`))).toBeTruthy();
+    expect(calls.some((c) => c.url.endsWith('/versions/2'))).toBe(false);
+  });
+
+  it('a typed number commits on blur, so intermediate keystrokes are never refused', async () => {
+    mount();
+    await userEvent.click(screen.getByText('02 · 0:06'));
+    const end = screen.getAllByLabelText(tr.storyboard.end)[0] as HTMLInputElement;
+    await userEvent.clear(end);
+    await userEvent.type(end, '10.5');
+    expect(end.value).toBe('10.5');
+    fireEvent.blur(end);
+    await userEvent.click(screen.getByRole('button', { name: `${tr.storyboard.save} (1)` }));
+    const sent = calls.find((c) => c.url.endsWith('/versions'))!;
+    expect((sent.body as { edits: { op: string; end: number }[] }).edits[0]).toMatchObject({ op: 'card-time', end: 10.5 });
+  });
+
+  it('only the newest preview build is shown, even if an older one answers last', async () => {
+    let n = 0;
+    const slow: ((r: Response) => void)[] = [];
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      if (!url.endsWith('/preview')) return new Response('{}');
+      n += 1;
+      const me = n;
+      if (me === 1) return new Promise<Response>((res) => slow.push(res));
+      return new Response(JSON.stringify({ url: `/p/${me}/index.html`, key: String(me) }));
+    }));
+    const { container } = mount();
+    await new Promise((r) => setTimeout(r, 450));
+    await userEvent.click(screen.getByText('02 · 0:06'));
+    fireEvent.change(screen.getByLabelText('name'), { target: { value: 'X' } });
+    await waitFor(() => expect(container.querySelector('iframe')?.getAttribute('src')).toBe('/p/2/index.html'), { timeout: 2000 });
+    slow[0](new Response(JSON.stringify({ url: '/p/1/index.html', key: '1' })));
+    await new Promise((r) => setTimeout(r, 50));
+    expect(container.querySelector('iframe')?.getAttribute('src')).toBe('/p/2/index.html');
+  });
+});
