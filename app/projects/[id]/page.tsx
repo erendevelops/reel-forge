@@ -9,6 +9,8 @@ import { t } from '@/lib/i18n';
 import { ProjectClient } from './ProjectClient';
 import { CardsClient } from './CardsClient';
 import { TranscriptClient } from './TranscriptClient';
+import { MusicClient } from './MusicClient';
+import { CandidatesSchema, type Candidate } from '@/lib/app/music';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { projectDir } from '@/lib/app/workspace/paths';
@@ -27,6 +29,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   const latest = versions.at(-1)?.n;
   const stage = projectStage(project, { analysed: analysis.analysed, hasTranscript: analysis.transcriptFile !== null, versions, rendered: latest ? await hasFinalRender(id, latest) : false });
   const d = t(language).newProject.presets;
+  let candidates: Candidate[] = [];
+  if (stage === 'music') {
+    const raw = await readFile(path.join(projectDir(id), 'analysis', 'music-candidates.json'), 'utf8').catch(() => null);
+    candidates = raw ? (CandidatesSchema.safeParse(JSON.parse(raw)).data?.candidates ?? []) : [];
+  }
   let transcript: Transcript | null = null;
   if (stage === 'transcript' && analysis.transcriptFile) {
     const raw = await readFile(path.join(projectDir(id), ...analysis.transcriptFile.split('/')), 'utf8').catch(() => null);
@@ -41,7 +48,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         </span>
       </div>
       <StageBar lang={language} stage={stage} />
-      {stage === 'transcript' && transcript ? (
+      {stage === 'music' ? (
+        <MusicClient lang={language} projectId={id} candidates={candidates} picked={project.music} />
+      ) : stage === 'transcript' && transcript ? (
         <TranscriptClient lang={language} projectId={id} transcript={transcript} />
       ) : stage === 'cards' ? (
         <CardsClient lang={language} project={project} selection={project.selection ?? defaultSelection(project.preset)} />

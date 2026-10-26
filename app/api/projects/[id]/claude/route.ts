@@ -7,7 +7,7 @@ import { NotFoundError, getPreferences, getProject, listVersions } from '@/lib/a
 
 type Ctx = { params: Promise<{ id: string }> };
 
-const Body = z.object({ stage: z.enum(['analyse', 'plan', 'revise']), request: z.string().max(4000).optional() }).refine((b) => b.stage !== 'revise' || !!b.request?.trim(), {
+const Body = z.object({ stage: z.enum(['analyse', 'plan', 'revise', 'music']), request: z.string().max(4000).optional() }).refine((b) => b.stage !== 'revise' || !!b.request?.trim(), {
   message: 'revise needs a request',
   path: ['request'],
 });

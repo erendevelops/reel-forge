@@ -136,3 +136,9 @@ body {
 .tr-chip:hover { border-color: var(--line); background: #fff; }
 .tr-chip.edited::after { content: ''; position: absolute; top: 1px; right: 1px; width: 6px; height: 6px; border-radius: 50%; background: var(--brand); }
 .tr-input { border-color: var(--brand-d); background: #fff; outline: none; width: 9em; }
+
+/* music pick */
+.badge { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: var(--soft); color: var(--brand-d); }
+.dropzone { border: 1.5px dashed var(--line); border-radius: 16px; background: #fff; cursor: pointer; }
+.dropzone:hover { border-color: var(--brand-d); }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }

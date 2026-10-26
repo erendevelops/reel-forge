@@ -1,7 +1,7 @@
 import type { Preferences, Project, VersionOrigin } from '@/lib/app/workspace/schema';
 import { PRESET_SKILL, replyLine } from './install';
 
-export type Stage = 'analyse' | 'plan' | 'revise';
+export type Stage = 'analyse' | 'plan' | 'revise' | 'music';
 
 export type PromptCtx = {
   project: Project;
@@ -43,6 +43,11 @@ export function buildPrompt(stage: Stage, ctx: PromptCtx): string {
       project.selection?.music ? 'Music is on: write analysis/music-candidates.json (3–4 royalty-free tracks).' : '',
       project.references.length ? `Reference reels: ${project.references.join(' ')}. Download each with yt-dlp into analysis/refs/ and watch them densely (video-core look.md §5).` : '',
       'Do not write a plan yet. End with a short summary of what you found.',
+    ].join('\n');
+  } else if (stage === 'music') {
+    body = [
+      'Stage: music. The user wants other tracks: suggest 3–4 different tracks than analysis/music-candidates.json lists (video-core music.md), overwrite that file and keep its format.',
+      'Do not write a plan.',
     ].join('\n');
   } else if (stage === 'plan') {
     body = [
