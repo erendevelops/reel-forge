@@ -11,7 +11,8 @@ const FADE = 0.08;
  */
 export function renderCaptions(captions: Plan['captions'], ctx: CompileContext, panels: [number, number][] = []): Fragment {
   if (captions.style === 'none' || captions.groups.length === 0) return { html: '', css: '', timeline: '' };
-  if (captions.style !== 'word-build') throw new Error(`not implemented: caption style ${captions.style}`);
+  if (captions.style === 'one-word') return oneWord(captions, ctx, panels);
+  if (captions.style === 'serif-small') return serifSmall(captions, ctx);
 
   const maxW = sz(ctx, 900);
   const css = [
@@ -43,4 +44,56 @@ export function renderCaptions(captions: Plan['captions'], ctx: CompileContext, 
   });
 
   return { html: `<div id="captions">${groups.join('')}</div>`, css, timeline: tl.join('\n') };
+}
+
+const top = (ctx: CompileContext) => `#captions { position: absolute; left: 0; top: ${Math.round(CAPTION_TOP * ctx.height)}px; width: 100%; z-index: 5; }`;
+
+/**
+ * One big word (onur.builds): only the word being spoken, yellow with a dark outline, cut in at its start and out
+ * at the next word's start (the group clip ends the last one).
+ */
+function oneWord(captions: Plan['captions'], ctx: CompileContext, panels: [number, number][]): Fragment {
+  const css = [
+    top(ctx),
+    `#captions .cap-group { position: absolute; left: 0; top: 0; width: 100%; text-align: center; }`,
+    `#captions .cap-one { display: none; font-family: 'Inter', sans-serif; font-weight: 900; font-size: ${num(sz(ctx, 96))}px; line-height: 1.1; color: #FFD21F; -webkit-text-stroke: ${num(sz(ctx, 14))}px #111111; paint-order: stroke fill; }`,
+  ];
+  const groups: string[] = [];
+  const tl: string[] = [];
+  captions.groups.forEach((g, gi) => {
+    const gid = `cap-${gi + 1}`;
+    const start = g.words[0][1];
+    const words = g.words.map(([w], wi) => `<div id="${gid}-w${wi + 1}" class="cap-one">${esc(w)}</div>`).join('');
+    const onPanel = panels.some(([a, b]) => start >= a - 1e-3 && start < b);
+    groups.push(clipDiv(gid, start, g.end, onPanel ? 'cap-group on-panel' : 'cap-group', words));
+    g.words.forEach(([, t], wi) => {
+      tl.push(tlSet(`#${gid}-w${wi + 1}`, { display: 'block' }, t));
+      if (wi > 0) tl.push(tlSet(`#${gid}-w${wi}`, { display: 'none' }, t));
+    });
+  });
+  return { html: `<div id="captions">${groups.join('')}</div>`, css: css.join('\n'), timeline: tl.join('\n') };
+}
+
+/** Small serif (msevimli_): the whole group as one quiet line; `*word*` in the plan renders italic. */
+function serifSmall(captions: Plan['captions'], ctx: CompileContext): Fragment {
+  const css = [
+    top(ctx),
+    `#captions .cap-group { position: absolute; left: 50%; top: 0; width: ${num(sz(ctx, 900))}px; margin-left: ${num(-sz(ctx, 450))}px; text-align: center; font-family: 'Times New Roman', Georgia, serif; font-weight: 400; font-size: ${num(sz(ctx, 44))}px; line-height: 1.2; color: ${WHITE}; text-shadow: 0 2px 10px rgba(0,0,0,0.6); }`,
+    '#captions .cap-group em { font-style: italic; }',
+  ];
+  const groups: string[] = [];
+  const tl: string[] = [];
+  captions.groups.forEach((g, gi) => {
+    const gid = `cap-${gi + 1}`;
+    const start = g.words[0][1];
+    const line = g.words
+      .map(([w]) => {
+        const m = /^\*(.+)\*$/.exec(w);
+        return m ? `<em>${esc(m[1])}</em>` : esc(w.replace(/\*/g, ''));
+      })
+      .join(' ');
+    groups.push(clipDiv(gid, start, g.end, 'cap-group', line));
+    tl.push(tlFromTo(`#${gid}`, { opacity: 0 }, { opacity: 1, duration: 0.15, ease: 'none' }, start));
+  });
+  return { html: `<div id="captions">${groups.join('')}</div>`, css: css.join('\n'), timeline: tl.join('\n') };
 }
