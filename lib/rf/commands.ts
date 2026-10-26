@@ -68,12 +68,15 @@ export const COMMANDS: Record<string, Command> = {
     const [src, out] = [resolveInProject(need(pos[0], 'video')), resolveInProject(need(pos[1], 'out.jpg'))];
     const every = Number(flags.every ?? 2);
     const { duration } = await probe(src);
-    const n = Math.max(1, Math.ceil(duration / every));
+    // --from/--to: a dense look at one stretch (e.g. a reference reel in 10 s chunks at --every 0.5)
+    const from = Math.max(0, Number(flags.from ?? 0));
+    const to = Math.min(duration, Number(flags.to ?? duration));
+    const n = Math.max(1, Math.ceil((to - from) / every));
     const cols = Math.min(10, n);
     await mkdir(path.dirname(out), { recursive: true });
     await run('ffmpeg', [
-      '-y', '-v', 'error', '-i', src, '-an', '-vf',
-      `fps=1/${every},scale=216:-1,drawtext=fontfile='${FONT}':text='%{pts\\:hms}':x=4:y=4:fontsize=16:fontcolor=yellow:box=1:boxcolor=black,tile=${cols}x${Math.ceil(n / cols)}`,
+      '-y', '-v', 'error', '-ss', String(from), '-t', String(Math.max(0.1, to - from)), '-i', src, '-an', '-vf',
+      `fps=1/${every},scale=216:-1,drawtext=fontfile='${FONT}':text='%{pts\\:hms\\:${from}}':x=4:y=4:fontsize=16:fontcolor=yellow:box=1:boxcolor=black,tile=${cols}x${Math.ceil(n / cols)}`,
       '-frames:v', '1', out,
     ]);
     return { out: path.relative(resolveInProject('.'), out) };

@@ -149,13 +149,13 @@ describe('talking-head cards', () => {
 });
 
 describe('layouts', () => {
-  it('split shows the whole source frame in a rounded card at the source aspect on #F7F3EA', () => {
+  it('split puts a portrait source in a wide 4:3 rounded card on #F7F3EA', () => {
     expect(html).toContain('#F7F3EA');
     // steps scene (2 s) turns into split; its shot has no aspect, so the source is the 9:16 working clip:
     // the card is the tallest 9:16 box in the bottom half (880 px: half height minus two 40 px gaps), 28 px radius
     const t = tl.split('\n').find((l) => l.startsWith('tl.fromTo("#face"') && l.endsWith(', 2);'))!;
     expect(t).toBeDefined();
-    expect(t).toContain('{ x: 292.5, y: 1000, width: 495, height: 880, borderRadius: 28');
+    expect(t).toContain('{ x: 43.2, y: 1067.4, width: 993.6, height: 745.2, borderRadius: 28');
     expect(t).toContain('duration: 0.4, ease: "expo.out"');
     expect(t).toContain('immediateRender: false');
     // outro: a 16:9 source gets a 16:9 card (92% wide), centred in the bottom half
@@ -176,11 +176,10 @@ describe('layouts', () => {
     expect(html).toMatch(/<div id="face"[^>]*style="[^"]*width: 1080px; height: 1920px;/);
   });
 
-  it('split face card never crops into the face: contain, no facePos crop', () => {
-    // shot-2 (steps, split, facePos y 0.22) and shot-4 (outro, split) are contained; full-face shot-1 stays cover
-    expect(html).toMatch(/id="shot-2-video"[^>]*style="object-fit: contain;"/);
-    expect(html).toMatch(/id="shot-4-video"[^>]*style="object-fit: contain;"/);
-    expect(html).not.toMatch(/id="shot-2-video"[^>]*object-position/);
+  it('split face card of a portrait source shows its full width (cover, panned by facePos), never a zoom', () => {
+    // shot-2 (steps, split, facePos y 0.22) and shot-4 (outro, split) fill the 4:3 card at the source's full width
+    expect(html).toMatch(/id="shot-2-video"[^>]*style="object-position: 50% 22%;"/);
+    expect(html).not.toMatch(/id="shot-2-video"[^>]*object-fit: contain/);
     expect(html).not.toMatch(/id="shot-1-video"[^>]*style=/);
   });
 

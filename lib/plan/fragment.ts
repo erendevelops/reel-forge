@@ -13,6 +13,14 @@ export const FragmentParams = z.object({
   html: z.string(),
   css: z.string().default(''),
   timeline: z.string().default(''),
+  /**
+   * Scene script: plain JS run once at page load that builds the scene and schedules tweens (loops, arithmetic and
+   * DOM building allowed). Deterministic by rule (no clock, no random but the seeded `rand`) and sandboxed by the
+   * page CSP; see `checkScript`. With a script, classes stay unprefixed and CSS is scoped under the card only.
+   */
+  script: z.string().default(''),
+  /** Card-relative times of the visible beats inside the scene (a row lands, a tick, a count starts): motion density. */
+  beats: z.array(z.number().finite().nonnegative()).default([]),
   label: z.string().optional(),
 });
 export type FragmentParams = z.infer<typeof FragmentParams>;
@@ -336,6 +344,49 @@ function cssRules(css: string): { sel: string; body: string }[] | undefined {
 
 // ------------------------------------------------------------------------------------------------ checks
 
+// ------------------------------------------------------------------------------------------------ script
+
+/**
+ * What a scene script may not touch. The page CSP already blocks network, eval and plugins; these keep the scene
+ * deterministic under frame seeking (no clock, no unseeded random, no callbacks) and inside its own card.
+ */
+const SCRIPT_BANNED: [RegExp, string][] = [
+  [/\bDate\b|\bperformance\b/, 'the clock (Date/performance): scenes are seeked frame by frame, time comes only from tween positions'],
+  [/\bMath\s*\.\s*random\b/, 'Math.random (use the seeded rand())'],
+  [/\b(setTimeout|setInterval|requestAnimationFrame|requestIdleCallback|queueMicrotask)\b/, 'timers (setTimeout/setInterval/requestAnimationFrame)'],
+  [/\b(fetch|XMLHttpRequest|WebSocket|EventSource|importScripts|Worker|SharedWorker|navigator|sendBeacon)\b/, 'network/workers'],
+  [/\b(eval|Function|import|require)\b/, 'eval/Function/import/require'],
+  // bare globals only: `el.style.top` and `{ top: 0 }` are fine
+  [/(?<![.\w$])(window|globalThis|self|top|parent|opener|frames|location|history)\b(?!\s*:)/,'window/globalThis/location (stay inside the card)'],
+  [/\b(localStorage|sessionStorage|indexedDB|caches|cookie)\b/, 'storage/cookies'],
+  [/\b(__proto__|constructor|prototype)\b/, '__proto__/constructor/prototype'],
+  [/\b(postMessage|addEventListener|dispatchEvent)\b/, 'events (addEventListener/postMessage)'],
+  [/\bon(?:[A-Z]\w*|click|load|error|mouse\w*|key\w*|focus|blur|input|change|submit|animation\w*|transition\w*)\s*[:=]/, 'callbacks/handlers (onUpdate, onComplete, onclick…): they never fire under seeking; tween properties instead'],
+  [/\bgsap\b(?!\s*\.\s*utils\b)/, 'the global gsap (use tl.to/tl.fromTo/tl.set; gsap.utils is fine)'],
+  [/<\/script|<!--/i, '"</script" / "<!--"'],
+  [/\bhttps?:/i, 'external URL (http/https)'],
+  [/javascript:/i, 'javascript: URL'],
+];
+
+/** Rule violations of a scene script (syntax-checked by compiling it, never run here). */
+export function checkScript(src: string): string[] {
+  if (!src.trim()) return [];
+  const errors: string[] = [];
+  const code = src.replace(/\bdocument\s*\.\s*createElement(?:NS)?\s*\(/g, 'mk(');
+  for (const [re, what] of SCRIPT_BANNED) if (re.test(code)) errors.push(`script: ${what} is not allowed`);
+  if (/\bdocument\b/.test(code)) errors.push('script: document is only allowed as document.createElement/createElementNS (query with $/$$, which stay inside the card)');
+  try {
+    // eslint-disable-next-line no-new-func -- syntax check only: the function is compiled, never called
+    new Function(...SCRIPT_ARGS, src);
+  } catch (e) {
+    errors.push(`script: ${(e as Error).message}`);
+  }
+  return errors;
+}
+
+/** Names a scene script sees (see `scriptRuntime`). */
+export const SCRIPT_ARGS = ['tl', '$', '$$', 'stage', 'W', 'H', 'D', 'rand', 'count', 'type', 'kit'] as const;
+
 /** All rule violations of a `custom-animation` fragment (`duration`: the card's length in seconds, if known). */
 export function checkFragment(params: unknown, duration?: number): string[] {
   const parsed = FragmentParams.safeParse(params);
@@ -352,6 +403,8 @@ export function checkFragment(params: unknown, duration?: number): string[] {
   if (rules === undefined) errors.push('css: must be a flat list of "selector { declarations }" rules');
   else for (const r of rules) if (!SELECTOR.test(r.sel)) errors.push(`css: selector ${JSON.stringify(r.sel)} may only use ids, classes, element names and combinators`);
   errors.push(...parseTimeline(p.timeline, duration).errors);
+  errors.push(...checkScript(p.script));
+  if (!p.html.trim() && !p.script.trim()) errors.push('params: a custom-animation needs html or a script');
   return [...new Set(errors)];
 }
 
@@ -359,13 +412,14 @@ export function checkFragment(params: unknown, duration?: number): string[] {
 
 const IDENT = '-?[_a-zA-Z][\\w-]*';
 
-/** `#a.b c` → `#P-a.P-b c`, every comma part scoped under `#root`. */
-function scopeSelector(sel: string, prefix: string, root: string): string {
+/** `#a.b c` → `#P-a.P-b c` (`keepClasses`: `#P-a.b c`), every comma part scoped under `#root`. */
+function scopeSelector(sel: string, prefix: string, root: string, keepClasses = false): string {
+  const re = new RegExp(`(${keepClasses ? '#' : '[#.]'})(${IDENT})`, 'g');
   return sel
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean)
-    .map((s) => `#${root} ${s.replace(new RegExp(`([#.])(${IDENT})`, 'g'), (_, sig: string, id: string) => `${sig}${prefix}-${id}`)}`)
+    .map((s) => `#${root} ${s.replace(re, (_, sig: string, id: string) => `${sig}${prefix}-${id}`)}`)
     .join(', ');
 }
 
@@ -408,6 +462,8 @@ export function namespaceFragment(params: FragmentParams | Record<string, unknow
   if (errors.length) throw new Error(`custom-animation ${id}: ${errors.join('; ')}`);
   const p = FragmentParams.parse(params);
   const prefix = id;
+  // a script builds markup with its own class names: keep classes as written, scope CSS under the card only
+  const keepClasses = p.script.trim() !== '';
   const toks = tokenizeHtml(p.html, [])!;
   const html = toks
     .map((t) => {
@@ -417,7 +473,7 @@ export function namespaceFragment(params: FragmentParams | Record<string, unknow
         const n = name.toLowerCase();
         let val = v;
         if (n === 'id') val = `${prefix}-${v.trim()}`;
-        else if (n === 'class') val = v.split(/\s+/).filter(Boolean).map((c) => `${prefix}-${c}`).join(' ');
+        else if (n === 'class' && !keepClasses) val = v.split(/\s+/).filter(Boolean).map((c) => `${prefix}-${c}`).join(' ');
         else if (n === 'href' || n === 'xlink:href') val = `#${prefix}-${v.slice(1)}`;
         else if (n === 'src') val = assetUrl(v);
         else val = scopeUrls(v, prefix);
@@ -427,7 +483,7 @@ export function namespaceFragment(params: FragmentParams | Record<string, unknow
     })
     .join('');
   const rules = cssRules(p.css) ?? [];
-  const css = rules.map((r) => `${scopeSelector(r.sel, prefix, id)} { ${scopeUrls(r.body, prefix)} }`).join('\n');
+  const css = rules.map((r) => `${scopeSelector(r.sel, prefix, id, keepClasses)} { ${scopeUrls(r.body, prefix)} }`).join('\n');
   const { calls } = parseTimeline(p.timeline);
   const timeline = calls
     .map((c) => `tl.${c.method}(${jsString(scopeSelector(c.selector, prefix, id))}, ${c.vars.map(printLit).join(', ')}, ${fmtNum(Number((start + c.at).toFixed(3)))});`)

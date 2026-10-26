@@ -85,6 +85,17 @@ const CSP = [
   "form-action 'none'",
 ].join('; ');
 
+/** The look tokens as CSS variables on `#root` (templates fall back to their own palette when a token is unset). */
+function kitVars(plan: Plan): string {
+  const l = plan.look;
+  if (!l) return '';
+  const v: [string, string | number | undefined][] = [
+    ['bg', l.background], ['ink', l.ink], ['card', l.card], ['accent', l.accent], ['muted', l.muted],
+    ['positive', l.positive], ['negative', l.negative], ['radius', l.radius === undefined ? undefined : `${l.radius}px`],
+  ];
+  return v.filter(([, x]) => x !== undefined).map(([k, x]) => ` --${k}: ${x};`).join('');
+}
+
 /** Compiles a plan into a HyperFrames project at `outDir` (index.html + assets/). Deterministic. */
 export async function compile(plan: Plan, o: CompileOptions): Promise<{ indexHtml: string }> {
   const [width, height] = RATIO_SIZE[o.ratio];
@@ -95,6 +106,7 @@ export async function compile(plan: Plan, o: CompileOptions): Promise<{ indexHtm
     height,
     fps: plan.fps,
     ratio: o.ratio,
+    kit: plan.look ? { ...plan.look } : undefined,
     assetsUrl: (p) => {
       // `si:<slug>`: a topic logo from the bundled simple-icons set, written into the project as an SVG
       const ref = logoRef(p);
@@ -180,7 +192,7 @@ window.__timelines["main"] = tl;
 ${fontCss}
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html, body { width: ${width}px; height: ${height}px; overflow: hidden; background: ${bg}; }
-#root { position: relative; width: ${width}px; height: ${height}px; overflow: hidden; background: ${bg}; font-family: 'Inter', sans-serif; }
+#root { position: relative; width: ${width}px; height: ${height}px; overflow: hidden; background: ${bg}; font-family: '${plan.look?.font ?? 'Inter'}', sans-serif;${kitVars(plan)} }
 ${css.join('\n')}
 </style>
 </head>

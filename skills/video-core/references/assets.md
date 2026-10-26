@@ -18,40 +18,64 @@ Product screenshots, sample outputs and banners come from the product's own repo
 with their source in `analysis/assets.json`. Prefer an image that shows a *result* (generated images, before/after)
 over one that shows text.
 
-## Writing a `custom-animation`
+## Writing a `custom-animation` (your own scene)
 
-A `custom-animation` card is a small HTML/SVG scene plus a GSAP timeline that you write. It is checked against a
-strict allowlist (`rf validate` reports every violation):
+Most beats of a talking-head or app video are your own scenes. A `custom-animation` card is HTML/SVG + CSS plus a
+**scene script** that builds and animates it. Params:
 
-- **`timeline`**: only top-level calls `tl.fromTo("<selector>", {from}, {to}, <seconds>)`, `tl.to(...)` and `tl.set(...)`.
-  Times are **relative to the card start**. Values must be literals (numbers, strings, booleans, nested objects/arrays):
-  no variables, loops, functions, arithmetic, template strings, `random`, or callbacks (`onComplete`…).
-- **`html`**: plain HTML/SVG elements with quoted attributes. `<img src="ext/shot.jpg">` is allowed for real images (relative to `inputs/`, no `..`). No `<script>`, `<iframe>`, `on*` handlers or URLs. Strip `xmlns="http://…"` from pasted SVGs (inline SVG doesn't need it, and any `http` is refused).
-- **`css`**: flat `selector { … }` rules. `url()` only for `#id` or a relative asset path. No `@import` or comments.
-- Selectors are scoped to the card automatically. Ids and classes are namespaced, so keep them short. `:nth-child()` isn't available: give each element its own class.
-- Pixel positions are used as written, in the card's region (1080×1920 on 9:16, 1920×1080 on 16:9). For a project with several ratios, put a per-ratio `html`/`css` in the scene's `ratioOverrides` (e.g. `"ratioOverrides": { "9:16": { "html": "…", "css": "…" } }`).
-- Never use `from` (only `fromTo`/`set`): scenes are re-seeked and `from` renders wrong.
+```json
+{ "html": "…", "css": "…", "script": "…", "beats": [0.4, 1.6, 2.3], "label": "ad spend calculator" }
+```
 
-A growing bar with a label:
+- `html`: the static part (HTML/SVG elements, quoted attributes, `<img src="ext/shot.jpg">` for real images relative to `inputs/`). No `<script>`, `on*` handlers or URLs. Strip `xmlns="http://…"` from pasted SVGs.
+- `css`: flat `selector { … }` rules, scoped to the card. Use the kit variables: `var(--card)`, `var(--ink)`, `var(--muted)`, `var(--accent)`, `var(--positive)`, `var(--negative)`, `var(--radius)`, `var(--bg)`. No `@` rules, comments, `animation`/`transition`.
+- `script`: plain JavaScript, run once when the page loads. Loops, arithmetic, helper functions and DOM building (`document.createElement`, `stage.appendChild`, `el.innerHTML = …`) are all fine. In scope:
+
+| Name | What |
+|---|---|
+| `tl.fromTo(target, from, to, at)`, `tl.to(target, vars, at)`, `tl.set(target, vars, at)` | GSAP tweens. `at` = seconds from the card start, **required**. `target`: a selector inside the card, an element, or an array |
+| `$(sel)`, `$$(sel)` | query inside the card (first / all). `#id` means the html's own ids |
+| `stage`, `W`, `H`, `D` | the card's stage element, its size in px, the card duration in s |
+| `count(target, from, to, at, dur, { locale, decimals, prefix, suffix })` | a number counting up (`1.000.000 ₺`), eased, frame-accurate |
+| `type(target, text, at, charsPerSecond)` | text typed character by character |
+| `rand()` | seeded random 0–1 (same every render): jitter, scatter, confetti |
+| `kit` | the look tokens as values (`kit.accent`) |
+| `gsap.utils` | GSAP's helpers (`interpolate`, `clamp`, `mapRange`, …) |
+
+  Not allowed (scenes are rendered by seeking frame by frame): `Date`, `Math.random`, timers, `onUpdate`/`onComplete` callbacks, the global `gsap.to`, `window`/`document.querySelector` (stay inside the card), network. `rf validate` reports each one.
+- `beats`: card-relative times of the visible beats inside the scene (a row lands, a tick, a stamp). `rf gaps` counts them, so a 10 s scene that keeps building is not a "static" stretch.
+- Never use `from()` (only `fromTo`/`to`/`set`). Text changes (`textContent`) go through `tl.set` / `count` / `type`.
+- Positions are pixels in the card's region (1080×960 for the top half of a 9:16 split, 1080×1920 full graphics, 1920×1080 on 16:9). For several ratios put a per-ratio `html`/`css`/`script` in the scene's `ratioOverrides`.
+
+### Example: a value card that counts, a derived card and a stamp (onur.builds)
 
 ```fragment-json
 {
-  "duration": 2.5,
-  "html": "<div class=\"bar\"></div><div class=\"lab\">%70</div>",
-  "css": ".bar { position: absolute; left: 140px; bottom: 120px; width: 160px; height: 400px; background: #F5B700; border-radius: 12px; transform-origin: 50% 100%; } .lab { position: absolute; left: 140px; bottom: 540px; width: 160px; text-align: center; font: 800 64px Inter; color: #111827; opacity: 0; }",
-  "timeline": "tl.fromTo(\".bar\", {scaleY: 0}, {scaleY: 1, duration: 0.8, ease: \"expo.out\"}, 0.1); tl.fromTo(\".lab\", {opacity: 0, y: 20}, {opacity: 1, y: 0, duration: 0.4, ease: \"power3.out\"}, 0.6);"
+  "html": "<div class=\"card spend\"><div class=\"chip\">📣</div><div><div class=\"lab\">REKLAM HARCAMAN</div><div class=\"val\" id=\"spend\">0 ₺</div></div></div><div class=\"link\"></div><div class=\"card back\"><div class=\"chip\">🏛</div><div><div class=\"lab\">DEVLET GERİ ÖDER</div><div class=\"val\" id=\"back\">0 ₺</div></div></div><div class=\"stamp\">%70 GERİ</div>",
+  "css": ".card { position: absolute; left: 90px; width: 900px; height: 190px; display: flex; align-items: center; gap: 28px; padding: 0 40px; background: var(--card); border-radius: var(--radius); box-shadow: 0 14px 40px rgba(0,0,0,.10); } .spend { top: 120px; } .back { top: 420px; background: var(--accent); } .chip { width: 84px; height: 84px; border-radius: 20px; background: rgba(0,0,0,.06); display: flex; align-items: center; justify-content: center; font-size: 44px; } .lab { font: 700 22px Inter; letter-spacing: 2px; color: var(--muted); } .back .lab { color: rgba(0,0,0,.55); } .val { font: 800 76px Inter; color: var(--ink); } .link { position: absolute; left: 520px; top: 330px; width: 40px; height: 70px; border-left: 4px dashed var(--muted); } .stamp { position: absolute; left: 700px; top: 600px; padding: 10px 26px; border: 6px solid var(--positive); border-radius: 18px; color: var(--positive); font: 900 54px Inter; background: var(--card); }",
+  "script": "tl.fromTo('.spend', { x: -260, rotation: -4, opacity: 0 }, { x: 0, rotation: 0, opacity: 1, duration: 0.6, ease: 'expo.out' }, 0);\ncount('#spend', 0, 1000000, 0.2, 1.2, { suffix: ' ₺' });\ntl.fromTo('.link', { scaleY: 0, transformOrigin: '50% 0%' }, { scaleY: 1, duration: 0.3, ease: 'power2.out' }, 1.5);\ntl.fromTo('.back', { x: 260, rotation: 4, opacity: 0 }, { x: 0, rotation: 0, opacity: 1, duration: 0.6, ease: 'expo.out' }, 1.7);\ncount('#back', 0, 700000, 1.9, 1.0, { suffix: ' ₺' });\ntl.fromTo('.stamp', { scale: 1.8, rotation: -14, opacity: 0 }, { scale: 1, rotation: -6, opacity: 1, duration: 0.35, ease: 'back.out(2)' }, 3.0);",
+  "beats": [0, 1.5, 1.7, 3.0]
 }
 ```
 
-A three-step flow diagram that lights up step by step:
+Sounds for it: `casino/card-slide-2.ogg` at 0, `casino/chips-stack-2.ogg` at 0.2, `casino/card-slide-5.ogg` at 1.7, `impact/impactPunch_medium_001.ogg` at 3.0 (card times + the card start).
+
+### Example: rows that join a list and tick on their words
 
 ```fragment-json
 {
-  "duration": 3,
-  "html": "<div class=\"s s1\">Prompt</div><div class=\"s s2\">Model</div><div class=\"s s3\">Image</div>",
-  "css": ".s { position: absolute; top: 300px; width: 260px; height: 120px; border-radius: 18px; background: #fff; color: #111827; font: 700 40px Inter; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(0,0,0,.12); opacity: 0.25; } .s1 { left: 60px; } .s2 { left: 410px; } .s3 { left: 760px; }",
-  "timeline": "tl.fromTo(\".s1\", {opacity: 0.25, scale: 0.9}, {opacity: 1, scale: 1, duration: 0.4, ease: \"expo.out\"}, 0.2); tl.fromTo(\".s2\", {opacity: 0.25, scale: 0.9}, {opacity: 1, scale: 1, duration: 0.4, ease: \"expo.out\"}, 0.9); tl.fromTo(\".s3\", {opacity: 0.25, scale: 0.9}, {opacity: 1, scale: 1, duration: 0.4, ease: \"expo.out\"}, 1.6);"
+  "html": "<div class=\"head\">DESTEK NEYİ KAPSAR?</div>",
+  "css": ".head { position: absolute; top: 40px; width: 100%; text-align: center; font: 700 22px Inter; letter-spacing: 3px; color: var(--muted); } .row { position: absolute; left: 90px; width: 900px; height: 104px; display: flex; align-items: center; gap: 24px; padding: 0 28px; background: var(--card); border-radius: 26px; box-shadow: 0 10px 30px rgba(0,0,0,.08); font: 700 40px Inter; color: var(--ink); } .ok { margin-left: auto; width: 54px; height: 54px; border-radius: 50%; background: var(--positive); color: #fff; display: flex; align-items: center; justify-content: center; font: 900 30px Inter; }",
+  "script": "const items = [['Google', 0.3, 2.9], ['Meta', 0.8, 3.1], ['Unity', 1.3, 3.3], ['TikTok', 1.8, 3.5]];\nitems.forEach(([name, inAt, okAt], i) => {\n  const row = document.createElement('div');\n  row.className = 'row';\n  row.style.top = (110 + i * 124) + 'px';\n  row.innerHTML = '<span>' + name + '</span><span class=\"ok\">✓</span>';\n  stage.appendChild(row);\n  tl.fromTo(row, { x: 300, rotation: 3, opacity: 0 }, { x: 0, rotation: 0, opacity: 1, duration: 0.5, ease: 'expo.out' }, inAt);\n  tl.fromTo(row.querySelector('.ok'), { scale: 0 }, { scale: 1, duration: 0.3, ease: 'back.out(2.5)' }, okAt);\n});",
+  "beats": [0.3, 0.8, 1.3, 1.8, 2.9, 3.1, 3.3, 3.5]
 }
 ```
 
-The `duration` field above only exists for these examples; in a plan the card's `end − start` is the duration.
+In a real plan every `inAt` / `okAt` is the spoken word's time (from the transcript) minus the card start.
+
+### Craft
+
+- Icons: small inline SVG line icons (24-unit viewBox, stroke 2, `stroke="currentColor"`), not emoji.
+- Build the real object, not a caption: a card with an icon, a label and a value; a calendar with its cells; a phone with its keypad; a window with its title bar. Small details (an icon chip, a dashed empty state, a progress bar) make it read as designed.
+- Keep a scene alive: let it accumulate (rows join), transform (a value recounts, a struck-through number turns into the corrected one) and only then leave.
+- Enter slow, leave fast; overlap the next element when the previous one is a third done; titles land and stay still.

@@ -21,7 +21,8 @@
       "rolling-number",
       "stamp",
       "typed-title",
-      "follow-outro"
+      "follow-outro",
+      "bar-chart"
     ],
     "sfx": true,
     "music": false,
@@ -32,7 +33,7 @@
     {
       "id": "hook",
       "start": 0,
-      "end": 7.0,
+      "end": 7,
       "say": "So one of the big reasons why many people are afraid to start a YouTube channel is because of the fear of speaking in front of the camera.",
       "why": "Hook: the fear of speaking to camera, full face, no cards.",
       "layout": "full-face",
@@ -44,7 +45,7 @@
         {
           "src": "take.mp4",
           "from": 0,
-          "to": 7.0,
+          "to": 7,
           "at": 0
         }
       ],
@@ -52,7 +53,7 @@
     },
     {
       "id": "explain",
-      "start": 7.0,
+      "start": 7,
       "end": 30.3,
       "say": "I had this feeling when I started this YouTube channel and this can be really intimidating at first, but with the right amount of practice, you will not only look natural on camera but also connect and be more intimate with your audience, which in general will make your videos look way better. In this video I will give you 5 tips that will quickly improve your confidence in front of the camera.",
       "why": "Split explainer: checklist ticks on \"natural\" 15.92, \"connect\" 17.72, \"better\" 23.78 (card in on \"practice,\" 14.18); rolling number on the spoken \"5\" 25.72.",
@@ -64,9 +65,9 @@
       "shots": [
         {
           "src": "take.mp4",
-          "from": 7.0,
+          "from": 7,
           "to": 30.3,
-          "at": 7.0
+          "at": 7
         }
       ],
       "cards": [
@@ -125,14 +126,20 @@
       ],
       "cards": [
         {
-          "type": "rolling-number",
+          "type": "bar-chart",
           "start": 34.42,
           "end": 37.6,
           "params": {
-            "from": 0,
-            "to": 1,
-            "locale": "en-US",
-            "suffix": " YEAR"
+            "bars": [
+              {
+                "label": "Before",
+                "value": 1
+              },
+              {
+                "label": "1 year",
+                "value": 4
+              }
+            ]
           }
         },
         {
@@ -166,7 +173,7 @@
           "start": 43.3,
           "end": 46.6,
           "params": {
-            "text": "Fear of judgment",
+            "text": "Judgment",
             "label": "Most of all"
           }
         }
@@ -1218,7 +1225,7 @@
       "volume": 0.45
     },
     {
-      "file": "sfx/pluck_002.wav",
+      "file": "sfx/impact/impactSoft_medium_001.ogg",
       "at": 17.72,
       "volume": 0.45
     },
@@ -1253,7 +1260,7 @@
       "volume": 0.45
     },
     {
-      "file": "sfx/pluck_002.wav",
+      "file": "sfx/casino/chip-lay-1.ogg",
       "at": 52.95,
       "volume": 0.45
     }

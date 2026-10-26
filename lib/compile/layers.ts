@@ -50,6 +50,7 @@ export const FULL_FACE_CARD_TOP = 0.78;
  */
 export function faceRect(layout: Layout, width: number, height: number, aspect = width / height): { x: number; y: number; w: number; h: number } {
   if (layout === 'split') {
+    aspect = splitAspect(aspect);
     const gap = (40 * Math.min(width, height)) / 1080;
     const maxH = height / 2 - 2 * gap;
     const w = Math.min(FACE_MAX_WIDTH * width, maxH * aspect);
@@ -58,6 +59,14 @@ export function faceRect(layout: Layout, width: number, height: number, aspect =
   }
   return { x: 0, y: 0, w: width, h: height };
 }
+
+/**
+ * The split face card's aspect: a portrait source becomes a wide 4:3 card (onur.builds' face card) showing the
+ * source's full width, cropped top/bottom around facePos — a reframe at the same scale, never a zoom into the face.
+ */
+export const splitAspect = (sourceAspect: number) => (sourceAspect < 1 ? 4 / 3 : sourceAspect);
+/** `cover` when the card is wider than the source (portrait source): fills the card, panned by facePos. */
+export const splitFit = (sourceAspect: number): 'cover' | 'contain' => (sourceAspect < 1 ? 'cover' : 'contain');
 
 /** `prev` is the face geometry before this layout; `full-graphics` keeps it and only hides the face. `aspect`: the source's w/h. */
 export function faceState(layout: Layout, ctx: { width: number; height: number }, prev: FaceState | undefined, aspect?: number): FaceState {
@@ -162,7 +171,7 @@ export function renderLayoutMask(plan: Plan, ctx: CompileContext): Fragment {
 export function renderFootage(plan: Plan, ctx: CompileContext): Fragment {
   const html: string[] = [];
   const tl: string[] = [];
-  const shots = plan.scenes.flatMap((sc) => sc.shots.map((sh) => ({ sh, facePos: sc.facePos, split: sceneLayout(sc) === 'split' })));
+  const shots = plan.scenes.flatMap((sc) => sc.shots.map((sh) => ({ sh, facePos: sc.facePos, split: sceneLayout(sc) === 'split' && splitFit(sceneAspect(sc, ctx.width, ctx.height)) === 'contain' })));
   shots.forEach(({ sh, facePos, split }, i) => {
     const id = `shot-${i + 1}`;
     const dur = sh.to - sh.from;

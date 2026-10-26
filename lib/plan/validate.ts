@@ -2,6 +2,7 @@ import { PlanSchema, type Card, type Plan } from './schema';
 import { checkFragment } from './fragment';
 import { CARD_PARAMS } from './card-params';
 import { logoRef, resolveLogo } from '../assets/logos';
+import { checkVariety } from './variety';
 
 const TOL = 1e-3;
 
@@ -119,6 +120,9 @@ export function validatePlan(input: unknown): ValidationResult {
   if (Math.abs(last.end - plan.duration) > TOL) {
     errors.push(`last scene ${last.id} ends at ${last.end} but duration is ${plan.duration}`);
   }
+
+  // 5. variety (talking-head and app videos)
+  errors.push(...checkVariety(plan));
 
   return errors.length ? { ok: false, errors } : { ok: true, plan };
 }

@@ -1,57 +1,45 @@
 # Plan a talking-head reel
 
-## Layout rhythm
+## 1. Beats before scenes (`analysis/beats.md`)
 
-The default shape (adapt it to the talk):
+Go through `analysis/transcript-trimmed.json` (with `analysis/topics.json`) sentence by sentence. For each sentence write one line: the time, what
+is said, and **what you will draw** using the table in [../../video-core/references/look.md](../../video-core/references/look.md)
+§2 ("names an amount → a value card counting up, then …"). Rules for the list:
 
-| Part | Layout | What happens |
-|---|---|---|
-| Hook (0–3 s) | `full-face` | The strongest line; a stamp or number lands on its key word |
-| Body | `split` (graphics top, face card bottom) | One card per claim, number or product, entering on its word |
-| One beat in the middle | `full-graphics` | The face hides for 2–4 s while a `custom-animation` or a big number carries the idea |
-| Outro | `full-face` | Call to action + `follow-outro` with the creator's handle |
+- A drawing is an object with information: a value, rows, bars, flags, a rule, a window, a metaphor. Never the sentence as text.
+- Consecutive beats differ in kind (count → list → stamp → metaphor → comparison …). If two sentences are about the same thing, the second **transforms** the first scene (adds rows, recounts, strikes through) instead of starting a new card of the same kind.
+- Mark personal sentences ("I was nervous too") as `full-face`, no graphic.
+- A product, tool or brand named → its real logo, **once** in the video (`rf logo`), usually inside a row or card rather than floating alone.
+- Plan at least one `full-graphics` concept scene (an illustrated metaphor or an app window doing the work) for the central idea.
 
-Switch layouts on sentence boundaries, not mid-word. Each switch counts as a visual change.
+## 2. Kit (`analysis/kit.md` → `plan.look`)
 
-## Motion density, the rule that failed in the first test
+Default to the onur.builds kit (cream `#F2EEE6`, white cards, ink `#151515`, muted `#8A857A`, yellow accent
+`#F5B700`, positive `#1F9D55`, negative `#E5322D`, radius 28, Inter). If the user gave references, derive the kit from them
+instead ([../../video-core/references/look.md](../../video-core/references/look.md) §3). Write the kit into `plan.look`
+and use its variables in every scene.
 
-While someone speaks, **something visual changes every 1.5–2.5 s**: a card entering, a checklist tick, a list row,
-a logo pop, a layout switch, or a beat inside a `custom-animation`. Walk the transcript in 2 s windows. If a window
-has nothing, add something tied to a word in it:
+## 3. Scenes
 
-1. a product name → its logo (`logo-pop`, or the logo in a `title-card`);
-2. a number → `rolling-number`;
-3. a list → `checklist`, one tick per item;
-4. a contrast → `bar-chart`;
-5. a punchline → `stamp`;
-6. a term or name → `typed-title`;
-7. an idea with no logo → a `custom-animation` (a flow, a before/after, a small simulation).
+- One scene per beat group (usually 3–10 s). Layout per the beat list; switch layouts on sentence boundaries.
+- Graphics are mostly `custom-animation` scene scripts ([../../video-core/references/assets.md](../../video-core/references/assets.md)). A split scene's region is the top half (1080×960 on 9:16); `full-graphics` is the whole frame.
+- A scene card lives for the whole scene and keeps building; put every visible beat time in `beats`.
+- Built-in templates (`rolling-number`, `checklist`, `stamp`, `bar-chart`, `typed-title`, `logo-pop`) are fine for a single beat, but at most twice each and never in two scenes in a row. `follow-outro` closes the video.
+- Every time on screen sits on its word (±0.1 s of the word start in the trimmed transcript).
 
-Then run `rf gaps plan.json`. It must return `[]` before `rf save`. A save with gaps is refused.
+## 4. Footage
 
-## Topics → assets
+- The footage is the trimmed working clip `work/take-<ratio>.mp4`. One shot per scene with `from` = `at` = the scene start and `to` = the scene end, in trimmed time.
+- Set each scene's `facePos` from the face track (it pans the full-frame crop and frames the 4:3 face card). **Never zoom into the face.** No punch-ins unless ticked.
 
-Every item in `analysis/topics.json` should appear on screen near its `at` (±0.1 s of the word):
+## 5. Sound
 
-- `product` → official logo via `rf logo` (`si:<slug>`). If not found, follow the fallback in [../../video-core/references/assets.md](../../video-core/references/assets.md). Never invent one.
-- `number` → `rolling-number` (with `locale` from the language).
-- `claim` → `stamp` or `typed-title`.
-- `concept` → `custom-animation`.
+One sound per visible action, matched to the gesture ([../../video-core/references/sfx.md](../../video-core/references/sfx.md)):
+keys for typing, card slides for rows, chips for numbers, soft impacts for layout changes, a punch for stamps, a click
+for the follow button. Pick 4–6 families for the whole video and rotate files inside them.
 
-## Footage
+## 6. Before saving
 
-- The footage is the trimmed working clip `work/take-<ratio>.mp4` (the dead air is already cut). Use one shot per scene, with `from` = `at` = the scene start and `to` = the scene end, all in trimmed time.
-- Captions and card times come from `analysis/transcript-trimmed.json`, never the original transcript.
-- Set each scene's `facePos` from the face track. **Never zoom into the face**: no tighter crop, and no punch-ins unless ticked.
-
-## Captions
-
-The ticked style, with groups of 1–4 words. In `split` and `full-graphics` scenes the panel is light (`#F7F3EA`), so
-captions must stay readable there. The first test's white captions on beige were barely legible. Keep captions
-over the face card in split scenes, or rely on the caption ink the compiler uses for panels.
-
-## Before saving
-
-1. `rf validate plan.json`, and fix every error.
-2. `rf gaps plan.json` must be `[]`. Fix gaps by adding visuals, never by shortening the talk.
+1. `rf validate plan.json`: fix every error (variety errors name the repeat and what to do instead).
+2. `rf gaps plan.json` must be `[]`. Fix gaps with real beats in the scene (another row, a recount, a stamp), never filler.
 3. `rf save plan.json --request "first cut"`.

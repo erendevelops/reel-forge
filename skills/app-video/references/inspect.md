@@ -14,7 +14,8 @@ The repo is in `inputs/` (often a copied project folder). Screenshots may be nex
 2. **Brand tokens:** theme/token files (`tokens.ts`, `theme.ts`, `tailwind.config`, CSS `:root` variables) for ground, surface, ink, secondary and accent colours, plus semantic colours (success, warning, danger), font families and corner radius.
 3. **Icons and logo:** the app's own SVG paths and icon set. Keep logos as their original SVG.
 4. **The flow in use:** routes and screens beyond marketing (`app/`, `screens/`, the main store or state machine), and the key components (an add sheet, a list, a dashboard, a recap). Find the 2–3 beats of **using** it: entry → key action → result.
-5. **Demo data:** seed or fixture data and screenshots, for realistic numbers. All numbers on screen come from here; never invent personal data.
+5. **The components you'll rebuild:** for each screen in the flow, open its component file and write its real values into `analysis/components.md`: colours, radius, padding, font sizes/weights, icon SVG paths, strings, number format. Compare with the screenshots (`rf sheet` or read the images) so the rebuild matches what users actually see.
+6. **Demo data:** seed or fixture data and screenshots, for realistic numbers. All numbers on screen come from here; never invent personal data.
 
 ## Write `analysis/product.json`
 

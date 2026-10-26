@@ -13,6 +13,8 @@ export type CompileContext = {
   assetsUrl: (p: string) => string;
   /** Where the scene's graphics live, in px (split layout: the top half). Defaults to the whole frame. */
   region?: Region;
+  /** The plan's look tokens (design kit), also on `#root` as CSS variables `--bg`, `--ink`, `--card`… */
+  kit?: Record<string, string | number>;
 };
 
 export type Region = { x: number; y: number; w: number; h: number };

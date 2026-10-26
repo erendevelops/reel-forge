@@ -7,44 +7,51 @@
 - Every scene is `layout: "full-graphics"` with no shots. The rebuilt UI is the picture.
 - `captions.style: "none"` unless the user ticked captions.
 
-## Rebuilt UI = `custom-animation` cards
+## Rebuilt UI = scene scripts in the app's own design
 
-Each product moment is one or more `custom-animation` cards ([../../video-core/references/assets.md](../../video-core/references/assets.md)
-has the fragment rules and two worked examples). Build the real components in HTML/SVG with the brand tokens:
-a phone frame, sheets, list rows, cards with counters, rings, calendar grids, story cards. Then animate them acting:
+Each product moment is a `custom-animation` scene with a script ([../../video-core/references/assets.md](../../video-core/references/assets.md)).
+**Fidelity first:** before writing a scene, open the component it rebuilds (the add sheet, the list row, the budget
+card…) and copy its real values: background and border colours, radius, padding, font sizes and weights, icon SVG
+paths, the exact strings, the number format. Then scale the whole component up uniformly so it reads on video (a
+phone screen is drawn ~1.6× its points). A scene that "looks like an app" but not like *this* app is wrong.
 
-| Action | How (literal `tl` calls) |
+`plan.look` = the app's tokens (ground, surface as `card`, ink, secondary as `muted`, accent, success/danger as
+`positive`/`negative`, radius, font). Scenes use `var(--…)` so they match each other and the app.
+
+Vary the scenes, the real prao video is the bar ([prao.md](prao.md)): no two scenes share a layout or an entrance.
+
+| Action | How (scene script) |
 |---|---|
-| Typing an amount | Stack every text state ("0 ₺", "1 ₺", "18 ₺", "180 ₺") hidden; `tl.set` each visible at its keypress, plus a small scale pop. Never `fromTo` the stacked states (prao bug: all states visible at frame 0) |
-| Tap | `scale 1 → 0.88 → 1` plus the real selected state (background and icon colour swap) |
-| Counter | Digit columns (a strip of 0–9 twice) moved by `y` to land on each digit, staggered right to left |
-| Rings / bars | `stroke-dashoffset` / `scaleX` from 0 to the ratio; switch to the warning colour past the app's own threshold |
-| Cascade | Items enter 0.02–0.04 s apart, scale 0.8 → 1 |
-| List update | The sheet drops away, existing rows shift down, the new row drops in from above |
+| Typing an amount | `type()` the digits into the amount label, a small scale pop per key; the keypad key under the finger flashes (`tl.fromTo(key, {scale:1}, {scale:0.88})` then back) |
+| Tap | scale 1 → 0.88 → 1 plus the real selected state (background and icon colour swap via `tl.set`) |
+| Counter | `count()` with the app's number format, or digit columns rolling (see `rolling-number`) for the hook |
+| Rings / bars | `strokeDashoffset` / `scaleX` from 0 to the ratio; swap to the app's warning colour past its own threshold |
+| Cascade | items built in a loop, entering 0.02–0.04 s apart, scale 0.8 → 1, positions from a grid |
+| Scatter / gather | chips placed with `rand()` around the centre, then tweened into place (or into the logo) |
+| List update | the sheet drops away, rows shift down, the new row drops in from above |
+| Calendar | a loop builds the month grid; days fill in colour one by one; a streak counter `count()`s |
+| Story / recap card | progress segments fill, the total counts, the detail lines rise in |
 
-**Never pan over screenshots.** Real screenshots appear only in the outro, fanned in 3D behind the logo: one `custom-animation` with an `<img src="ext/<screen>.jpg">` per screenshot (copy them into `inputs/ext/` first), each tweened in with `x`, `rotationY`, `rotationZ` and `y`.
+**Never pan over screenshots.** Real screenshots appear only in the outro, fanned in 3D behind the logo
+(`<img src="ext/<screen>.jpg">` per screenshot, tweened with `x`, `rotationY`, `rotationZ`, `y`).
 
-**Several ratios:** pixel positions in a fragment are used exactly as written. Write the 16:9 version in `params`, and a recomposed 9:16 (or 1:1) version in each scene's `ratioOverrides`, e.g. `"ratioOverrides": { "9:16": { "html": "…", "css": "…" } }`.
+**Several ratios:** write the 16:9 version in `params`, and a recomposed 9:16 (or 1:1) in each scene's
+`ratioOverrides` (`html`/`css`/`script`). 16:9 usually puts the headline left and the UI right; 9:16 stacks them.
 
 ## Motion rules
 
 - **Arrive slow, leave fast:** entrances 0.4–0.9 s with a long `expo.out` tail; exits 0.2–0.3 s `power3.in`.
-- **Titles land and stay dead still.** The motion moves to the UI and the next element; no floating or breathing loops.
-- **Vary the entrances:** per-word blur, per-letter fade, number roll, card rise, 3D tilt, whip. Don't repeat the same fade-and-slide every scene.
-- **Transitions have a cause:** an object becomes the next scene (chips swirl into the logo, the saved row grows into the next card). Avoid crossfades between two busy layouts.
+- **Headlines land and stay dead still**; the UI acts beside them.
+- **Each scene has its own entrance:** number blur-roll, chip scatter, logo build, phone rise, card count-up, grid fill, story card, 3D screenshot fan. Never the same fade-and-slide twice.
+- **Transitions have a cause:** an object becomes the next scene (chips gather into the logo, the saved row grows into the next card).
 - **Overlap:** the next element starts when the previous is about a third done.
 
-## Sound (SFX on every visible action; never whooshes)
+## Sound
 
-| Action | Family (bundled under `sfx/`) | Volume |
-|---|---|---|
-| Typing | key ticks (`drop_001` at low volume if no key sounds are bundled) | 0.5 |
-| Tap / save | `drop_002` | 0.55 |
-| Card / row lands | `drop_003` | 0.5 |
-| Reveal / logo lands | `maximize_006` | 0.5 |
-| Outro | `drop_004` | 0.5 |
-
-Fire each sound at the **start** of its motion. Nothing is louder than the music's peaks.
+One sound per visible action, matched to it ([../../video-core/references/sfx.md](../../video-core/references/sfx.md)):
+keypresses per typed digit, clicks for taps, card slides for sheets, chips for money landing and counters, a bell or
+soft impact for the logo, card-fan for the screenshot fan. prao's real video used 33 different cues in 23 s.
+Fire each at the start of its motion. Nothing louder than the music's peaks.
 
 ## Before saving
 

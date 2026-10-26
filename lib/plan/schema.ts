@@ -106,7 +106,20 @@ export const PlanSchema = z.object({
   voice: z.object({ src: z.string().min(1) }).optional(),
   music: MusicSchema.optional(),
   /** Panel colours behind graphics (split/full-graphics). Required for app videos: the brand's own ground and ink. */
-  look: z.object({ background: Hex, ink: Hex.optional() }).optional(),
+  look: z
+    .object({
+      background: Hex,
+      ink: Hex.optional(),
+      /** The video's design kit (spec §6 "One look per video"): card surface, accent, muted text, corner radius (px). */
+      card: Hex.optional(),
+      accent: Hex.optional(),
+      muted: Hex.optional(),
+      positive: Hex.optional(),
+      negative: Hex.optional(),
+      radius: z.number().min(0).max(120).optional(),
+      font: z.enum(['Inter', 'Nunito']).optional(),
+    })
+    .optional(),
 });
 
 export type Selection = z.infer<typeof SelectionSchema>;

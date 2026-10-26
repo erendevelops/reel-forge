@@ -5,6 +5,7 @@
 - **Footage colour is never altered.** No grading, LUTs, gradients over footage or flashes. Legibility comes from text shadow and panels only.
 - **Only the ticked option cards.** If the right card for a moment isn't ticked, use a ticked one or nothing, and say so in your reply. Never add it.
 - **No whoosh or swoosh sounds.** Sound only what is visibly pressed, typed, landing or appearing.
+- **Never repetitive** (talking-head and app videos): no sound twice in a row, a logo once, no built-in card template in two scenes in a row or more than twice, no on-screen text that repeats the spoken line. `rf validate` refuses each; [look.md](look.md) says what to do instead.
 - **Music is optional and never chosen silently.** If the music card is ticked, suggest 3–4 tracks ([music.md](music.md)); the user picks.
 - **Every on-screen claim must be true to the source** (what is said, or what the product actually does). Framing lines are fine; invented facts are not.
 - **Never zoom into a face.** Crops are the widest the ratio allows (`rf crop`). Punch-ins only when ticked, and at most 2 per video.

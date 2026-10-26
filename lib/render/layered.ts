@@ -6,7 +6,7 @@ import { resolveAsset } from '../media/assets';
 import { TV_BT709_TAGS } from '../media/color';
 import { finishLoudness } from '../media/prepare';
 import { compile, RATIO_SIZE } from '../compile';
-import { LAYOUT_TWEEN_S, sceneFaces, type FaceState } from '../compile/layers';
+import { LAYOUT_TWEEN_S, sceneAspect, sceneFaces, splitFit, type FaceState } from '../compile/layers';
 import { punchScaleExpr } from '../compile/punch';
 import type { Plan, Ratio } from '../plan';
 import { render } from './render';
@@ -94,7 +94,7 @@ export function baseArgs(plan: Plan, o: LayeredOpts, w: number, h: number, out: 
   const faces = sceneFaces(plan, w, h);
   const shots = plan.scenes.flatMap((sc, si) => sc.shots.map((sh) => ({
     ...sh,
-    place: placement({ face: faces[si], facePos: sc.facePos ?? { x: 0.5, y: 0.5 }, fit: sc.layout === 'split' ? 'contain' : 'cover' }, w, h),
+    place: placement({ face: faces[si], facePos: sc.facePos ?? { x: 0.5, y: 0.5 }, fit: sc.layout === 'split' ? splitFit(sceneAspect(sc, w, h)) : 'cover' }, w, h),
   })));
   const args = ['-y', '-v', 'error', '-f', 'lavfi', '-i', `color=c=black:s=${w}x${h}:r=${plan.fps}:d=${n(plan.duration)},format=yuv420p,${BT709_TV}`];
   for (const sh of shots) args.push('-i', resolveAsset(sh.src, o.assetsDir));

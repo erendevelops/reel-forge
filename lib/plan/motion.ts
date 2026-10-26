@@ -15,6 +15,10 @@ export function visualEvents(plan: Plan): number[] {
     prev = layout;
     for (const c of s.cards) {
       ev.push(c.start); // includes custom-animation starts
+      const beats = (c.params as { beats?: unknown }).beats;
+      if (c.type === 'custom-animation' && Array.isArray(beats)) {
+        for (const b of beats) if (typeof b === 'number' && c.start + b <= c.end) ev.push(c.start + b);
+      }
       const items = (c.params as { items?: unknown }).items;
       if ((c.type === 'numbered-list' || c.type === 'checklist') && Array.isArray(items)) {
         for (const it of items) {

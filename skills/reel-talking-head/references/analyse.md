@@ -13,4 +13,6 @@
    { "topics": [{ "at": 3.42, "kind": "product", "text": "ChatGPT" }, { "at": 7.1, "kind": "number", "text": "1.000.000 ₺" }, { "at": 9.8, "kind": "claim", "text": "devlet %70'ini geri ödüyor" }, { "at": 14.2, "kind": "concept", "text": "masa = klasör" }] }
    ```
    For each `product`, run `rf logo <text>` now and note `found`.
-8. Write a 5-line summary: length after trims, cuts removed, face found in what share of samples, topics found, logos found/missing.
+8. If the user gave reference reels (in `inputs/` or linked in the brief), watch them densely (`rf sheet <ref> analysis/ref-<n>-<t>.jpg --every 0.5 --from <t> --to <t+10>` per 10 s) and write `analysis/references.md` ([../../video-core/references/look.md](../../video-core/references/look.md) §3).
+9. Write `analysis/beats.md` (what to draw per sentence) and `analysis/kit.md` ([plan.md](plan.md) §1–2).
+10. Write a 5-line summary: length after trims, cuts removed, face found in what share of samples, topics found, logos found/missing.

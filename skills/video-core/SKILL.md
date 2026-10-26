@@ -31,7 +31,7 @@ your own ffmpeg or Python, unless a preset skill tells you to.
 |---|---|
 | `rf project` | The project (preset, ratios, language, option cards), learned preferences, versions, and `latest.plan` |
 | `rf probe <file>` | Duration, size, rotation, fps, colour range, audio |
-| `rf sheet <video> <out.jpg> --every <s>` | A timestamped contact sheet to read as an image (much cheaper than frames) |
+| `rf sheet <video> <out.jpg> --every <s> [--from <s> --to <s>]` | A timestamped contact sheet to read as an image (much cheaper than frames). Watch references densely: `--every 0.5` in 10 s chunks |
 | `rf cuts <video>` | Scene-change times (pacing of a reference reel) |
 | `rf transcribe <audio> --lang <tr\|en\|auto> --prompt "<names>"` | Word-level timestamps. Seed `--prompt` with proper nouns |
 | `rf prep <src> <out> --from <s> --duration <s> --ratio <r> --fps <30\|60> [--crop <crop.json>]` | A working clip (BT.709, colour untouched) |
@@ -55,7 +55,9 @@ your own ffmpeg or Python, unless a preset skill tells you to.
 
 - [references/plan-contract.md](references/plan-contract.md): every field of `plan.json`, with a full example.
 - [references/rules.md](references/rules.md): hard rules, defaults, preferences.
+- [references/look.md](references/look.md): **read before planning a talking-head or app video.** One design kit per video, a new specific graphic per beat, watching references.
 - [references/cards.md](references/cards.md): every card type, when to use it, timing and sound.
-- [references/assets.md](references/assets.md): logos, external images, and writing a `custom-animation`.
+- [references/sfx.md](references/sfx.md): the 248 bundled sounds by action, and the variety rules.
+- [references/assets.md](references/assets.md): logos, external images, and writing a `custom-animation` scene script.
 - [references/music.md](references/music.md): suggesting music and aligning to its beats.
 - [references/qa.md](references/qa.md): what the app checks, and the one check you do yourself.
