@@ -10,6 +10,8 @@ import { ProjectClient } from './ProjectClient';
 import { CardsClient } from './CardsClient';
 import { TranscriptClient } from './TranscriptClient';
 import { MusicClient } from './MusicClient';
+import { StoryboardClient } from './StoryboardClient';
+import { readVersion } from '@/lib/app/workspace/store';
 import { CandidatesSchema, type Candidate } from '@/lib/app/music';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -29,6 +31,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   const latest = versions.at(-1)?.n;
   const stage = projectStage(project, { analysed: analysis.analysed, hasTranscript: analysis.transcriptFile !== null, versions, rendered: latest ? await hasFinalRender(id, latest) : false });
   const d = t(language).newProject.presets;
+  const board = (stage === 'storyboard' || stage === 'review') && latest ? { n: latest, plan: (await readVersion(id, latest)).plan } : null;
   let candidates: Candidate[] = [];
   if (stage === 'music') {
     const raw = await readFile(path.join(projectDir(id), 'analysis', 'music-candidates.json'), 'utf8').catch(() => null);
@@ -48,7 +51,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         </span>
       </div>
       <StageBar lang={language} stage={stage} />
-      {stage === 'music' ? (
+      {stage === 'storyboard' && board ? (
+        <StoryboardClient lang={language} project={{ id, mode: project.mode, preset: project.preset, ratios: project.ratios }} versions={versions} initial={board} lastJobId={jobs[0]?.jobId ?? null} />
+      ) : stage === 'music' ? (
         <MusicClient lang={language} projectId={id} candidates={candidates} picked={project.music} />
       ) : stage === 'transcript' && transcript ? (
         <TranscriptClient lang={language} projectId={id} transcript={transcript} />

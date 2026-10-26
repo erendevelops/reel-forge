@@ -42,6 +42,7 @@ export const en: Dictionary = {
   transcript: { title: 'CHECK THE TRANSCRIPT', hint: 'Click a misheard word to fix it. Timings stay the same.', confirm: 'Confirm' },
   music: { title: 'PICK THE MUSIC', pick: 'Pick this', more: 'Suggest others', drop: 'Download the track and drop it here (mp3, wav, m4a, ogg, flac; up to 50 MB)' },
   preview: { play: 'Play', pause: 'Pause', building: 'Building the preview…' },
+  storyboard: { why: 'Why?', save: 'Save', undo: 'Undo', approve: 'Approve & render', ask: 'Tell Claude a change', askScene: 'This scene', askAll: 'Whole video', seconds: 's', colors: 'Colours', animNote: 'Animations change through Claude.', sounds: 'Sounds', at: 'at', volume: 'volume', start: 'start', end: 'end', version: 'Version', branched: 'branched from an older version', changeCards: 'Change cards', review: 'Go to review' },
   stages: { footage: 'Footage', transcript: 'Transcript', storyboard: 'Storyboard', render: 'Render', review: 'Review' },
   guard: {
     host: 'Access through this address is not allowed.',

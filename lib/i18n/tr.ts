@@ -40,6 +40,7 @@ export const tr = {
   transcript: { title: 'METNİ KONTROL ET', hint: 'Yanlış duyulan kelimeye tıklayıp düzelt. Zamanlar değişmez.', confirm: 'Onayla' },
   music: { title: 'MÜZİĞİ SEÇ', pick: 'Bunu seç', more: 'Başka öner', drop: 'Parçayı indirip buraya bırak (mp3, wav, m4a, ogg, flac; en fazla 50 MB)' },
   preview: { play: 'Oynat', pause: 'Durdur', building: 'Önizleme hazırlanıyor…' },
+  storyboard: { why: 'Neden?', save: 'Kaydet', undo: 'Geri al', approve: 'Onayla ve render al', ask: 'Claude’a bir değişiklik söyle', askScene: 'Bu sahne', askAll: 'Tüm video', seconds: 'sn', colors: 'Renkler', animNote: 'Animasyonlar Claude ile değişir.', sounds: 'Sesler', at: 'zaman', volume: 'ses', start: 'başlangıç', end: 'bitiş', version: 'Sürüm', branched: 'eski bir sürümden dallandı', changeCards: 'Kartları değiştir', review: 'İncelemeye git' },
   stages: { footage: 'Görüntü', transcript: 'Metin', storyboard: 'Senaryo', render: 'Render', review: 'İnceleme' },
   guard: {
     host: 'Bu adres üzerinden erişime izin verilmiyor.',
