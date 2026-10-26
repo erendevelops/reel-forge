@@ -63,6 +63,8 @@ describe('auto-draft', () => {
     const md = texts.find((t) => t.startsWith('claudemd: '))!;
     expect(md).toContain('Cards: title-card');
     expect(md).not.toContain('numbered-list');
+    // Python scripts Claude writes must default to UTF-8 (Windows' ANSI default garbled Turkish captions).
+    expect(texts).toContain('pyutf8: 1');
   });
 
   it('no version is saved when the job fails before rf save', async () => {

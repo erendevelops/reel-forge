@@ -83,6 +83,9 @@ registerExecutor('claude', async ({ projectId, spec, emit, signal }) => {
       REELFORGE_PROJECT: projectId,
       REELFORGE_WORKSPACE: workspaceDir(),
       REELFORGE_ROOT: REPO_ROOT,
+      // Claude writes small Python helpers; on Windows open() defaults to the ANSI code page and garbles Turkish text.
+      PYTHONUTF8: '1',
+      PYTHONIOENCODING: 'utf-8',
       [pathKey]: `${projectDir(projectId)}${sep}${process.env[pathKey] ?? ''}`,
     },
     onEvent: (event) => {

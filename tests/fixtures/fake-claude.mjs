@@ -43,6 +43,7 @@ process.stdin.on('end', async () => {
   if (mode === 'env') {
     const { readFileSync } = await import('node:fs');
     const sep = process.platform === 'win32' ? ';' : ':';
+    out({ type: 'assistant', message: { content: [{ type: 'text', text: `pyutf8: ${process.env.PYTHONUTF8}` }] } });
     out({ type: 'assistant', message: { content: [{ type: 'text', text: `path0: ${(process.env.PATH ?? process.env.Path ?? '').split(sep)[0]}` }] } });
     out({ type: 'assistant', message: { content: [{ type: 'text', text: `claudemd: ${readFileSync('CLAUDE.md', 'utf8')}` }] } });
     out({ type: 'result', subtype: 'success', is_error: false, result: 'ok', session_id: sid });

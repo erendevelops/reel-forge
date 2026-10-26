@@ -40,5 +40,6 @@ describe('skill install', () => {
     const shim = await readFile(path.join(dir, process.platform === 'win32' ? 'rf.cmd' : 'rf'), 'utf8');
     expect(shim).toContain('--tsconfig');
     expect(shim).toContain('scripts');
+    if (process.platform === 'win32') expect(shim).toMatch(/chcp 65001/); // cmd parses the Masaüstü path as UTF-8
   });
 });

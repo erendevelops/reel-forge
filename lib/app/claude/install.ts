@@ -80,6 +80,6 @@ export async function installSkills(project: Project, prefs: Preferences, dir: s
   const tsconfig = repoPath('tsconfig.json');
   const rf = repoPath('scripts', 'rf.ts');
   // tsx resolves the @/ alias from --tsconfig: rf runs with cwd = this project folder.
-  await writeFile(path.join(dir, 'rf.cmd'), `@echo off\r\nnode "${tsx}" --tsconfig "${tsconfig}" "${rf}" %*\r\n`, 'utf8');
+  await writeFile(path.join(dir, 'rf.cmd'), `@echo off\r\nchcp 65001 >nul\r\nnode "${tsx}" --tsconfig "${tsconfig}" "${rf}" %*\r\n`, 'utf8');
   await writeFile(path.join(dir, 'rf'), `#!/bin/sh\nexec node "${tsx}" --tsconfig "${tsconfig}" "${rf}" "$@"\n`, { encoding: 'utf8', mode: 0o755 });
 }
