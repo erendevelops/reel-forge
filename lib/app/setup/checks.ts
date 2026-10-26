@@ -62,9 +62,13 @@ export async function checkPython(lang: Language): Promise<Check> {
 }
 
 async function checkImport(id: 'whisper' | 'mediapipe', mod: string, lang: Language): Promise<Check> {
-  const out = await python(['-c', `import ${mod}; print(getattr(${mod}, "__version__", "ok"))`]);
-  const ok = out !== null;
-  return { id, ok, detail: ok ? `${mod} ${out!.split('\n').at(-1)}` : t(lang).setup.missing, fix: ok ? null : FIX[id] };
+  const code = `import sys; print(sys.executable)\ntry:\n    import ${mod}; print("OK", getattr(${mod}, "__version__", ""))\nexcept Exception as e:\n    print("ERR", type(e).__name__, e)`;
+  const out = await python(['-c', code]);
+  const lines = (out ?? '').split('\n').map((l) => l.trim());
+  const okLine = lines.find((l) => l.startsWith('OK'));
+  // on failure show which python ran and Python's own error, so a wrong interpreter or a broken install is visible
+  const why = lines.find((l) => l.startsWith('ERR'))?.slice(4) ?? t(lang).setup.missing;
+  return { id, ok: !!okLine, detail: okLine ? `${mod} ${okLine.slice(3)}` : `${why} (${lines[0] || 'python'})`, fix: okLine ? null : FIX[id] };
 }
 
 export async function checkFaceModel(file: string, lang: Language): Promise<Check> {
