@@ -1,6 +1,8 @@
 export const tr = {
   brand: 'REELFORGE',
   nav: { projects: 'Projeler', setup: 'Kurulum' },
+  common: { busy: 'Bu projede zaten bir iş çalışıyor. Bitince tekrar dene.', start: 'Başlat' },
+  stages: { footage: 'Görüntü', transcript: 'Metin', storyboard: 'Senaryo', render: 'Render', review: 'İnceleme' },
   guard: {
     host: 'Bu adres üzerinden erişime izin verilmiyor.',
     crossSite: 'Başka bir siteden gelen istek reddedildi.',
@@ -37,6 +39,7 @@ export const tr = {
     new: 'Yeni proje',
     versions: 'Sürümler',
     noVersions: 'Henüz sürüm yok.',
+    analyse: 'Analiz et',
     makePlan: 'Plan oluştur',
     tellClaude: "Claude'a söyle…",
     send: 'Gönder',

@@ -48,6 +48,8 @@ export function buildPrompt(stage: Stage, ctx: PromptCtx): string {
       `Stage: plan. Write plan.json following the ${skill} skill.`,
       selectionLines(project),
       motion,
+      project.transcriptChecked ? 'The user checked the transcript: use analysis/transcript-trimmed.json (talking head) or analysis/transcript.json word for word for captions.' : '',
+      project.music?.file ? `Music: inputs/music/${project.music.file} ("${project.music.title}", ${project.music.license}). Align it with rf beats.` : '',
       'Then run `rf validate plan.json` and fix every error, then `rf save plan.json --request "first cut"`.',
     ].join('\n');
   } else {

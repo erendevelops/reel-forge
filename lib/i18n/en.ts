@@ -3,6 +3,8 @@ import type { Dictionary } from './tr';
 export const en: Dictionary = {
   brand: 'REELFORGE',
   nav: { projects: 'Projects', setup: 'Setup' },
+  common: { busy: 'A job is already running for this project. Try again when it finishes.', start: 'Start' },
+  stages: { footage: 'Footage', transcript: 'Transcript', storyboard: 'Storyboard', render: 'Render', review: 'Review' },
   guard: {
     host: 'Access through this address is not allowed.',
     crossSite: 'Request from another site was refused.',
@@ -39,6 +41,7 @@ export const en: Dictionary = {
     new: 'New project',
     versions: 'Versions',
     noVersions: 'No versions yet.',
+    analyse: 'Analyse',
     makePlan: 'Make the plan',
     tellClaude: 'Tell Claude…',
     send: 'Send',

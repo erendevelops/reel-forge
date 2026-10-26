@@ -4,6 +4,10 @@ import { RATIOS, SelectionSchema } from '@/lib/plan/schema';
 export const PRESETS = ['faceless', 'talking-head', 'app-video'] as const;
 export type Preset = (typeof PRESETS)[number];
 
+/** The music the user picked from Claude's candidates (or uploaded); `file` is set once it is in inputs/music/. */
+export const MusicPickSchema = z.object({ title: z.string(), url: z.string().nullable(), license: z.string(), file: z.string().nullable() });
+export type MusicPick = z.infer<typeof MusicPickSchema>;
+
 export const ProjectSchema = z.object({
   id: z.string().regex(/^[a-z0-9-]+$/),
   name: z.string().min(1),
@@ -13,6 +17,10 @@ export const ProjectSchema = z.object({
   lang: z.enum(['tr', 'en']),
   selection: SelectionSchema.nullable(),
   claudeSession: z.string().nullable(),
+  /** Flow flags (Plan 4); defaults keep project.json files from before them parsing. */
+  cardsConfirmed: z.boolean().default(false),
+  transcriptChecked: z.boolean().default(false),
+  music: MusicPickSchema.nullable().default(null),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

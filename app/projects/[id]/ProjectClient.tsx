@@ -5,15 +5,19 @@ import { JobLog } from '@/components/JobLog';
 import { t, type Language } from '@/lib/i18n';
 import type { JobEvent } from '@/lib/app/jobs/jobs';
 import type { VersionOrigin } from '@/lib/app/workspace/schema';
+import type { Stage } from '@/lib/app/flow';
+import { postJob } from '@/components/post-job';
 
 export function ProjectClient({
   lang,
   projectId,
+  stage,
   versions,
   lastJobId,
 }: {
   lang: Language;
   projectId: string;
+  stage: Stage;
   versions: VersionOrigin[];
   lastJobId: string | null;
 }) {
@@ -36,9 +40,8 @@ export function ProjectClient({
 
   async function start(body: object, url = `/api/projects/${projectId}/jobs`) {
     setError(null);
-    const res = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
-    const out = await res.json();
-    if (!res.ok) return setError(typeof out.error === 'string' ? out.error : JSON.stringify(out.error));
+    const out = await postJob(url, body, lang);
+    if ('error' in out) return setError(out.error);
     setJobId(out.jobId);
   }
 
@@ -49,9 +52,16 @@ export function ProjectClient({
         {versions.length === 0 && (
           <div className="flex items-center gap-3">
             <p className="meta">{d.noVersions}</p>
-            <button type="button" className="btn btn-primary" onClick={() => claude({ stage: 'plan' })}>
-              {d.makePlan}
-            </button>
+            {stage === 'analyse' && (
+              <button type="button" className="btn btn-primary" onClick={() => claude({ stage: 'analyse' })}>
+                {d.analyse}
+              </button>
+            )}
+            {stage === 'plan' && (
+              <button type="button" className="btn btn-primary" onClick={() => claude({ stage: 'plan' })}>
+                {d.makePlan}
+              </button>
+            )}
           </div>
         )}
         {versions.map((v) => (

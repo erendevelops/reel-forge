@@ -1,5 +1,7 @@
 import { notFound } from 'next/navigation';
 import { listJobs } from '@/lib/app/jobs/jobs';
+import { analysisState, hasFinalRender, projectStage } from '@/lib/app/flow';
+import { StageBar } from '@/components/StageBar';
 import { getSettings } from '@/lib/app/settings';
 import { NotFoundError, getProject, listVersions } from '@/lib/app/workspace/store';
 import { t } from '@/lib/i18n';
@@ -14,7 +16,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
     if (err instanceof NotFoundError) notFound();
     throw err;
   });
-  const [versions, jobs] = await Promise.all([listVersions(id), listJobs(id)]);
+  const [versions, jobs, analysis] = await Promise.all([listVersions(id), listJobs(id), analysisState(id)]);
+  const latest = versions.at(-1)?.n;
+  const stage = projectStage(project, { analysed: analysis.analysed, versions, rendered: latest ? await hasFinalRender(id, latest) : false });
   const d = t(language).newProject.presets;
   return (
     <div className="flex flex-col gap-6">
@@ -24,7 +28,8 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           {d[project.preset]} · {project.ratios.join(' ')}
         </span>
       </div>
-      <ProjectClient lang={language} projectId={id} versions={versions} lastJobId={jobs[0]?.jobId ?? null} />
+      <StageBar lang={language} stage={stage} />
+      <ProjectClient lang={language} projectId={id} stage={stage} versions={versions} lastJobId={jobs[0]?.jobId ?? null} />
     </div>
   );
 }

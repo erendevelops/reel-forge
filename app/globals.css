@@ -105,3 +105,9 @@ body {
   margin: 0 auto;
   padding: 28px 26px 60px;
 }
+
+/* stage bar: Footage › Transcript › Storyboard › Render › Review */
+.stagebar { display: flex; gap: 22px; list-style: none; padding: 0; margin: 0; font-size: 12px; color: var(--muted); }
+.stagebar li + li::before { content: '›'; margin-right: 22px; color: var(--line); }
+.stagebar li.done { color: var(--brand-d); }
+.stagebar li.now { color: var(--ink); font-weight: 700; }

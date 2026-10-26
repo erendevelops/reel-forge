@@ -5,12 +5,22 @@ import type { Project, VersionOrigin } from '../../lib/app/workspace/schema';
 
 const project = (over: Partial<Project> = {}): Project => ({
   id: 'p-abc123', name: 'P', mode: 'reel', preset: 'talking-head', ratios: ['9:16'], lang: 'en',
-  selection: defaultSelection('talking-head'), claudeSession: null, createdAt: '', updatedAt: '', ...over,
+  selection: defaultSelection('talking-head'), claudeSession: null, cardsConfirmed: true, transcriptChecked: false, music: null, createdAt: '', updatedAt: '', ...over,
 });
 const prefs = { rules: [{ text: 'calm 2–4 s shots', addedAt: '', source: 'v2' }] };
 const v = (n: number, by: 'claude' | 'user', diff: unknown = null): VersionOrigin => ({ n, by, parent: n > 1 ? n - 1 : null, request: null, diff, createdAt: '' });
 
 describe('stage prompts', () => {
+  it('plan prompt says the user checked the transcript and names the picked music file', () => {
+    const music = { title: 'Ambient Minimal', url: null, license: 'Pixabay licence', file: 'ambient.mp3' };
+    const p = buildPrompt('plan', { project: project({ transcriptChecked: true, music, selection: { ...defaultSelection('talking-head'), music: true } }), preferences: prefs, versions: [] });
+    expect(p).toContain('The user checked the transcript');
+    expect(p).toContain('inputs/music/ambient.mp3');
+    expect(p).toContain('Ambient Minimal');
+    const q = buildPrompt('plan', { project: project(), preferences: prefs, versions: [] });
+    expect(q).not.toContain('The user checked the transcript');
+  });
+
   it('plan prompt lists only ticked cards and the motion rule for talking head', () => {
     const sel = { ...defaultSelection('talking-head'), cards: ['checklist' as const, 'stamp' as const] };
     const p = buildPrompt('plan', { project: project({ selection: sel }), preferences: prefs, versions: [] });
