@@ -6,12 +6,13 @@ import type { Project, VersionOrigin } from './workspace/schema';
 /** Which screen a project is on (spec §3: inputs → option cards → transcript check → storyboard → render → review). */
 export type Stage = 'cards' | 'analyse' | 'transcript' | 'music' | 'plan' | 'storyboard' | 'review';
 
-export function projectStage(p: Project, s: { analysed: boolean; versions: VersionOrigin[]; rendered: boolean }): Stage {
+/** `hasTranscript` (default true): the analysis wrote a transcript to check; without one the check is skipped. */
+export function projectStage(p: Project, s: { analysed: boolean; versions: VersionOrigin[]; rendered: boolean; hasTranscript?: boolean }): Stage {
   // projects planned before these flags existed go straight to their versions
   if (s.versions.length) return s.rendered ? 'review' : 'storyboard';
   if (!p.cardsConfirmed) return 'cards';
   if (!s.analysed) return 'analyse';
-  if (p.mode === 'reel' && !p.transcriptChecked) return 'transcript';
+  if (p.mode === 'reel' && !p.transcriptChecked && s.hasTranscript !== false) return 'transcript';
   if (p.selection?.music && !p.music?.file) return 'music';
   return 'plan';
 }

@@ -31,6 +31,10 @@ describe('projectStage', () => {
     expect(projectStage(confirmed({ transcriptChecked: true }), s({ analysed: true, versions: [v1], rendered: true }))).toBe('review');
   });
 
+  it('a reel whose analysis wrote no transcript does not get stuck on the transcript check', () => {
+    expect(projectStage(confirmed(), { ...s({ analysed: true }), hasTranscript: false })).toBe('plan');
+  });
+
   it('app videos skip the transcript check', () => {
     const app = confirmed({ mode: 'app', preset: 'app-video', selection: { ...defaultSelection('app-video'), music: false } });
     expect(projectStage(app, s({ analysed: true }))).toBe('plan');

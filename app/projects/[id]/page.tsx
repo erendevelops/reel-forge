@@ -8,6 +8,11 @@ import { NotFoundError, getProject, listVersions } from '@/lib/app/workspace/sto
 import { t } from '@/lib/i18n';
 import { ProjectClient } from './ProjectClient';
 import { CardsClient } from './CardsClient';
+import { TranscriptClient } from './TranscriptClient';
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+import { projectDir } from '@/lib/app/workspace/paths';
+import { TranscriptSchema, type Transcript } from '@/lib/app/transcript';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,8 +25,13 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   });
   const [versions, jobs, analysis] = await Promise.all([listVersions(id), listJobs(id), analysisState(id)]);
   const latest = versions.at(-1)?.n;
-  const stage = projectStage(project, { analysed: analysis.analysed, versions, rendered: latest ? await hasFinalRender(id, latest) : false });
+  const stage = projectStage(project, { analysed: analysis.analysed, hasTranscript: analysis.transcriptFile !== null, versions, rendered: latest ? await hasFinalRender(id, latest) : false });
   const d = t(language).newProject.presets;
+  let transcript: Transcript | null = null;
+  if (stage === 'transcript' && analysis.transcriptFile) {
+    const raw = await readFile(path.join(projectDir(id), ...analysis.transcriptFile.split('/')), 'utf8').catch(() => null);
+    transcript = raw ? TranscriptSchema.parse(JSON.parse(raw)) : null;
+  }
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-baseline justify-between">
@@ -31,7 +41,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         </span>
       </div>
       <StageBar lang={language} stage={stage} />
-      {stage === 'cards' ? (
+      {stage === 'transcript' && transcript ? (
+        <TranscriptClient lang={language} projectId={id} transcript={transcript} />
+      ) : stage === 'cards' ? (
         <CardsClient lang={language} project={project} selection={project.selection ?? defaultSelection(project.preset)} />
       ) : (
         <ProjectClient lang={language} projectId={id} stage={stage} versions={versions} lastJobId={jobs[0]?.jobId ?? null} />

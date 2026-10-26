@@ -39,6 +39,7 @@ export const en: Dictionary = {
     save: 'Save',
     change: 'Change cards',
   },
+  transcript: { title: 'CHECK THE TRANSCRIPT', hint: 'Click a misheard word to fix it. Timings stay the same.', confirm: 'Confirm' },
   stages: { footage: 'Footage', transcript: 'Transcript', storyboard: 'Storyboard', render: 'Render', review: 'Review' },
   guard: {
     host: 'Access through this address is not allowed.',

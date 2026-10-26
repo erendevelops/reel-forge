@@ -37,6 +37,7 @@ export const tr = {
     save: 'Kaydet',
     change: 'Kartları değiştir',
   },
+  transcript: { title: 'METNİ KONTROL ET', hint: 'Yanlış duyulan kelimeye tıklayıp düzelt. Zamanlar değişmez.', confirm: 'Onayla' },
   stages: { footage: 'Görüntü', transcript: 'Metin', storyboard: 'Senaryo', render: 'Render', review: 'İnceleme' },
   guard: {
     host: 'Bu adres üzerinden erişime izin verilmiyor.',
