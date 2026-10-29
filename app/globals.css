@@ -159,3 +159,8 @@ body {
 .seg { display: flex; gap: 4px; background: var(--soft); padding: 3px; border-radius: 10px; align-self: flex-start; }
 .seg button { padding: 4px 12px; border-radius: 8px; }
 .seg button.on { background: #fff; color: var(--brand-d); }
+
+/* loading */
+.spinner-wrap { display: flex; align-items: center; gap: 12px; padding: 48px 0; justify-content: center; }
+.spinner { width: 22px; height: 22px; border-radius: 50%; border: 3px solid var(--line); border-top-color: var(--brand-d); animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }

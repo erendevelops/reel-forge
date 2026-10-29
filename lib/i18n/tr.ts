@@ -58,6 +58,7 @@ export const tr = {
   setup: {
     title: 'KURULUM',
     recheck: 'Tekrar kontrol et',
+    checking: 'Kontrol ediliyor… (Claude girişi birkaç saniye sürebilir)',
     missing: 'bulunamadı',
     tooOld: 'sürüm çok eski',
     modelMissing: 'indirilmedi veya eksik',

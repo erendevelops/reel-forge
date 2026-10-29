@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { t, type Language } from '@/lib/i18n';
+import { Spinner } from './Spinner';
 import { RATIO_SIZE } from '@/lib/compile/types';
 import type { Ratio } from '@/lib/plan/schema';
 
@@ -77,7 +78,9 @@ export function PreviewPlayer({
             style={{ width: w, height: h, transform: `scale(${scale})`, transformOrigin: '0 0', border: 0 }}
           />
         ) : (
-          <div className="meta grid h-full place-items-center">{d.building}</div>
+          <div className="grid h-full place-items-center">
+            <Spinner label={d.building} />
+          </div>
         )}
       </div>
       <div className="flex items-center gap-3">

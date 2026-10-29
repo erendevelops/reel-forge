@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { SetupList } from '@/components/SetupList';
+import { Spinner } from '@/components/Spinner';
+import { t } from '@/lib/i18n';
 import type { Check } from '@/lib/app/setup/checks';
 import type { Language } from '@/lib/i18n';
 
@@ -31,6 +33,6 @@ export function SetupClient({ lang }: { lang: Language }) {
     }
   }
 
-  if (!checks) return <p className="meta">…</p>;
+  if (!checks) return <Spinner label={t(lang).setup.checking} />;
   return <SetupList lang={lang} checks={checks} busy={busy} onRecheck={load} onDownloadFaceModel={download} />;
 }

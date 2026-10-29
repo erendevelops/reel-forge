@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { CompareVersions, type VersionView } from '@/components/CompareVersions';
@@ -99,9 +100,9 @@ export function ReviewClient({ lang, projectId, versions, current, lastJobId }: 
             }}
           />
         )}
-        <a className="meta font-mono text-xs" href={`/projects/${projectId}?view=storyboard`}>
+        <Link className="meta font-mono text-xs" href={`/projects/${projectId}?view=storyboard`}>
           {d.toStoryboard}
-        </a>
+        </Link>
         {job.preference && job.preference !== dismissed && <PreferenceOffer lang={lang} text={job.preference} projectId={projectId} onDone={() => setDismissed(job.preference)} />}
         {error && <p className="font-mono text-sm" style={{ color: '#e5484d' }}>{error}</p>}
       </div>

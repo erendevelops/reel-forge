@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { ProjectCard } from '@/components/ProjectCard';
 import { getSettings } from '@/lib/app/settings';
 import { listProjects } from '@/lib/app/workspace/store';
@@ -13,9 +14,9 @@ export default async function ProjectsPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-baseline justify-between">
         <h1 className="font-px text-2xl">{d.title}</h1>
-        <a href="/projects/new" className="btn btn-primary">
+        <Link href="/projects/new" className="btn btn-primary">
           {d.new}
-        </a>
+        </Link>
       </div>
       {projects.length === 0 ? (
         <p className="meta">{d.empty}</p>

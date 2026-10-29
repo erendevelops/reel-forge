@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AskClaude } from '@/components/AskClaude';
@@ -164,12 +165,12 @@ export function StoryboardClient({
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-4">
           <VersionPicker lang={lang} versions={versions} value={n} onChange={(v) => void load(v)} />
-          <a className="meta font-mono text-xs" href={`/projects/${project.id}/cards`}>
+          <Link className="meta font-mono text-xs" href={`/projects/${project.id}/cards`}>
             {d.changeCards}
-          </a>
-          <a className="meta font-mono text-xs" href={`/projects/${project.id}?view=review`}>
+          </Link>
+          <Link className="meta font-mono text-xs" href={`/projects/${project.id}?view=review`}>
             {d.review}
-          </a>
+          </Link>
           <span className="flex-1" />
           {edits.length > 0 && (
             <>
