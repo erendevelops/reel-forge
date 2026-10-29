@@ -1,3 +1,4 @@
+import { px } from '@/lib/i18n/px';
 import Link from 'next/link';
 import { ProjectCard } from '@/components/ProjectCard';
 import { getSettings } from '@/lib/app/settings';
@@ -13,7 +14,7 @@ export default async function ProjectsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-baseline justify-between">
-        <h1 className="font-px text-2xl">{d.title}</h1>
+        <h1 className="font-px text-2xl">{px(d.title)}</h1>
         <Link href="/projects/new" className="btn btn-primary">
           {d.new}
         </Link>

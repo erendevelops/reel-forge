@@ -1,5 +1,6 @@
 'use client';
 
+import { px } from '@/lib/i18n/px';
 import { useState } from 'react';
 import { t as dict, type Language } from '@/lib/i18n';
 import { lines, type Transcript } from '@/lib/app/transcript';
@@ -23,7 +24,7 @@ export function TranscriptEditor({ lang, transcript, onSave }: { lang: Language;
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-baseline gap-4">
-        <span className="font-px text-xl">{d.title}</span>
+        <span className="font-px text-xl">{px(d.title)}</span>
         <span className="meta">{d.hint}</span>
       </div>
       <div className="card flex flex-col gap-3 px-6 py-5">

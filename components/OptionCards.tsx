@@ -1,5 +1,6 @@
 'use client';
 
+import { px } from '@/lib/i18n/px';
 import { useState } from 'react';
 import { t, type Language } from '@/lib/i18n';
 import { RATIOS, type Ratio, type Selection } from '@/lib/plan/schema';
@@ -39,7 +40,7 @@ export function OptionCards({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-4">
-        <span className="font-px text-xl">{d.title}</span>
+        <span className="font-px text-xl">{px(d.title)}</span>
         <span className="flex-1" />
         <span className="font-mono text-xs" style={{ color: 'var(--brand-d)' }}>
           {count} {d.selected}

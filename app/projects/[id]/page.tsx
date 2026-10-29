@@ -1,3 +1,4 @@
+import { px } from '@/lib/i18n/px';
 import { notFound } from 'next/navigation';
 import { listJobs } from '@/lib/app/jobs/jobs';
 import { analysisState, hasFinalRender, projectStage } from '@/lib/app/flow';
@@ -49,7 +50,7 @@ export default async function ProjectPage({ params, searchParams }: { params: Pr
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-baseline justify-between">
-        <h1 className="font-px text-2xl">{project.name.toLocaleUpperCase(language)}</h1>
+        <h1 className="font-px text-2xl">{px(project.name)}</h1>
         <span className="meta">
           {d[project.preset]} · {project.ratios.join(' ')}
         </span>

@@ -1,5 +1,6 @@
 'use client';
 
+import { px } from '@/lib/i18n/px';
 import { t, type Language } from '@/lib/i18n';
 import type { Candidate } from '@/lib/app/music';
 import type { MusicPick as Picked } from '@/lib/app/workspace/schema';
@@ -26,7 +27,7 @@ export function MusicPick({
   const d = t(lang).music;
   return (
     <div className="flex flex-col gap-4">
-      <span className="font-px text-xl">{d.title}</span>
+      <span className="font-px text-xl">{px(d.title)}</span>
       <div className="flex flex-col gap-2">
         {candidates.map((c, i) => {
           const on = picked?.url === c.url;
