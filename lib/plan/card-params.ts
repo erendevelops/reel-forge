@@ -50,7 +50,8 @@ export const LogoPopParams = z.object({
   width: z.number().positive().default(300),
   height: z.number().positive().default(300),
   fit: z.enum(['cover', 'contain']).default('contain'),
-  bg: HexColor.optional(),
+  /** `transparent`: just the logo, no tile, border or box shadow (a soft shadow follows the logo's own shape). */
+  bg: z.union([HexColor, z.literal('transparent')]).optional(),
 });
 
 export const RollingNumberParams = z.object({

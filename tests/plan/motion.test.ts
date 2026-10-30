@@ -63,3 +63,13 @@ describe('motionGaps', () => {
     ]);
   });
 });
+
+describe('graphicGaps / unusedCards', () => {
+  it('finds footage-only stretches over 5 s and ticked cards the plan never uses', async () => {
+    const { graphicGaps, unusedCards } = await import('../../lib/plan');
+    const card = (type: string, start: number, end: number) => ({ type, start, end, params: {} });
+    const p = { duration: 20, scenes: [{ cards: [card('stamp', 1, 2)] }, { cards: [card('checklist', 4, 6.5)] }] } as unknown as Plan;
+    expect(graphicGaps(p)).toEqual([{ from: 6.5, to: 20 }]);
+    expect(unusedCards(p, ['stamp', 'checklist', 'numbered-list'])).toEqual(['numbered-list']);
+  });
+});

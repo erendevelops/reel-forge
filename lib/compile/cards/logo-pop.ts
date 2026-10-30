@@ -26,11 +26,12 @@ export const logoPop: CardTemplate = {
     const p = Params.parse(card.params);
     const rot = p.rot ?? (indexFromId(id) % 2 === 1 ? -DEFAULT_ROT : DEFAULT_ROT);
     const bg = p.bg ?? (p.fit === 'contain' ? '#121417' : WHITE);
-    const pad = p.fit === 'contain' ? sz(ctx, 14) : 0;
+    const bare = bg === 'transparent';
+    const pad = p.fit === 'contain' && !bare ? sz(ctx, 14) : 0;
     const style =
       `left: ${num(fx(ctx, p.left))}px; top: ${num(fy(ctx, p.top))}px; width: ${num(sz(ctx, p.width))}px; ` +
-      `height: ${num(sz(ctx, p.height))}px; border-radius: ${num(sz(ctx, 26))}px; border: ${num(sz(ctx, 6))}px solid ${WHITE}; background: ${esc(bg)};`;
-    const img = `<img src="${esc(ctx.assetsUrl(p.img))}" alt="" style="object-fit: ${p.fit}; padding: ${num(pad)}px;">`;
+      `height: ${num(sz(ctx, p.height))}px; border-radius: ${num(sz(ctx, 26))}px; ${bare ? 'border: none; box-shadow: none; overflow: visible;' : `border: ${num(sz(ctx, 6))}px solid ${WHITE};`} background: ${esc(bg)};`;
+    const img = `<img src="${esc(ctx.assetsUrl(p.img))}" alt="" style="object-fit: ${p.fit}; padding: ${num(pad)}px;${bare ? ' filter: drop-shadow(0 12px 30px rgba(0,0,0,0.55));' : ''}">`;
     const sel = `#${id} .lp-card`;
     return {
       html: clipDiv(id, card.start, card.end, 'logo-pop', `<div class="lp-card" style="${style}">${img}</div>`),

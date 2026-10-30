@@ -56,3 +56,21 @@ export function motionGaps(plan: Plan, o: { max?: number } = {}): { from: number
   }
   return gaps;
 }
+
+/** Stretches longer than `max` seconds with no card on screen (captions don't count): footage-only time. */
+export function graphicGaps(plan: Plan, max = 5): { from: number; to: number }[] {
+  const spans = plan.scenes.flatMap((s) => s.cards.map((c) => [c.start, c.end] as [number, number])).sort((a, b) => a[0] - b[0]);
+  const gaps: { from: number; to: number }[] = [];
+  let at = 0;
+  for (const [a, b] of [...spans, [plan.duration, plan.duration] as [number, number]]) {
+    if (a - at > max + 1e-9) gaps.push({ from: r3(at), to: r3(a) });
+    at = Math.max(at, b);
+  }
+  return gaps;
+}
+
+/** Ticked card types the plan never uses (the user ticked them to see them). */
+export function unusedCards(plan: Plan, ticked: readonly string[]): string[] {
+  const used = new Set(plan.scenes.flatMap((s) => s.cards.map((c) => c.type)));
+  return ticked.filter((t) => !used.has(t as never));
+}

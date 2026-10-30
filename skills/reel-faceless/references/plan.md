@@ -14,6 +14,20 @@ Start from `analysis/transcript.json`: the app saves the user's corrections ther
 
 ## Cards
 
+**Use every card type the user ticked, at least once** (they ticked it to see it), and keep something on screen
+besides footage: **never more than 5 s without a card.** `rf validate` checks both. Pick by what kind of reel it is:
+
+- **List reel** (N tools/tips): the hook, title and list rules below.
+- **Story reel** (problem → solution → steps → CTA, no list of tools): every section gets a graphic that *shows what
+  is being said*, landing on its key word:
+  - `title-card` on each section's key phrase, short (1–3 words: "Tek proje", "Yükle", "Önizle"), about 0.9–1.5 s.
+  - `custom-animation` (if ticked) for the explanation itself: steps ticking on, choices being picked, a scene plan
+    building up, a UI mock: one per section that explains something ([../../video-core/references/cards.md](../../video-core/references/cards.md), `custom-animation`).
+  - `logo-pop` when a tool or product is named; `"bg": "transparent"` for a bare logo.
+  - `numbered-list` (if ticked) for spoken steps ("yüklüyorsunuz… seçiyorsunuz… planlıyor…"), one item per step.
+
+### List reels
+
 - **Hook:** logo pop-ins (`logo-pop`) on the first words naming what's coming, scattered in the upper half around the subject. They leave at the first cut.
 - **Items:** a `title-card` from the tool-name word to just before the next phrase (about 0.9 s), numbered 1…N, with the tool's official logo ([../../video-core/references/assets.md](../../video-core/references/assets.md)).
 - **List:** a `numbered-list` card per scene. Each item lands as its title card leaves (title end − 2 frames). The current item is yellow; at the CTA they all turn white (`highlight: "none"`).

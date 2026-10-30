@@ -6,7 +6,7 @@ import { probe } from '@/lib/media/probe';
 import { prepareClip } from '@/lib/media/prepare';
 import { run } from '@/lib/media/run';
 import { transcribe, type Transcript } from '@/lib/media/transcribe';
-import { motionGaps, validatePlan, RATIOS, type Ratio } from '@/lib/plan';
+import { graphicGaps, motionGaps, unusedCards, validatePlan, RATIOS, type Plan, type Ratio } from '@/lib/plan';
 import { resolveLogo, logoSvgFile } from '@/lib/assets/logos';
 import { cropPath, faceTrack, type FaceTrack } from '@/lib/talking/reframe';
 import { planTrims, remapTimes, renderTrimmedTake, type Segment } from '@/lib/talking/trim';
@@ -23,6 +23,19 @@ type Command = (args: string[]) => Promise<unknown>;
 const FONT = process.platform === 'darwin' ? '/System/Library/Fonts/Supplemental/Arial.ttf' : 'C\\:/Windows/Fonts/arial.ttf';
 
 const readJson = async (p: string) => JSON.parse(await readFile(resolveInProject(p), 'utf8'));
+
+/**
+ * What the user ticked must show up: faceless and app videos use every ticked card type at least once, and a
+ * faceless reel never runs more than 5 s on footage alone (talking heads have their own motion rule).
+ */
+function useErrors(project: { preset: string; selection: { cards: string[] } | null }, plan: Plan): string[] {
+  if (project.preset === 'talking-head' || !project.selection) return [];
+  const out = unusedCards(plan, project.selection.cards).map((t) => `ticked card ${t} is never used: the user ticked it to see it, use it at least once where it fits the voiceover`);
+  if (project.preset === 'faceless') {
+    for (const g of graphicGaps(plan)) out.push(`no card on screen ${g.from}–${g.to} s (over 5 s of footage only): add a card that shows what is being said`);
+  }
+  return out;
+}
 
 function need(v: string | undefined, what: string): string {
   if (!v) throw new Error(`missing ${what}`);
@@ -192,7 +205,7 @@ export const COMMANDS: Record<string, Command> = {
   async validate(args) {
     const plan = await readJson(need(args[0], 'plan.json'));
     const r = await validateForProject(projectId(), plan);
-    const errors = [...(r.ok ? [] : r.errors), ...missingSfx(plan)];
+    const errors = [...(r.ok ? useErrors(await getProject(projectId()), r.plan) : r.errors), ...missingSfx(plan)];
     return errors.length ? { ok: false, errors } : { ok: true, errors: [] };
   },
 
@@ -231,7 +244,7 @@ export const COMMANDS: Record<string, Command> = {
     const id = projectId();
     const project = await getProject(id);
     const r = await validateForProject(projectId(), plan);
-    const errors = [...(r.ok ? [] : r.errors), ...missingSfx(plan)];
+    const errors = [...(r.ok ? useErrors(project, r.plan) : r.errors), ...missingSfx(plan)];
     if (!r.ok || errors.length) throw new Error(`invalid plan:\n${errors.join('\n')}`);
     if (project.preset === 'talking-head') {
       const gaps = motionGaps(r.plan);

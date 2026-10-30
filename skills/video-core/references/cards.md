@@ -32,7 +32,7 @@ Sound: `sfx/pluck_002.wav` at 0.35 on each landing.
 
 An image card that pops in with a slight tilt (the hook's floating logos and screenshots). Keep it in the upper ~50 %, clear of captions.
 Params: `{ "img": "ext/upscayl_banner.jpg", "left": 560, "top": 270, "width": 470, "height": 264, "rot": 5, "fit": "cover" }`.
-Logos use `"fit": "contain"` and `"bg": "#121417"`.
+Logos use `"fit": "contain"` and `"bg": "#121417"`; `"bg": "transparent"` shows just the logo (no tile, no border).
 Sound: `sfx/drop_001.wav` … `drop_004.wav` at 0.45, varied.
 
 ### `rolling-number`
