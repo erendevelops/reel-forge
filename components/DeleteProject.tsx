@@ -13,7 +13,8 @@ export function DeleteProject({ id, label, confirmText, busyText }: { id: string
     const res = await fetch(`/api/projects/${id}`, { method: 'DELETE' }).catch(() => null);
     setBusy(false);
     if (res?.status === 409) window.alert(busyText);
-    else if (res?.ok) router.refresh();
+    else if (res?.ok || res?.status === 404) router.refresh();
+    else window.alert(`${label}: ${(await res?.text().catch(() => '')) || 'failed'}`);
   }
   return (
     <button type="button" className="btn" disabled={busy} onClick={() => void remove()}>

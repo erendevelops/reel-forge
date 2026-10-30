@@ -105,8 +105,10 @@ export async function getProject(id: string): Promise<Project> {
 
 /** Removes a project folder and everything in it (inputs copied in, analysis, versions, renders). */
 export async function deleteProject(id: string): Promise<void> {
-  await getProject(id); // 404 for an unknown id, never a stray path
-  await rm(projectDir(id), { recursive: true, force: true, maxRetries: 3 });
+  // a plain project id and an existing folder (a half-deleted one has no project.json left), never a stray path
+  if (!/^[a-z0-9-]+$/.test(id) || !(await readdir(projectDir(id)).then(() => true, () => false))) throw new NotFoundError(`project ${id}`);
+  // Windows (and OneDrive) keep a just-emptied folder locked for a moment after big videos go: keep retrying ~10 s
+  await rm(projectDir(id), { recursive: true, force: true, maxRetries: 12, retryDelay: 250 });
 }
 
 /**
