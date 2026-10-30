@@ -7,6 +7,7 @@ import { CompareVersions, type VersionView } from '@/components/CompareVersions'
 import { JobLog } from '@/components/JobLog';
 import { PreferenceOffer } from '@/components/PreferenceOffer';
 import { QaSummary } from '@/components/QaSummary';
+import { Spinner } from '@/components/Spinner';
 import { postJob } from '@/components/post-job';
 import { useJob } from '@/components/use-job';
 import { t, type Language } from '@/lib/i18n';
@@ -129,8 +130,9 @@ export function ReviewClient({ lang, projectId, projectName, versions, current, 
   return (
     <div className="grid grid-cols-[1fr_380px] gap-7">
       <div className="flex flex-col gap-4">
+        {!cur && <Spinner />}
         {cur && <FinishCard lang={lang} name={projectName} view={cur} busy={job.running} onFinal={() => void startFinal()} />}
-        <CompareVersions lang={lang} versions={versions} a={views[pair.a] ?? null} b={views[pair.b] ?? null} ratio={ratio} onPick={(side, n) => setPair((p) => ({ ...p, [side]: n }))} />
+        {cur && versions.length > 1 && <CompareVersions lang={lang} versions={versions} a={views[pair.a] ?? null} b={views[pair.b] ?? null} ratio={ratio} onPick={(side, n) => setPair((p) => ({ ...p, [side]: n }))} />}
       </div>
       <div className="side flex flex-col gap-4">
         {cur && <QaSummary lang={lang} reports={cur.qa} onFix={revise} />}
