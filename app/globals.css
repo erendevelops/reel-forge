@@ -175,3 +175,6 @@ body {
 .joblog li { overflow-wrap: anywhere; word-break: break-word; }
 .joblog ol { max-height: 420px; overflow-y: auto; }
 .joblog-reply { white-space: pre-wrap; overflow-wrap: anywhere; border-top: 1px solid var(--line); padding-top: 10px; max-height: 260px; overflow-y: auto; }
+.music-card.on { border-color: var(--brand-d); box-shadow: 0 0 0 3px rgba(62, 207, 142, 0.18); }
+.music-ic { width: 36px; height: 36px; border-radius: 10px; background: var(--soft); color: var(--brand-d); display: grid; place-items: center; flex-shrink: 0; }
+.badge-warn { background: #fef3c7; color: #92400e; }

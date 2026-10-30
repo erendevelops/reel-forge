@@ -25,7 +25,7 @@ export function JobLog({ lang, events, onResume }: { lang: Language; events: Job
   const state = [...events].reverse().find((e) => e.type === 'state');
   // Claude's closing answer: what it did, or why it couldn't (shown once the job ends)
   const result = [...events].reverse().find((e) => e.type === 'claude' && e.event.kind === 'result');
-  const reply = result?.type === 'claude' && result.event.kind === 'result' ? result.event.text.replace(/^PREFERENCE:.*$/m, '').trim() : '';
+  const reply = result?.type === 'claude' && result.event.kind === 'result' ? result.event.text.replace(/^PREFERENCE:.*$/m, '').replace(/\*\*|`/g, '').trim() : '';
   const label: Record<string, string> = { running: d.running, done: d.done, failed: d.failed, cancelled: d.cancelled, 'paused-limit': d.pausedLimit };
 
   return (

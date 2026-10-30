@@ -28,22 +28,32 @@ export function MusicPick({
   return (
     <div className="flex flex-col gap-4">
       <span className="font-px text-xl">{px(d.title)}</span>
-      <div className="flex flex-col gap-2">
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
         {candidates.map((c, i) => {
           const on = picked?.url === c.url;
           return (
-            <div key={c.url} className={`card flex items-center gap-4 px-5 py-3${on ? ' ring-2' : ''}`} style={on ? { borderColor: 'var(--brand-d)' } : undefined}>
-              <div className="flex flex-1 flex-col">
-                <a href={c.url} target="_blank" rel="noreferrer noopener" className="font-bold">
-                  {c.title} ↗
-                </a>
-                <span className="meta">{c.why}</span>
+            <div key={c.url} className={`music-card card flex flex-col gap-3 px-5 py-4${on ? ' on' : ''}`}>
+              <div className="flex items-start gap-3">
+                <span className="music-ic" aria-hidden>
+                  ♪
+                </span>
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <a href={c.url} target="_blank" rel="noreferrer noopener" className="font-bold leading-snug">
+                    {c.title} <span className="meta">↗</span>
+                  </a>
+                  {c.artist && <span className="meta text-xs">{c.artist}</span>}
+                </div>
+                <button type="button" className={on ? 'btn btn-primary shrink-0' : 'btn shrink-0'} onClick={() => onPick(i)}>
+                  {on ? '✓' : d.pick}
+                </button>
               </div>
-              <span className="meta font-mono">{c.license}</span>
-              {c.contentId && <span className="badge font-mono">Content ID</span>}
-              <button type="button" className={on ? 'btn btn-primary' : 'btn'} onClick={() => onPick(i)}>
-                {d.pick}
-              </button>
+              <p className="text-sm leading-relaxed" style={{ color: 'var(--ink)' }}>
+                {c.why}
+              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="badge font-mono">{c.license.replace(/\s*\(.*\)\s*$/, '')}</span>
+                {c.contentId && <span className="badge badge-warn font-mono">Content ID</span>}
+              </div>
             </div>
           );
         })}
