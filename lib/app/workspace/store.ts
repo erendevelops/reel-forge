@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { cp, mkdir, readdir } from 'node:fs/promises';
+import { cp, mkdir, readdir, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { PlanSchema, validatePlan, type Plan, type ValidationResult } from '@/lib/plan';
 import { readJson, writeJson } from './files';
@@ -101,6 +101,28 @@ export async function getProject(id: string): Promise<Project> {
   const p = await readProject(id);
   if (!p) throw new NotFoundError(`project ${id}`);
   return p;
+}
+
+/** Removes a project folder and everything in it (inputs copied in, analysis, versions, renders). */
+export async function deleteProject(id: string): Promise<void> {
+  await getProject(id); // 404 for an unknown id, never a stray path
+  await rm(projectDir(id), { recursive: true, force: true, maxRetries: 3 });
+}
+
+/**
+ * A picture for the project list, project-relative: the newest version's cover (thumbnail-*.jpg), else its final
+ * QA sheet, else the first footage sheet from the analysis; null before any of them exist.
+ */
+export async function projectThumb(id: string): Promise<string | null> {
+  const ls = (rel: string) => readdir(path.join(projectDir(id), ...rel.split('/'))).catch(() => [] as string[]);
+  const versions = (await ls('versions')).filter((n) => /^v\d+$/.test(n)).sort((a, b) => Number(b.slice(1)) - Number(a.slice(1)));
+  for (const v of versions) {
+    const files = await ls(`versions/${v}/render`);
+    const pick = files.find((f) => /^thumbnail-.*\.jpg$/.test(f)) ?? files.find((f) => f.endsWith('.sheet.jpg'));
+    if (pick) return `versions/${v}/render/${pick}`;
+  }
+  const sheet = (await ls('analysis/sheets')).sort().find((f) => f.endsWith('.jpg'));
+  return sheet ? `analysis/sheets/${sheet}` : null;
 }
 
 export async function listProjects(): Promise<Project[]> {

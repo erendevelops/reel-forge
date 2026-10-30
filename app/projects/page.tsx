@@ -2,7 +2,7 @@ import { px } from '@/lib/i18n/px';
 import Link from 'next/link';
 import { ProjectCard } from '@/components/ProjectCard';
 import { getSettings } from '@/lib/app/settings';
-import { listProjects } from '@/lib/app/workspace/store';
+import { listProjects, projectThumb } from '@/lib/app/workspace/store';
 import { t } from '@/lib/i18n';
 
 export const dynamic = 'force-dynamic';
@@ -11,6 +11,7 @@ export default async function ProjectsPage() {
   const { language } = await getSettings();
   const d = t(language).projects;
   const projects = await listProjects();
+  const thumbs = await Promise.all(projects.map((p) => projectThumb(p.id)));
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-baseline justify-between">
@@ -23,8 +24,8 @@ export default async function ProjectsPage() {
         <p className="meta">{d.empty}</p>
       ) : (
         <div className="flex flex-col gap-3">
-          {projects.map((p) => (
-            <ProjectCard key={p.id} project={p} lang={language} />
+          {projects.map((p, i) => (
+            <ProjectCard key={p.id} project={p} lang={language} thumb={thumbs[i]} />
           ))}
         </div>
       )}
