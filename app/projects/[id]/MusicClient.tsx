@@ -47,7 +47,7 @@ export function MusicClient({ lang, projectId, candidates, picked }: { lang: Lan
         />
         {error && <p className="font-mono text-sm" style={{ color: '#e5484d' }}>{error}</p>}
       </div>
-      <div>{jobId && <JobLog lang={lang} events={job.events} onResume={() => postJob(`/api/projects/${projectId}/jobs/${jobId}/resume`, {}, lang)} />}</div>
+      <div className="min-w-0">{jobId && <JobLog lang={lang} events={job.events} onResume={() => postJob(`/api/projects/${projectId}/jobs/${jobId}/resume`, {}, lang)} />}</div>
     </div>
   );
 }

@@ -109,7 +109,7 @@ export function ProjectClient({
         )}
         {error && <p className="font-mono text-sm" style={{ color: '#e5484d' }}>{error}</p>}
       </div>
-      <div>{jobId && <JobLog lang={lang} events={events} onResume={() => start({}, `/api/projects/${projectId}/jobs/${jobId}/resume`)} />}</div>
+      <div className="min-w-0">{jobId && <JobLog lang={lang} events={events} onResume={() => start({}, `/api/projects/${projectId}/jobs/${jobId}/resume`)} />}</div>
     </div>
   );
 }

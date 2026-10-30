@@ -169,3 +169,8 @@ body {
 .dropzone.over { border-color: var(--brand-d); background: var(--soft); }
 .progress { height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; }
 .progress > div { height: 100%; background: var(--brand-d); transition: width 0.2s; }
+
+/* job log: long commands wrap inside the card, the list scrolls instead of growing forever */
+.joblog { overflow: hidden; }
+.joblog li { overflow-wrap: anywhere; word-break: break-word; }
+.joblog ol { max-height: 420px; overflow-y: auto; }

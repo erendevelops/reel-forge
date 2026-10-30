@@ -26,7 +26,7 @@ export function JobLog({ lang, events, onResume }: { lang: Language; events: Job
   const label: Record<string, string> = { running: d.running, done: d.done, failed: d.failed, cancelled: d.cancelled, 'paused-limit': d.pausedLimit };
 
   return (
-    <div className="card flex flex-col gap-3 p-5">
+    <div className="joblog card flex min-w-0 flex-col gap-3 p-5">
       {state?.type === 'state' && (
         <div className="font-mono text-sm">
           {label[state.state]}
