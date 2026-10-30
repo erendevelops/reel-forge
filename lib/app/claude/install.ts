@@ -58,6 +58,7 @@ export function claudeMd(project: Project, prefs: Preferences): string {
     '',
     '## How to work',
     '- Use `rf` for every mechanical step (`rf <command>` prints JSON); never render, never write outside this folder.',
+    '- Never write or redirect output into `project.json` (the app owns it); read it with `rf project`, keep scratch output in `work/`.',
     '- Finish a plan with `rf save plan.json`; it validates and stores a new version, and the app renders a draft.',
     `- ${replyLine(project.lang)}`,
     '',

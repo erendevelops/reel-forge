@@ -89,9 +89,10 @@ describe('workspace store', () => {
     expect(Date.parse(final.updatedAt)).toBeGreaterThanOrEqual(Date.parse(p.updatedAt));
   });
 
-  it('corrupt project.json raises WorkspaceCorruptError naming the file', async () => {
+  it('corrupt project.json with no backup raises WorkspaceCorruptError naming the file', async () => {
     const p = await createProject(base);
     await writeFile(path.join(projectDir(p.id), 'project.json'), '{ nope');
+    await rm(path.join(projectDir(p.id), '.tools', 'project.backup.json'));
     const err = await getProject(p.id).catch((e) => e);
     expect(err).toBeInstanceOf(WorkspaceCorruptError);
     expect(String(err.message)).toContain('project.json');

@@ -52,6 +52,25 @@ function slug(name: string): string {
 }
 
 const projectFile = (id: string) => path.join(projectDir(id), 'project.json');
+/** A copy kept beside it, so a project.json broken from outside (e.g. a shell redirect in Claude's job) is restored. */
+const projectBackup = (id: string) => path.join(projectDir(id), '.tools', 'project.backup.json');
+
+async function writeProject(p: Project): Promise<void> {
+  await writeJson(projectFile(p.id), p);
+  await mkdir(path.dirname(projectBackup(p.id)), { recursive: true });
+  await writeJson(projectBackup(p.id), p);
+}
+
+async function readProject(id: string): Promise<Project | null> {
+  try {
+    return await readJson(projectFile(id), ProjectSchema);
+  } catch (error) {
+    const backup = await readJson(projectBackup(id), ProjectSchema).catch(() => null);
+    if (!backup) throw error;
+    await writeJson(projectFile(id), backup);
+    return backup;
+  }
+}
 
 export async function createProject(input: NewProject): Promise<Project> {
   const ts = now();
@@ -73,13 +92,13 @@ export async function createProject(input: NewProject): Promise<Project> {
     // Copies keep the original name; the user's files are never modified.
     await cp(src, path.join(dir, 'inputs', path.basename(src)), { recursive: true, errorOnExist: false, filter: (f) => !isSkipped(path.relative(src, f)) });
   }
-  await writeJson(projectFile(project.id), project);
+  await writeProject(project);
   await installSkills(project, await getPreferences(), dir);
   return project;
 }
 
 export async function getProject(id: string): Promise<Project> {
-  const p = await readJson(projectFile(id), ProjectSchema);
+  const p = await readProject(id);
   if (!p) throw new NotFoundError(`project ${id}`);
   return p;
 }
@@ -92,14 +111,14 @@ export async function listProjects(): Promise<Project[]> {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') return [];
     throw error;
   }
-  const projects = await Promise.all(ids.map((id) => readJson(projectFile(id), ProjectSchema)));
+  const projects = await Promise.all(ids.map((id) => readProject(id).catch(() => null)));
   return projects.filter((p): p is Project => p !== null).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
 export function updateProject(id: string, patch: Partial<Omit<Project, 'id' | 'createdAt'>>): Promise<Project> {
   return queueFor(id)(async () => {
     const next = ProjectSchema.parse({ ...(await getProject(id)), ...patch, id, updatedAt: now() });
-    await writeJson(projectFile(id), next);
+    await writeProject(next);
     return next;
   });
 }
