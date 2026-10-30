@@ -5,6 +5,7 @@ import { PlanSchema, validatePlan, type Plan, type ValidationResult } from '@/li
 import { readJson, writeJson } from './files';
 import { projectDir, projectsDir, versionDir, workspaceDir } from './paths';
 import { createQueue } from './queue';
+import { isSkipped } from '@/lib/app/upload';
 import { defaultSelection, installSkills } from '@/lib/app/claude/install';
 import {
   PreferencesSchema,
@@ -70,7 +71,7 @@ export async function createProject(input: NewProject): Promise<Project> {
   await mkdir(path.join(dir, 'inputs'), { recursive: true });
   for (const src of input.inputs) {
     // Copies keep the original name; the user's files are never modified.
-    await cp(src, path.join(dir, 'inputs', path.basename(src)), { recursive: true, errorOnExist: false });
+    await cp(src, path.join(dir, 'inputs', path.basename(src)), { recursive: true, errorOnExist: false, filter: (f) => !isSkipped(path.relative(src, f)) });
   }
   await writeJson(projectFile(project.id), project);
   await installSkills(project, await getPreferences(), dir);

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { t, type Language } from '@/lib/i18n';
 import { RATIOS, type Ratio } from '@/lib/plan/schema';
 import { PRESETS, type Preset } from '@/lib/app/workspace/schema';
+import { FileImport, type ImportFile } from './FileImport';
 
 export type NewProjectInput = {
   name: string;
@@ -17,13 +18,14 @@ export type NewProjectInput = {
 const DEFAULT_RATIOS: Record<Preset, Ratio[]> = { faceless: ['9:16'], 'talking-head': ['9:16'], 'app-video': ['16:9'] };
 const ORDER: Ratio[] = ['9:16', '4:5', '1:1', '16:9'];
 
-export function NewProjectForm({ lang, onSubmit }: { lang: Language; onSubmit: (p: NewProjectInput) => void }) {
+export function NewProjectForm({ lang, onSubmit }: { lang: Language; onSubmit: (p: NewProjectInput, files: ImportFile[]) => void }) {
   const d = t(lang).newProject;
   const [preset, setPreset] = useState<Preset>('faceless');
   const [name, setName] = useState('');
   const [ratios, setRatios] = useState<Ratio[]>(DEFAULT_RATIOS.faceless);
   const [projectLang, setProjectLang] = useState<Language>(lang);
   const [inputs, setInputs] = useState<string[]>(['']);
+  const [files, setFiles] = useState<ImportFile[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   function pick(p: Preset) {
@@ -45,8 +47,8 @@ export function NewProjectForm({ lang, onSubmit }: { lang: Language; onSubmit: (
       preset,
       ratios,
       lang: projectLang,
-      inputs: inputs.map((i) => i.trim()).filter(Boolean),
-    });
+      inputs: inputs.map((i) => i.trim().replace(/^"(.*)"$/, '$1')).filter(Boolean),
+    }, files);
   }
 
   return (
@@ -88,6 +90,8 @@ export function NewProjectForm({ lang, onSubmit }: { lang: Language; onSubmit: (
 
       <div className="flex flex-col gap-2">
         <span className="meta">{d.inputs}</span>
+        <FileImport lang={lang} files={files} onChange={setFiles} />
+        <span className="meta text-xs">{d.orPaste}</span>
         {inputs.map((v, i) => (
           <input
             key={i}

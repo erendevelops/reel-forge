@@ -164,3 +164,8 @@ body {
 .spinner-wrap { display: flex; align-items: center; gap: 12px; padding: 48px 0; justify-content: center; }
 .spinner { width: 22px; height: 22px; border-radius: 50%; border: 3px solid var(--line); border-top-color: var(--brand-d); animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* file import */
+.dropzone.over { border-color: var(--brand-d); background: var(--soft); }
+.progress { height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.progress > div { height: 100%; background: var(--brand-d); transition: width 0.2s; }

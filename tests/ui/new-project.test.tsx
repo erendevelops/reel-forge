@@ -21,7 +21,7 @@ describe('NewProjectForm', () => {
       ratios: ['9:16', '4:5'],
       lang: 'en',
       inputs: ['C:/Users/me/Masaüstü/çekimler', 'C:/Users/me/vo.mp3'],
-    });
+    }, []);
   });
 
   it('talking head preset defaults ratios to 9:16, app video to 16:9', async () => {
