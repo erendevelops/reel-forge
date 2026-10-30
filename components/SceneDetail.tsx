@@ -52,7 +52,12 @@ export function SceneDetail({ lang, projectId, plan, sceneId, app, onEdit }: { l
         const items = (card.params as { items?: { at?: number; name?: string; label?: string }[] }).items;
         return (
           <div key={ci} className="card flex flex-col gap-2 px-4 py-3">
-            <span className="meta font-mono">{card.type}</span>
+            <div className="flex items-center justify-between">
+              <span className="meta font-mono">{card.type}</span>
+              <button type="button" className="btn" onClick={() => onEdit({ op: 'card-remove', scene: scene.id, card: ci })}>
+                {d.removeCard}
+              </button>
+            </div>
             {editableParams(card).map((p) => (
               <label key={p.key} className="field">
                 <span className="meta font-mono">{p.key}</span>

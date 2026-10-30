@@ -7,6 +7,7 @@ import type { Card, Plan } from '@/lib/plan/schema';
 export type Edit =
   | { op: 'card-param'; scene: string; card: number; key: string; value: string | number }
   | { op: 'card-time'; scene: string; card: number; start: number; end: number }
+  | { op: 'card-remove'; scene: string; card: number }
   | { op: 'item-at'; scene: string; card: number; item: number; at: number }
   | { op: 'caption-word'; group: number; word: number; text: string }
   | { op: 'sfx'; index: number; at?: number; volume?: number }
@@ -61,6 +62,11 @@ export function applyEdit(plan: Plan, e: Edit): Plan {
       if (e.start < s.start - TOL || e.end > s.end + TOL || e.end <= e.start) throw new EditError(`card time ${e.start}–${e.end} must sit inside the scene ${s.start}–${s.end}`);
       c.start = e.start;
       c.end = e.end;
+      break;
+    }
+    case 'card-remove': {
+      const { s } = card(e.scene, e.card);
+      s.cards.splice(e.card, 1);
       break;
     }
     case 'item-at': {

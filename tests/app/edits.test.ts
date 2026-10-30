@@ -41,6 +41,13 @@ describe('applyEdit', () => {
     expect(() => applyEdit(v5(), { op: 'shot-clip', scene: 'fooocus', shot: 0, src: 'work/../x.mp4' })).toThrow(EditError);
   });
 
+  it('removes a card from a scene', () => {
+    const before = v5().scenes[1].cards.length;
+    const after = applyEdit(v5(), { op: 'card-remove', scene: 'fooocus', card: 0 });
+    expect(after.scenes[1].cards).toHaveLength(before - 1);
+    expect(() => applyEdit(v5(), { op: 'card-remove', scene: 'fooocus', card: 99 })).toThrow(EditError);
+  });
+
   it('sets a kit colour', () => {
     const after = applyEdit({ ...v5(), look: { background: '#000000' } }, { op: 'look', key: 'accent', value: '#F0585B' });
     expect(after.look?.accent).toBe('#F0585B');
