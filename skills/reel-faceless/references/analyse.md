@@ -24,8 +24,8 @@ Camera audio is not used (the voiceover is the sound).
 For each reference: `rf sheet` every 1 s, `rf cuts` for the average shot length, and `rf transcribe` for how captions relate to speech.
 Write `analysis/style.md` covering shots, caption style, overlays, title moments, CTA and pacing.
 
-**Take the structure from references and the pacing from the user's preferences.** Eren rejected the fast
-reference pacing; his preferences in `CLAUDE.md` win.
+**Take the structure from references and the pacing from the user's preferences.** Creators often reject a
+reference's fast pacing; their preferences in `CLAUDE.md` win.
 
 ## 4. Music
 

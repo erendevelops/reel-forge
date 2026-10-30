@@ -6,8 +6,7 @@ description: Plan a faceless reel cut from B-roll footage over a separate voiceo
 # reel-faceless
 
 A faceless reel is B-roll (desk shots, screen recordings, product footage) cut to a separate voiceover. The
-**spoken words are the clock**: every cut, card, list item and caption lands on a word timestamp. Eren's 32 s
-"5 free AI tools" reel is the reference: [../video-core/examples/plan-faceless-v5.json](../video-core/examples/plan-faceless-v5.json).
+**spoken words are the clock**: every cut, card, list item and caption lands on a word timestamp.
 
 ## Analyse
 

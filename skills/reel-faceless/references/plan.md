@@ -7,7 +7,7 @@ Start from the corrected transcript (`analysis/transcript-review.json`, if the u
 - One scene for the hook, one per list item, one for the CTA. Scene seams sit on the first word of each section.
 - **Cuts land on word starts,** usually the first word of a phrase or the tool name.
 - **Shots last 2–4 s.** One or two shots per item. A 30 s reel has about 10–14 shots.
-- The creator's **signature shot** (the wide desk shot in Eren's reels) opens and closes the reel.
+- The creator's **signature shot** (for example a wide desk shot) opens and closes the reel.
 - Give each item its most **result-like** footage (images appearing, a before/after slider, an agent clicking) rather than README text.
 - For each shot, make a working clip: `rf prep inputs/<raw> inputs/work/sNN.mp4 --from <in> --duration <shot + 0.3> --ratio 9:16 --fps 60`. Then reference `work/sNN.mp4` with `from: 0`.
 - **Punch-ins** (only if ticked): at most 2 per reel, on an emphasis word ("bedava", "favorim"). No continuous zoom.

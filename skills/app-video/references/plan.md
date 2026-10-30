@@ -10,7 +10,7 @@ Hook (≤3 s) → Reveal (2–4 s) → 2–3 product moments (entry → action �
 
 The total is 15–25 s. Adapt the shape, but keep these laws:
 
-- **The hook is everything.** The first 2 s show the most striking number or claim from `product.json`, moving, not a logo. For prao: the month's spending rolling up in red, then "Bu ay nereye gitti?".
+- **The hook is everything.** The first 2 s show the most striking number or claim from `product.json`, moving, not a logo. For example: the month's spending rolling up in red, then the question it raises.
 - **Show the thing.** At least two scenes show the real UI rebuilt and acting; the user flow from the rubric is the centrepiece.
 - **Specific, never generic.** Use the product's actual copy and numbers. "Streamline your workflow" and similar are banned.
 - **Readable.** A label holds about 0.8 s settled and a sentence about 0.3 s per word. Fast in, then hold.

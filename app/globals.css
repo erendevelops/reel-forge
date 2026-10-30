@@ -1,6 +1,6 @@
 @import 'tailwindcss';
 
-/* erens.website light theme. Light only: no dark mode, no dot pattern. */
+/* Light theme only: no dark mode, no dot pattern. */
 :root {
   --bg: #f7fbf9;
   --ink: #111827;

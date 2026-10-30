@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { EditError, applyEdit, diffPlans, editableParams } from '../../lib/app/edits';
 import type { Card, Plan } from '../../lib/plan';
 
-const v5 = (): Plan => JSON.parse(readFileSync('skills/video-core/examples/plan-faceless-v5.json', 'utf8'));
+const v5 = (): Plan => JSON.parse(readFileSync('tests/fixtures/plan-reel-v5.json', 'utf8'));
 
 describe('applyEdit', () => {
   it('changes a card param without touching the input plan', () => {

@@ -1,7 +1,7 @@
 import type { Card, Plan } from './schema';
 
 /**
- * Variety rules (spec §6 "Unique, not repetitive"): Eren rejected drafts where the same logo, card, animation and
+ * Variety rules (spec §6 "Unique, not repetitive"): creators rejected drafts where the same logo, card, animation and
  * sound kept coming back. Graphics carry new information and every beat looks and sounds different.
  * - the same sound file never plays twice in a row, and (keyboard keypresses aside) at most twice per video;
  * - a topic logo appears once per video;
@@ -9,7 +9,7 @@ import type { Card, Plan } from './schema';
  * - no two custom-animation cards are the same scene;
  * - a typed-title / stamp never restates the spoken line (captions already show it).
  * Faceless B-roll reels (every scene `broll`) are exempt: their running list and title cards carry over by design
- * (Eren's accepted v5).
+ * (an accepted faceless format).
  */
 export function checkVariety(plan: Plan): string[] {
   const errors: string[] = [];

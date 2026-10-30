@@ -1,6 +1,6 @@
 # One look, never the same beat twice
 
-Eren rejected the first talking-head and app drafts as "always repetitive: same animations, same sounds, same
+Creators rejected early talking-head and app drafts as "always repetitive: same animations, same sounds, same
 logo, same visuals one after another" and "nothing really matching the app's actual design". Both failures have the
 same cure: **one design kit for the whole video, and a new, specific graphic for every beat.**
 
@@ -14,7 +14,7 @@ The kit is the video's visual language. Every graphic, built-in card or scene sc
 | `card` | card surface | `#FFFFFF` | the app's surface colour |
 | `ink` | main text | `#151515` | the app's ink |
 | `muted` | labels, secondary | `#8A857A` | the app's secondary |
-| `accent` | the one highlight | `#F5B700` yellow | the app's accent (prao: coral `#F0585B`) |
+| `accent` | the one highlight | `#F5B700` yellow | the app's accent |
 | `positive` / `negative` | checks / crosses, stamps | `#1F9D55` / `#E5322D` | the app's success / danger |
 | `radius` | card corners (px) | `28` | the app's radius ×(video scale) |
 | `font` | `Inter` or `Nunito` | `Inter` | closest of the two to the app's font |
@@ -57,7 +57,7 @@ Then make the sequence varied:
 
 ## 3. Size and fill
 
-Eren watches on a phone. The second talking-head draft had a lone 500 px label card and a small logo floating in an
+Viewers watch on a phone. The second talking-head draft had a lone 500 px label card and a small logo floating in an
 empty cream half: that reads as unfinished.
 
 - **Fill the region.** A split panel (1080×960) holds 2–4 elements that together span its width (cards ~900 px wide, 90 px side margins) and most of its height by the end of the scene. A `full-graphics` scene fills the frame like a poster.

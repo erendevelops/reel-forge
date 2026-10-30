@@ -7,7 +7,7 @@ user's own direction and preferences always win.
 |---|---|---|---|
 | `default` | Friendly, clean, postable | Medium | Rounded sans, bouncy-but-brief entrances |
 | `polished` | Serious, elegant | Measured, longer holds | Light weights, slow fades, generous space |
-| `app-store` | Smooth feature-card clean | Confident, quick moves, still titles | Heavy display type, product UI front and centre (prao) |
+| `app-store` | Smooth feature-card clean | Confident, quick moves, still titles | Heavy display type, product UI front and centre |
 | `cinematic` | Trailer scale | Slow build, then big hits | Large type, depth, dramatic scale moves |
 | `deadpan` | Calm, dry | Even, deliberate | Plain type; the humour is in the restraint |
 | `chaotic` | Fast, loud | Rapid | Hard cuts, big type, stacked motion; still readable |

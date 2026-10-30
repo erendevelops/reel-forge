@@ -9,7 +9,7 @@ A person talks to camera. The camera audio is the voice. The edit lives in the *
 comparison, rule, product and idea gets its own designed visual, built on the word, while the layout moves between
 the face and the graphics. The quality bar is the @onur.builds and @msevimli_ reels.
 
-Eren's verdicts set the non-negotiables:
+Creator feedback on earlier drafts set the non-negotiables:
 
 1. **Unique and specific, never repetitive.** The first draft repeated the same typed-title, the same YouTube logo and the same drop sound for 54 s and was rejected. Every beat is a different graphic made for that sentence, in one consistent look ([../video-core/references/look.md](../video-core/references/look.md)). `rf validate` refuses repeats.
 2. **Lots of motion, all of it meaningful.** No stretch of talk over 3 s without a visible beat (`rf gaps` must be `[]`), but the beats come from graphics building up (rows joining, values counting, stamps landing), not from filler cards.

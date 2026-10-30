@@ -5,7 +5,7 @@ description: Plan a short launch video for an app, rebuilt from the product's ow
 
 # app-video
 
-A 15–25 s product film made from the app's own material. The reference is Eren's prao launch video. **The UI is rebuilt and animated acting**
+A 15–25 s product film made from the app's own material. **The UI is rebuilt and animated acting**
 (typing, tapping, counters rolling, lists updating) as `custom-animation` cards. The video never pans over
 screenshots; real screenshots appear only in the outro.
 
@@ -17,7 +17,7 @@ brand tokens, real copy, the user flow) and, if music is ticked, `analysis/music
 ## Plan
 
 Follow [references/plan.md](references/plan.md) for the storyboard (`analysis/storyboard.md`), then
-[references/compose.md](references/compose.md) to turn it into `plan.json`. Tone presets are in [references/tones.md](references/tones.md); the bar to beat is [references/prao.md](references/prao.md).
+[references/compose.md](references/compose.md) to turn it into `plan.json`. Tone presets are in [references/tones.md](references/tones.md).
 Gate: `rf validate plan.json` returns no errors, then `rf save plan.json --request "first cut"`.
 
 ## Revise

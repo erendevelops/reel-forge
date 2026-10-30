@@ -8,7 +8,7 @@ import type { Plan } from '../../lib/plan';
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }) }));
 
-const v5 = (): Plan => JSON.parse(readFileSync('skills/video-core/examples/plan-faceless-v5.json', 'utf8'));
+const v5 = (): Plan => JSON.parse(readFileSync('tests/fixtures/plan-reel-v5.json', 'utf8'));
 const project = { id: 'p1', mode: 'reel' as const, preset: 'faceless' as const, ratios: ['9:16' as const] };
 const versions = [{ n: 1, by: 'claude' as const, parent: null, request: 'first cut', diff: null, createdAt: '' }];
 

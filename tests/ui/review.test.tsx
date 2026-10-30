@@ -8,7 +8,7 @@ import type { Plan } from '../../lib/plan';
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }) }));
 
-const v5 = (): Plan => JSON.parse(readFileSync('skills/video-core/examples/plan-faceless-v5.json', 'utf8'));
+const v5 = (): Plan => JSON.parse(readFileSync('tests/fixtures/plan-reel-v5.json', 'utf8'));
 const versions = [
   { n: 1, by: 'claude' as const, parent: null, request: 'first cut', diff: null, createdAt: '' },
   { n: 2, by: 'user' as const, parent: 1, request: null, diff: null, createdAt: '' },

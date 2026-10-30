@@ -13,7 +13,7 @@ export const PRESET_SKILL: Record<Preset, string> = {
 /** Option cards a new project starts with; Plan 4's option-card screen replaces them. */
 export function defaultSelection(preset: Preset): Selection {
   switch (preset) {
-    case 'faceless': // Eren's v5 reel
+    case 'faceless': // the faceless preset's proven defaults
       return { captions: 'word-build', layouts: ['broll'], cards: ['title-card', 'numbered-list', 'logo-pop'], sfx: true, music: false, punchIns: true, thumbnail: true, topicAssets: false };
     case 'talking-head':
       return {

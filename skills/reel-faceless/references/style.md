@@ -1,6 +1,6 @@
 # Faceless reel defaults
 
-These came from Eren's v1 → v5 feedback on his reel. They are the preset's defaults; preferences in `CLAUDE.md` override them.
+These came from five rounds of creator feedback on a faceless reel. They are the preset's defaults; preferences in `CLAUDE.md` override them.
 
 1. **Calm pacing:** 2–4 s shots; at most ~2 soft punch-ins; no continuous zoom.
 2. **Never touch footage colour,** brightness or contrast. No gradients or flashes.
@@ -13,7 +13,7 @@ These came from Eren's v1 → v5 feedback on his reel. They are the preset's def
 
 What went wrong before, so you don't repeat it:
 
-| Version | What Eren said | Lesson |
+| Version | What the creator said | Lesson |
 |---|---|---|
 | v1 | Too many cuts, too fast, too many zooms, dizzying | 2–4 s shots, 2 soft punch-ins max |
 | v2 | Looks dark and artificial | Never grade; the app's export keeps BT.709 |

@@ -62,4 +62,4 @@ Everything is in **seconds** (floats). Frames only exist at render time.
 }
 ```
 
-The full faceless reference plan (Eren's v5 reel) is [../examples/plan-faceless-v5.json](../examples/plan-faceless-v5.json).
+

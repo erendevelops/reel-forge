@@ -21,17 +21,17 @@ The repo is in `inputs/` (often a copied project folder). Screenshots may be nex
 
 ```json
 {
-  "name": "prao",
-  "oneLine": "A calm iPhone money tracker: log spending in seconds, see where it went.",
+  "name": "<app name>",
+  "oneLine": "<what the app does, in one sentence>",
   "rubric": {
-    "what": "…", "strongestClaim": "…", "visualHook": "…", "showFromUI": ["add sheet", "budget rings", "calendar", "recap"],
+    "what": "…", "strongestClaim": "…", "visualHook": "…", "showFromUI": ["<screen or component>", "…"],
     "length": 23, "tone": { "preset": "app-store", "direction": "Apple-keynote product film" },
     "audio": "warm minimal bed; UI clicks only where something is pressed",
     "shareCaption": "…",
-    "flow": ["enter 1-8-0", "tap Kahve, Kaydet", "row lands in Son işlemler"]
+    "flow": ["<entry>", "<key action>", "<result>"]
   },
-  "brand": { "ground": "#0B0B0C", "surface": "#18181B", "ink": "#FAFAFA", "secondary": "#8E8E93", "accents": { "expense": "#F87171" }, "font": "Inter", "radius": 16 },
-  "copy": ["Bugün harcayabileceğin", "Son işlemler", "Kaydet"],
+  "brand": { "ground": "#hex", "surface": "#hex", "ink": "#hex", "secondary": "#hex", "accents": { "<role>": "#hex" }, "font": "<font>", "radius": 16 },
+  "copy": ["<real UI string>", "…"],
   "assets": { "logo": "inputs/…/Logo.svg", "screenshots": ["inputs/shots/home.jpg"] }
 }
 ```

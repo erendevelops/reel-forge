@@ -18,7 +18,7 @@ phone screen is drawn ~1.6× its points). A scene that "looks like an app" but n
 `plan.look` = the app's tokens (ground, surface as `card`, ink, secondary as `muted`, accent, success/danger as
 `positive`/`negative`, radius, font). Scenes use `var(--…)` so they match each other and the app.
 
-Vary the scenes, the real prao video is the bar ([prao.md](prao.md)): no two scenes share a layout or an entrance.
+Vary the scenes: no two scenes share a layout or an entrance.
 
 | Action | How (scene script) |
 |---|---|
@@ -50,7 +50,7 @@ Vary the scenes, the real prao video is the bar ([prao.md](prao.md)): no two sce
 
 One sound per visible action, matched to it ([../../video-core/references/sfx.md](../../video-core/references/sfx.md)):
 keypresses per typed digit, clicks for taps, card slides for sheets, chips for money landing and counters, a bell or
-soft impact for the logo, card-fan for the screenshot fan. prao's real video used 33 different cues in 23 s.
+soft impact for the logo, card-fan for the screenshot fan.
 Fire each at the start of its motion. Nothing louder than the music's peaks.
 
 ## Before saving
