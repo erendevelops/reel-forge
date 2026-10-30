@@ -34,6 +34,13 @@ describe('applyEdit', () => {
     expect(() => applyEdit(v5(), { op: 'shot-in', scene: 'fooocus', shot: 0, from: -1 })).toThrow(EditError);
   });
 
+  it('swaps a shot to a picked work clip, keeping its length and place', () => {
+    const after = applyEdit(v5(), { op: 'shot-clip', scene: 'fooocus', shot: 0, src: 'work/pick-a1.mp4' });
+    expect(after.scenes[1].shots[0]).toMatchObject({ src: 'work/pick-a1.mp4', from: 0, to: 2.68, at: 6.16 });
+    expect(() => applyEdit(v5(), { op: 'shot-clip', scene: 'fooocus', shot: 0, src: 'inputs/a.MOV' })).toThrow(EditError);
+    expect(() => applyEdit(v5(), { op: 'shot-clip', scene: 'fooocus', shot: 0, src: 'work/../x.mp4' })).toThrow(EditError);
+  });
+
   it('sets a kit colour', () => {
     const after = applyEdit({ ...v5(), look: { background: '#000000' } }, { op: 'look', key: 'accent', value: '#F0585B' });
     expect(after.look?.accent).toBe('#F0585B');

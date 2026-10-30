@@ -113,7 +113,7 @@ export function ReviewClient({ lang, projectId, projectName, versions, current, 
   const cur = views[current];
   const ratio = cur?.renders[0]?.ratio ?? '9:16';
   return (
-    <div className="grid grid-cols-[1fr_380px] gap-7">
+    <div className="grid grid-cols-[minmax(0,1fr)_380px] gap-7">
       <div className="flex flex-col gap-4">
         {!cur && <Spinner />}
         {cur && <FinishCard lang={lang} name={projectName} view={cur} busy={job.running} onFinal={() => void startFinal()} />}

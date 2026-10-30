@@ -12,6 +12,8 @@ export type Edit =
   | { op: 'sfx'; index: number; at?: number; volume?: number }
   | { op: 'music'; mediaStart?: number; volume?: number }
   | { op: 'shot-in'; scene: string; shot: number; from: number }
+  /** Swap a shot's footage for a working clip the app cut (`work/…`); the shot keeps its place and length. */
+  | { op: 'shot-clip'; scene: string; shot: number; src: string }
   | { op: 'look'; key: keyof NonNullable<Plan['look']>; value: string | number };
 
 export class EditError extends Error {
@@ -100,6 +102,16 @@ export function applyEdit(plan: Plan, e: Edit): Plan {
       const len = sh.to - sh.from;
       sh.from = e.from;
       sh.to = Number((e.from + len).toFixed(6));
+      break;
+    }
+    case 'shot-clip': {
+      const sh = scene(e.scene).shots[e.shot];
+      if (!sh) throw new EditError(`scene ${e.scene} has no shot ${e.shot}`);
+      if (!/^work\/[\w.-]+\.mp4$/.test(e.src)) throw new EditError(`a picked clip must be a work/*.mp4 file, not ${e.src}`);
+      const len = sh.to - sh.from;
+      sh.src = e.src;
+      sh.from = 0;
+      sh.to = Number(len.toFixed(6));
       break;
     }
     case 'look': {

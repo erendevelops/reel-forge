@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { t, type Language } from '@/lib/i18n';
 import { editableParams, type Edit } from '@/lib/app/edits';
 import type { Plan } from '@/lib/plan/schema';
+import { ShotPicker } from './ShotPicker';
 
 const KIT = ['background', 'card', 'ink', 'muted', 'accent'] as const;
 
@@ -33,7 +34,7 @@ function NumberField({ value, step, onCommit, ...rest }: { value: number; step: 
  * The selected scene's details: Claude's reason, each card's editable text/numbers and timing, list item times, the
  * scene's sound cues; for app videos the kit colours (animations themselves change through Claude).
  */
-export function SceneDetail({ lang, plan, sceneId, app, onEdit }: { lang: Language; plan: Plan; sceneId: string; app: boolean; onEdit: (e: Edit) => void }) {
+export function SceneDetail({ lang, projectId, plan, sceneId, app, onEdit }: { lang: Language; projectId: string; plan: Plan; sceneId: string; app: boolean; onEdit: (e: Edit) => void }) {
   const d = t(lang).storyboard;
   const scene = plan.scenes.find((s) => s.id === sceneId);
   if (!scene) return null;
@@ -46,6 +47,7 @@ export function SceneDetail({ lang, plan, sceneId, app, onEdit }: { lang: Langua
           <b>{d.why}</b> <span>{scene.why}</span>
         </div>
       )}
+      <ShotPicker lang={lang} projectId={projectId} plan={plan} sceneId={scene.id} onEdit={onEdit} />
       {scene.cards.map((card, ci) => {
         const items = (card.params as { items?: { at?: number; name?: string; label?: string }[] }).items;
         return (

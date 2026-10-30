@@ -145,9 +145,9 @@ export function StoryboardClient({
   };
 
   return (
-    <div className="grid grid-cols-[1fr_380px] gap-7">
+    <div className="grid grid-cols-[minmax(0,1fr)_380px] gap-7">
       <div className="flex flex-col gap-4">
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
           <VersionPicker lang={lang} versions={versions} value={n} onChange={(v) => void load(v)} />
           <Link className="meta font-mono text-xs" href={`/projects/${project.id}/cards`}>
             {d.changeCards}
@@ -189,7 +189,7 @@ export function StoryboardClient({
           selected={selected}
           current={playing ? current : null}
           onSelect={seekTo}
-          detail={<SceneDetail lang={lang} plan={plan} sceneId={selected} app={project.mode === 'app'} onEdit={edit} />}
+          detail={<SceneDetail lang={lang} projectId={project.id} plan={plan} sceneId={selected} app={project.mode === 'app'} onEdit={edit} />}
         />
       </div>
       <div className="side flex flex-col gap-4">
@@ -212,7 +212,7 @@ export function StoryboardClient({
           {d.approve}
         </button>
         {job.preference && job.preference !== dismissed && <PreferenceOffer lang={lang} text={job.preference} projectId={project.id} onDone={() => setDismissed(job.preference)} />}
-        {error && <p className="whitespace-pre-wrap font-mono text-sm" style={{ color: '#e5484d' }}>{error}</p>}
+        {error && <p className="whitespace-pre-wrap break-all font-mono text-sm" style={{ color: '#e5484d' }}>{error}</p>}
       </div>
     </div>
   );
