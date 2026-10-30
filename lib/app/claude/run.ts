@@ -1,7 +1,8 @@
 import { spawn } from 'node:child_process';
 import { parseStreamLine, type ClaudeEvent } from './events';
 
-export const DEFAULT_ALLOWED_TOOLS = ['Bash', 'Read', 'Write', 'Edit', 'Glob', 'Grep'];
+// WebSearch/WebFetch: music suggestions (spec §6) and official logos from a tool's repo or site need the web
+export const DEFAULT_ALLOWED_TOOLS = ['Bash', 'Read', 'Write', 'Edit', 'Glob', 'Grep', 'WebSearch', 'WebFetch'];
 
 const LIMIT = /session limit|usage limit|rate.?limit|\b429\b/i;
 const AUTH = /login|log in|authenticate|auth|unauthori|oauth|session expired/i;
