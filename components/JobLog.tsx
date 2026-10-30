@@ -5,6 +5,14 @@ import type { JobEvent } from '@/lib/app/jobs/jobs';
 
 const RATIO_STEP = /^(9:16|16:9|1:1|4:5) (\w+)$/;
 
+/** A tool summary without the long project path (`cd "C:/…/projects/<id>" && rf …` → `rf …`). */
+export function shortStep(s: string): string {
+  return s
+    .replace(/cd\s+"?[^"&;]*[\\/]projects[\\/][a-z0-9-]+"?\s*(&&|;)?\s*/gi, '')
+    .replace(/[A-Za-z]:[\\/][^\s"]*?[\\/]projects[\\/][a-z0-9-]+[\\/]?/gi, '')
+    .trim() || s;
+}
+
 /** A calm step list: one row per Claude tool call, one bar per ratio, and the end state. */
 export function JobLog({ lang, events, onResume }: { lang: Language; events: JobEvent[]; onResume: () => void }) {
   const d = t(lang).jobs;
@@ -37,7 +45,7 @@ export function JobLog({ lang, events, onResume }: { lang: Language; events: Job
       <ol className="flex flex-col gap-1">
         {tools.map((s, i) => (
           <li key={i} className="meta">
-            {s}
+            {shortStep(s)}
           </li>
         ))}
       </ol>

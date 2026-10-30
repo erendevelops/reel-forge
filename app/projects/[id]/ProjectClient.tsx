@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 import { JobLog } from '@/components/JobLog';
 import { t, type Language } from '@/lib/i18n';
 import type { JobEvent } from '@/lib/app/jobs/jobs';
@@ -28,6 +29,17 @@ export function ProjectClient({
   const [request, setRequest] = useState('');
   const claude = (body: object) => start(body, `/api/projects/${projectId}/claude`);
   const latest = versions.at(-1)?.n ?? null;
+  const router = useRouter();
+  const refreshed = useRef<string | null>(null);
+
+  // when the job ends, reload the page so it moves on to the next stage (music, transcript, storyboard…)
+  useEffect(() => {
+    const last = [...events].reverse().find((e) => e.type === 'state');
+    if (jobId && last?.type === 'state' && last.state !== 'running' && events.some((e) => e.type === 'state' && e.state === 'running') && refreshed.current !== jobId) {
+      refreshed.current = jobId;
+      router.refresh();
+    }
+  }, [events, jobId, router]);
 
   useEffect(() => {
     if (!jobId) return;
