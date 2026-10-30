@@ -80,6 +80,7 @@ export const en: Dictionary = {
   projects: {
     title: 'PROJECTS',
     delete: 'Delete',
+    deleting: 'Deleting…',
     confirmDelete: 'Project “{name}” and all its files (copied videos, versions, renders) will be deleted. Are you sure?',
     deleteBusy: 'A job is still running in this project; try again when it ends.',
     empty: 'No projects yet.',

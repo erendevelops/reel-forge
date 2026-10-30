@@ -24,7 +24,7 @@ export function ProjectCard({ project, lang, thumb }: { project: Project; lang: 
         </div>
         <span className="meta">{project.updatedAt.slice(0, 10)}</span>
       </Link>
-      <DeleteProject id={project.id} label={p.delete} confirmText={p.confirmDelete.replace('{name}', project.name)} busyText={p.deleteBusy} />
+      <DeleteProject id={project.id} label={p.delete} busyLabel={p.deleting} confirmText={p.confirmDelete.replace('{name}', project.name)} busyText={p.deleteBusy} />
     </div>
   );
 }

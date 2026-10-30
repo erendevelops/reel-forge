@@ -78,6 +78,7 @@ export const tr = {
   projects: {
     title: 'PROJELER',
     delete: 'Sil',
+    deleting: 'Siliniyor…',
     confirmDelete: '“{name}” projesi ve tüm dosyaları (kopyalanan videolar, sürümler, render’lar) silinecek. Emin misin?',
     deleteBusy: 'Bu projede bir iş hâlâ çalışıyor; bitince tekrar dene.',
     empty: 'Henüz proje yok.',
