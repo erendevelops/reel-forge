@@ -1,6 +1,6 @@
 # AI Video Editor: Design
 
-Date: 2026-10-24 · Status: draft for approval · Working name: **Reelforge** (placeholder, not decided)
+Date: 2026-10-24 · Status: draft for approval · Name: **Reelforge** (decided by Eren, 2026-10-30)
 
 ## 1. Intent
 
@@ -238,7 +238,7 @@ Failures show in Review with Claude's proposed fix.
 - multiple ratios for reels too;
 - the option-card catalogue;
 - the preset defaults vs global rules split;
-- the placeholder name.
+- the name (Eren chose Reelforge on 2026-10-30).
 
 **Left to the builder:**
 - exact CLI flags and tool allowlist;
