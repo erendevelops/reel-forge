@@ -2,6 +2,14 @@
 
 Start from `analysis/transcript.json`: the app saves the user's corrections there. Captions use its words **word for word**. `transcript-review.json` is only your list of doubtful words from the analysis; never take caption text from it.
 
+## Reference reels come first
+
+If `analysis/style.md` exists, **rebuild that reel's look and techniques beat for beat** with this project's voiceover
+and footage: its backgrounds, colours, type, caption style, graphics and transitions. It overrides the preset's look
+defaults in [style.md](style.md) and the card patterns below (keep the ticked cards). If the reference is mostly graphics,
+so is this video: footage can become an inset or disappear behind `custom-animation` scenes. Before saving, compare
+`rf preview` stills with the reference sheets side by side and fix what doesn't match.
+
 ## Scenes and shots
 
 - One scene for the hook, one per list item, one for the CTA. Scene seams sit on the first word of each section.

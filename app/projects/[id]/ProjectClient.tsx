@@ -41,21 +41,18 @@ export function ProjectClient({
     <div className="grid grid-cols-[1fr_340px] gap-7">
       <div className="flex flex-col gap-3">
         <div className="meta uppercase tracking-widest">{d.versions}</div>
-        {versions.length === 0 && (
-          <div className="flex items-center gap-3">
-            <p className="meta">{d.noVersions}</p>
-            {stage === 'analyse' && (
-              <button type="button" className="btn btn-primary" onClick={() => claude({ stage: 'analyse' })}>
-                {d.analyse}
-              </button>
-            )}
-            {stage === 'plan' && (
-              <button type="button" className="btn btn-primary" onClick={() => claude({ stage: 'plan' })}>
-                {d.makePlan}
-              </button>
-            )}
+        {versions.length === 0 && !job.running && (stage === 'analyse' || stage === 'plan') && (
+          // the one thing to do next, spelled out: what it does, how long, where it goes after
+          <div className="card flex flex-col gap-3 px-6 py-5" style={{ borderColor: '#1f9d6b', borderWidth: 2 }}>
+            <span className="meta uppercase tracking-widest">{d.nextStep}</span>
+            <div className="text-lg font-semibold">{stage === 'plan' ? d.makePlan : d.analyse}</div>
+            <p className="meta">{stage === 'plan' ? d.planHint : d.analyseHint}</p>
+            <button type="button" className="btn btn-primary self-start" onClick={() => claude({ stage })}>
+              {stage === 'plan' ? d.makePlan : d.analyse} →
+            </button>
           </div>
         )}
+        {versions.length === 0 && stage !== 'analyse' && stage !== 'plan' && <p className="meta">{d.noVersions}</p>}
         {versions.map((v) => (
           <div key={v.n} className="card flex items-center gap-4 px-5 py-3">
             <span className="font-px">v{v.n}</span>

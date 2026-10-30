@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { buildPrompt } from '@/lib/app/claude/prompts';
+import { installSkills } from '@/lib/app/claude/install';
+import { projectDir } from '@/lib/app/workspace/paths';
 import { JobBusyError, startJob } from '@/lib/app/jobs/jobs';
 import '@/lib/app/jobs/render-job'; // the auto-draft after a plan needs the render executor
 import { NotFoundError, getPreferences, getProject, listVersions } from '@/lib/app/workspace/store';
@@ -19,6 +21,7 @@ export async function POST(req: Request, { params }: Ctx) {
   try {
     const [project, preferences, versions] = await Promise.all([getProject(id), getPreferences(), listVersions(id)]);
     const prompt = buildPrompt(parsed.data.stage, { project, preferences, versions, request: parsed.data.request });
+    await installSkills(project, preferences, projectDir(id)); // current skills and CLAUDE.md (cards, preferences) for every job
     return NextResponse.json(await startJob(id, { kind: 'claude', prompt }), { status: 201 });
   } catch (err) {
     if (err instanceof JobBusyError) return NextResponse.json({ error: err.message }, { status: 409 });

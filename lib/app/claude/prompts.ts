@@ -9,6 +9,8 @@ export type PromptCtx = {
   versions: VersionOrigin[];
   request?: string;
   userDiffs?: unknown[];
+  /** Plan again from scratch (the user changed the option cards or reference reels). */
+  fresh?: boolean;
 };
 
 function selectionLines(p: Project): string {
@@ -52,8 +54,12 @@ export function buildPrompt(stage: Stage, ctx: PromptCtx): string {
   } else if (stage === 'plan') {
     body = [
       `Stage: plan. Write plan.json following the ${skill} skill.`,
+      ctx.fresh
+        ? 'The user changed the option cards (and maybe the reference reels): build a NEW plan from scratch with the new cards. Do not copy the previous plan.json or earlier versions. If a reference reel listed here is not in analysis/refs/ yet, download and study it first and rewrite analysis/style.md (analyse skill, reference reels).'
+        : '',
       selectionLines(project),
       motion,
+      project.references.length ? 'The user gave reference reels: read analysis/style.md first and rebuild their look and techniques beat for beat (it overrides the preset look defaults; only pacing follows the user preferences).' : '',
       project.transcriptChecked ? 'The user corrected the transcript: captions come word for word from analysis/transcript-trimmed.json (talking head) or analysis/transcript.json, never from transcript-review.json (that holds the uncorrected words).' : '',
       project.music?.file ? `Music: inputs/music/${project.music.file} ("${project.music.title}", ${project.music.license}). Align it with rf beats.` : '',
       'Then run `rf validate plan.json` and fix every error, then `rf save plan.json --request "first cut"`.',

@@ -44,7 +44,8 @@ export const NumberedListParams = z.object({
 
 export const LogoPopParams = z.object({
   img: z.string().min(1),
-  left: z.number().finite(),
+  /** The card's LEFT EDGE in 1080-wide design px (not its centre); leave it out to centre the card horizontally. */
+  left: z.number().finite().optional(),
   top: z.number().finite(),
   rot: z.number().finite().optional(),
   width: z.number().positive().default(300),

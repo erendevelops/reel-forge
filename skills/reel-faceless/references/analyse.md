@@ -19,13 +19,21 @@ Camera audio is not used (the voiceover is the sound).
 3. If the user's script and the audio disagree, captions follow the audio. Say so in your reply.
 4. Find the structure: hook → items (ordinal words such as "Birincisi / İkinci / First / Second" followed by a proper noun) → CTA.
 
-## 3. Reference reels (only if `inputs/references/` exists)
+## 3. Reference reels (when the project has them; downloaded into `analysis/refs/`)
 
-For each reference: `rf sheet` every 1 s, `rf cuts` for the average shot length, and `rf transcribe` for how captions relate to speech.
-Write `analysis/style.md` covering shots, caption style, overlays, title moments, CTA and pacing.
+The user gave a reference because they want **their video to look and move like it.** For each reference: `rf sheet`
+every 0.5 s in 10 s chunks (look at every sheet), `rf cuts` for the shot length, `rf transcribe` for how captions follow speech.
 
-**Take the structure from references and the pacing from the user's preferences.** Creators often reject a
-reference's fast pacing; their preferences in `CLAUDE.md` win.
+Write `analysis/style.md` as a **recipe to rebuild it**, not a summary:
+1. **Beat by beat** (a table): time, what is said, exactly what is on screen (background, every element, its
+   position, size, colours, font style), and how it moves in and out (pop, slide, type-on, morph, cursor click…).
+2. **The look:** background colours (hex, read from the frames), type (sans/serif, weight, italic emphasis words),
+   caption position and size, how footage is framed (full screen, inset card, rounded corners, none at all).
+3. **Techniques to copy:** each recurring trick by name with how to build it here (`custom-animation` for illustration
+   worlds, mini UIs, ghost words, cursor clicks; `title-card`, `logo-pop`, `follow-outro` where they match).
+4. **Differences:** what the reference has that our footage can't give, and the closest substitute.
+
+Pacing: the user's preferences in `CLAUDE.md` win over the reference's speed. Everything else follows the reference.
 
 ## 4. Music
 

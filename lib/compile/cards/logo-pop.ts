@@ -29,7 +29,7 @@ export const logoPop: CardTemplate = {
     const bare = bg === 'transparent';
     const pad = p.fit === 'contain' && !bare ? sz(ctx, 14) : 0;
     const style =
-      `left: ${num(fx(ctx, p.left))}px; top: ${num(fy(ctx, p.top))}px; width: ${num(sz(ctx, p.width))}px; ` +
+      `left: ${num(p.left === undefined ? (ctx.width - sz(ctx, p.width)) / 2 : fx(ctx, p.left))}px; top: ${num(fy(ctx, p.top))}px; width: ${num(sz(ctx, p.width))}px; ` +
       `height: ${num(sz(ctx, p.height))}px; border-radius: ${num(sz(ctx, 26))}px; ${bare ? 'border: none; box-shadow: none; overflow: visible;' : `border: ${num(sz(ctx, 6))}px solid ${WHITE};`} background: ${esc(bg)};`;
     const img = `<img src="${esc(ctx.assetsUrl(p.img))}" alt="" style="object-fit: ${p.fit}; padding: ${num(pad)}px;${bare ? ' filter: drop-shadow(0 12px 30px rgba(0,0,0,0.55));' : ''}">`;
     const sel = `#${id} .lp-card`;
