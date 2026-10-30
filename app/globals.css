@@ -183,3 +183,7 @@ body {
 .finish { border-color: var(--brand); background: linear-gradient(180deg, #ffffff 0%, #f3fbf7 100%); }
 .finish-ic { width: 44px; height: 44px; border-radius: 14px; background: var(--brand-d); color: #fff; display: grid; place-items: center; font-size: 22px; font-weight: 800; flex-shrink: 0; }
 .btn-lg { padding: 12px 20px; font-size: 14px; text-align: center; }
+
+/* storyboard: the selected scene's details open under its row */
+.scene-detail { margin: 8px 0 6px 24px; padding-left: 16px; border-left: 2px solid var(--brand); }
+.scene-detail .card { box-shadow: none; }

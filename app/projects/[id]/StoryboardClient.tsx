@@ -199,7 +199,14 @@ export function StoryboardClient({
             </button>
           </p>
         )}
-        <SceneList lang={lang} plan={plan} selected={selected} current={playing ? current : null} onSelect={seekTo} />
+        <SceneList
+          lang={lang}
+          plan={plan}
+          selected={selected}
+          current={playing ? current : null}
+          onSelect={seekTo}
+          detail={<SceneDetail lang={lang} plan={plan} sceneId={selected} app={project.mode === 'app'} onEdit={edit} />}
+        />
       </div>
       <div className="side flex flex-col gap-4">
         {project.ratios.length > 1 && (
@@ -212,7 +219,6 @@ export function StoryboardClient({
           </div>
         )}
         <PreviewPlayer lang={lang} src={src} ratio={ratio} duration={plan.duration} time={time} playing={playing} onTime={setTime} onPlaying={setPlaying} seek={seekReq} />
-        <SceneDetail lang={lang} plan={plan} sceneId={selected} app={project.mode === 'app'} onEdit={edit} />
         {job.running ? (
           <JobLog lang={lang} events={job.events} onResume={() => void start(`/api/projects/${project.id}/jobs/${jobId}/resume`, {})} />
         ) : (

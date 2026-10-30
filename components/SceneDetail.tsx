@@ -40,9 +40,12 @@ export function SceneDetail({ lang, plan, sceneId, app, onEdit }: { lang: Langua
   const cues = plan.sfx.map((c, i) => ({ c, i })).filter(({ c }) => c.at >= scene.start && c.at < scene.end);
   return (
     <div className="flex flex-col gap-3">
-      <div className="why">
-        <b>{d.why}</b> <span>{scene.why}</span>
-      </div>
+      {/* the scene row already shows the why when there is no spoken line (app videos) */}
+      {scene.say.trim() && (
+        <div className="why">
+          <b>{d.why}</b> <span>{scene.why}</span>
+        </div>
+      )}
       {scene.cards.map((card, ci) => {
         const items = (card.params as { items?: { at?: number; name?: string; label?: string }[] }).items;
         return (
@@ -81,8 +84,10 @@ export function SceneDetail({ lang, plan, sceneId, app, onEdit }: { lang: Langua
         );
       })}
       {cues.length > 0 && (
-        <div className="card flex flex-col gap-2 px-4 py-3">
-          <span className="meta font-mono">{d.sounds}</span>
+        <details className="card flex flex-col gap-2 px-4 py-3">
+          <summary className="meta cursor-pointer font-mono">
+            {d.sounds} ({cues.length})
+          </summary>
           {cues.map(({ c, i }) => (
             <div key={i} className="flex items-center gap-2">
               <span className="meta flex-1 truncate font-mono">{c.file.replace(/^sfx\//, '')}</span>
@@ -90,7 +95,7 @@ export function SceneDetail({ lang, plan, sceneId, app, onEdit }: { lang: Langua
               <NumberField aria-label={`${d.volume} ${i}`} className="w-16" step={0.05} value={c.volume} onCommit={(v) => onEdit({ op: 'sfx', index: i, volume: v })} />
             </div>
           ))}
-        </div>
+        </details>
       )}
       {app && (
         <div className="card flex flex-col gap-2 px-4 py-3">

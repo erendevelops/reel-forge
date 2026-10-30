@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment } from 'react';
+import { Fragment, type ReactNode } from 'react';
 import { t, type Language } from '@/lib/i18n';
 import type { CardType, Plan } from '@/lib/plan/schema';
 
@@ -23,7 +23,8 @@ function Say({ text, names }: { text: string; names: string[] }) {
 }
 
 /** One airy line per scene: number and time, what's said, small card icons (♪ when a sound lands in it), duration. */
-export function SceneList({ lang, plan, selected, current, onSelect }: { lang: Language; plan: Plan; selected: string; current: string | null; onSelect: (id: string) => void }) {
+/** `detail`: the selected scene's panel, opened right under its row. */
+export function SceneList({ lang, plan, selected, current, onSelect, detail }: { lang: Language; plan: Plan; selected: string; current: string | null; onSelect: (id: string) => void; detail?: ReactNode }) {
   const d = t(lang).storyboard;
   return (
     <ul className="flex flex-col gap-2">
@@ -40,7 +41,7 @@ export function SceneList({ lang, plan, selected, current, onSelect }: { lang: L
             >
               <span className="meta font-mono">{`${String(i + 1).padStart(2, '0')} · ${clock(s.start)}`}</span>
               <span className="scene-say">
-                <Say text={s.say} names={names} />
+                <Say text={s.say || s.why} names={names} />
               </span>
               <span className="scene-ic font-mono">
                 {icons.map((x) => (
@@ -52,6 +53,7 @@ export function SceneList({ lang, plan, selected, current, onSelect }: { lang: L
                 {(s.end - s.start).toFixed(1)} {d.seconds}
               </span>
             </button>
+            {s.id === selected && detail && <div className="scene-detail">{detail}</div>}
           </li>
         );
       })}

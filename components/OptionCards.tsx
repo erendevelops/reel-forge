@@ -21,6 +21,7 @@ export function OptionCards({
   references,
   onConfirm,
   confirmLabel,
+  showRatios = false,
 }: {
   lang: Language;
   preset: Preset;
@@ -29,6 +30,8 @@ export function OptionCards({
   references: string[];
   onConfirm: (c: CardsChoice) => void;
   confirmLabel?: string;
+  /** Ratios are picked when the project is created; only the later "change cards" screen offers them again. */
+  showRatios?: boolean;
 }) {
   const d = t(lang).cards;
   const [sel, setSel] = useState(selection);
@@ -68,15 +71,19 @@ export function OptionCards({
           </section>
         );
       })}
-      <div className="oc-group">{d.ratios}</div>
-      <div className="flex gap-4 font-mono text-sm">
-        {ORDER.filter((r) => RATIOS.includes(r)).map((r) => (
-          <label key={r} className="flex items-center gap-2">
-            <input type="checkbox" checked={rs.includes(r)} onChange={() => setRs((cur) => (cur.includes(r) ? cur.filter((x) => x !== r) : ORDER.filter((x) => x === r || cur.includes(x))))} />
-            {r}
-          </label>
-        ))}
-      </div>
+      {showRatios && (
+        <>
+          <div className="oc-group">{d.ratios}</div>
+          <div className="flex gap-4 font-mono text-sm">
+            {ORDER.filter((r) => RATIOS.includes(r)).map((r) => (
+              <label key={r} className="flex items-center gap-2">
+                <input type="checkbox" checked={rs.includes(r)} onChange={() => setRs((cur) => (cur.includes(r) ? cur.filter((x) => x !== r) : ORDER.filter((x) => x === r || cur.includes(x))))} />
+                {r}
+              </label>
+            ))}
+          </div>
+        </>
+      )}
       <label className="oc-group" htmlFor="oc-refs">{d.references}</label>
       <textarea id="oc-refs" className="card px-4 py-3 font-mono text-sm" rows={2} value={refs} onChange={(e) => setRefs(e.target.value)} />
       <div className="pt-4">

@@ -29,6 +29,7 @@ export function CardsClient({ lang, project, selection, after }: { lang: Languag
         references={project.references}
         onConfirm={confirm}
         confirmLabel={after ? t(lang).cards.save : undefined}
+        showRatios={!!after}
       />
       {error && <p className="font-mono text-sm" style={{ color: '#e5484d' }}>{error}</p>}
     </>

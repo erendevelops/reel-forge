@@ -20,7 +20,7 @@ describe('OptionCards', () => {
 
   it('tiles toggle, show the description on hover and confirm with selection, ratios and references', async () => {
     const onConfirm = vi.fn();
-    render(<OptionCards lang="tr" preset="talking-head" selection={sel} ratios={['9:16']} references={[]} onConfirm={onConfirm} />);
+    render(<OptionCards lang="tr" preset="talking-head" selection={sel} ratios={['9:16']} references={[]} onConfirm={onConfirm} showRatios />);
     const stamp = screen.getByRole('button', { name: tr.cards.items.stamp.name });
     expect(stamp.getAttribute('aria-pressed')).toBe('true');
     expect(stamp.getAttribute('title')).toBe(tr.cards.items.stamp.desc);
