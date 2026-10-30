@@ -40,3 +40,29 @@ export function lines(t: Transcript, gap = 0.6): number[][] {
   if (cur.length) out.push(cur);
   return out;
 }
+
+const norm = (s: string) => s.toLocaleLowerCase('tr').replace(/[^\p{L}\p{N}]+/gu, '');
+
+/**
+ * Captions follow the user's corrected transcript: each caption word starting at a transcript word's time (±0.03 s)
+ * whose text differs from it gets the corrected text, keeping the caption's own trailing punctuation. A caption that
+ * splits a multi-word slot ("hemen kurdum") keeps its first token. Only for Claude's saves; the user's own caption
+ * edits are never synced.
+ */
+export function syncCaptions<P extends { captions: { groups: { words: [string, number][] }[] } }>(plan: P, t: Transcript): { plan: P; fixed: number } {
+  const p = structuredClone(plan);
+  let fixed = 0;
+  for (const g of p.captions.groups) {
+    for (const word of g.words) {
+      const tw = t.words.find((x) => Math.abs(x.start - word[1]) <= 0.03);
+      if (!tw) continue;
+      const want = norm(tw.w);
+      const have = norm(word[0]);
+      if (have === want || have === norm(tw.w.split(/\s+/)[0] ?? '')) continue;
+      const tail = /[.,!?;:…]+$/.exec(word[0])?.[0] ?? '';
+      word[0] = tw.w.replace(/[.,!?;:…]+$/, '') + tail;
+      fixed++;
+    }
+  }
+  return { plan: p, fixed };
+}

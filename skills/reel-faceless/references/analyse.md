@@ -15,7 +15,7 @@ Camera audio is not used (the voiceover is the sound).
 ## 2. Voiceover
 
 1. `rf transcribe <vo> --lang <project language> --prompt "<every tool / product / proper noun you can see in the clips>"`. Save the output to `analysis/transcript.json`.
-2. Whisper mishears names and rare words. Write `analysis/transcript-review.json` (`{ "words": [{ "w", "start", "end", "suspect": bool }] }`), marking every word you doubt as `suspect`. The app asks the user to correct the text. **Keep Whisper's timestamps and the user's words.**
+2. Whisper mishears names and rare words. Write `analysis/transcript-review.json` (`{ "words": [{ "w", "start", "end", "suspect": bool }] }`), marking every word you doubt as `suspect`. The app asks the user to correct the text and saves it into `analysis/transcript.json`. **Keep Whisper's timestamps and the user's words.**
 3. If the user's script and the audio disagree, captions follow the audio. Say so in your reply.
 4. Find the structure: hook → items (ordinal words such as "Birincisi / İkinci / First / Second" followed by a proper noun) → CTA.
 

@@ -14,11 +14,11 @@ describe('stage prompts', () => {
   it('plan prompt says the user checked the transcript and names the picked music file', () => {
     const music = { title: 'Ambient Minimal', url: null, license: 'Pixabay licence', file: 'ambient.mp3' };
     const p = buildPrompt('plan', { project: project({ transcriptChecked: true, music, selection: { ...defaultSelection('talking-head'), music: true } }), preferences: prefs, versions: [] });
-    expect(p).toContain('The user checked the transcript');
+    expect(p).toContain('The user corrected the transcript');
     expect(p).toContain('inputs/music/ambient.mp3');
     expect(p).toContain('Ambient Minimal');
     const q = buildPrompt('plan', { project: project(), preferences: prefs, versions: [] });
-    expect(q).not.toContain('The user checked the transcript');
+    expect(q).not.toContain('The user corrected the transcript');
   });
 
   it('plan prompt lists only ticked cards and the motion rule for talking head', () => {

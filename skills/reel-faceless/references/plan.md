@@ -1,6 +1,6 @@
 # Plan a faceless reel
 
-Start from the corrected transcript (`analysis/transcript-review.json`, if the user fixed it; otherwise `transcript.json`).
+Start from `analysis/transcript.json`: the app saves the user's corrections there. Captions use its words **word for word**. `transcript-review.json` is only your list of doubtful words from the analysis; never take caption text from it.
 
 ## Scenes and shots
 

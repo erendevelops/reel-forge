@@ -13,7 +13,7 @@ A faceless reel is B-roll (desk shots, screen recordings, product footage) cut t
 Follow [references/analyse.md](references/analyse.md). It ends with these files:
 
 - `analysis/clips.json`: what is in every clip, and its best moments.
-- `analysis/transcript.json` and `analysis/transcript-review.json`: words + times for the user to correct.
+- `analysis/transcript.json`: words + times; the user corrects them in the app and the corrections are saved back into this file, so it is the only source for caption text. `analysis/transcript-review.json` just marks doubtful words for the user.
 - `analysis/style.md`: only when reference reels were given.
 
 ## Plan

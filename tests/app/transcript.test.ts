@@ -65,3 +65,18 @@ describe('transcript API', () => {
     expect((await put(p.id, { words: ['x'] })).status).toBe(400);
   });
 });
+
+describe('syncCaptions', () => {
+  const t = { language: 'tr', words: [{ w: 'herkes', start: 1.12, end: 1.52 }, { w: 'Claude', start: 1.52, end: 1.86 }, { w: 'editlediğini', start: 2.78, end: 3.36 }, { w: 'hemen kurdum', start: 4, end: 4.6 }] };
+  const plan = (words: [string, number][]) => ({ captions: { groups: [{ words }] } });
+  it('puts the corrected words into captions, keeping punctuation and splits', async () => {
+    const { syncCaptions } = await import('../../lib/app/transcript');
+    const r = syncCaptions(plan([['herkes', 1.12], ['Cloud', 1.52], ['elitlediğini,', 2.78], ['hemen', 4], ['kurdum', 4.3]]), t);
+    expect(r.plan.captions.groups[0].words.map((w) => w[0])).toEqual(['herkes', 'Claude', 'editlediğini,', 'hemen', 'kurdum']);
+    expect(r.fixed).toBe(2);
+  });
+  it('leaves words with no transcript word at that time alone', async () => {
+    const { syncCaptions } = await import('../../lib/app/transcript');
+    expect(syncCaptions(plan([['Abone', 9]]), t).fixed).toBe(0);
+  });
+});

@@ -15,6 +15,8 @@ import { BUNDLED_ASSETS, resolveAsset } from '@/lib/media/assets';
 import { readdirSync } from 'node:fs';
 import { getPreferences, getProject, listVersions, readVersion, saveVersion, validateForProject } from '@/lib/app/workspace/store';
 import { parseArgs, projectId, resolveInProject } from './context';
+import { analysisState } from '@/lib/app/flow';
+import { TranscriptSchema, syncCaptions } from '@/lib/app/transcript';
 
 type Command = (args: string[]) => Promise<unknown>;
 
@@ -237,12 +239,22 @@ export const COMMANDS: Record<string, Command> = {
         throw new Error(`static for more than 3 s at: ${gaps.map((g) => `${g.from}–${g.to}`).join(', ')}. Add a visual change in each.`);
       }
     }
+    // captions always carry the user's corrections, whichever transcript file the plan was written from
+    let captionsFixed = 0;
+    if (project.transcriptChecked) {
+      const { transcriptFile } = await analysisState(id);
+      if (transcriptFile) {
+        const synced = syncCaptions(r.plan, TranscriptSchema.parse(await readJson(transcriptFile)));
+        r.plan = synced.plan;
+        captionsFixed = synced.fixed;
+      }
+    }
     const version = await saveVersion(id, {
       plan: r.plan,
       by: 'claude',
       parent: flags.parent ? Number(flags.parent) : null,
       request: flags.request ?? null,
     });
-    return { version };
+    return captionsFixed ? { version, captionsFixed } : { version };
   },
 };
