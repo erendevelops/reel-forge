@@ -57,7 +57,7 @@ export default async function ProjectPage({ params, searchParams }: { params: Pr
       </div>
       <StageBar lang={language} stage={stage} />
       {stage === 'review' && latest ? (
-        <ReviewClient lang={language} projectId={id} versions={versions} current={latest} lastJobId={jobs[0]?.jobId ?? null} />
+        <ReviewClient lang={language} projectId={id} projectName={project.name} versions={versions} current={latest} lastJobId={jobs[0]?.jobId ?? null} />
       ) : stage === 'storyboard' && board ? (
         <StoryboardClient lang={language} project={{ id, mode: project.mode, preset: project.preset, ratios: project.ratios }} versions={versions} initial={board} lastJobId={jobs[0]?.jobId ?? null} />
       ) : stage === 'music' ? (

@@ -38,7 +38,7 @@ afterEach(() => vi.unstubAllGlobals());
 
 describe('ReviewClient', () => {
   it('shows QA per gate and asks Claude to fix a failure with the measured value', async () => {
-    render(<ReviewClient lang="tr" projectId="p1" versions={versions} current={2} lastJobId={null} />);
+    render(<ReviewClient lang="tr" projectId="p1" projectName="Prao" versions={versions} current={2} lastJobId={null} />);
     await waitFor(() => expect(screen.getByText('loudness')).toBeTruthy());
     expect(screen.getByText('loudness').closest('li')!.textContent).toContain('✗');
     expect(screen.getByText('format').closest('li')!.textContent).toContain('✓');
@@ -51,15 +51,23 @@ describe('ReviewClient', () => {
 
   it('compares the current version with its parent and plays both together', async () => {
     const play = vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue();
-    const { container } = render(<ReviewClient lang="tr" projectId="p1" versions={versions} current={2} lastJobId={null} />);
+    const { container } = render(<ReviewClient lang="tr" projectId="p1" projectName="Prao" versions={versions} current={2} lastJobId={null} />);
     await waitFor(() => expect(screen.getByText('scenes[1].cards[0].params.name')).toBeTruthy());
     expect(container.querySelectorAll('.compare video')).toHaveLength(2);
     await userEvent.click(screen.getByRole('button', { name: tr.review.playBoth }));
     expect(play).toHaveBeenCalledTimes(2);
   });
 
+  it('ends with a finish card and a download for the final video', async () => {
+    render(<ReviewClient lang="tr" projectId="p1" projectName="Prao" versions={versions} current={2} lastJobId={null} />);
+    await waitFor(() => expect(screen.getByText(tr.review.readyTitle)).toBeTruthy());
+    const dl = screen.getByRole('link', { name: /İndir · 9:16 dikey/ });
+    expect(dl.getAttribute('href')).toBe('/f/v2.mp4');
+    expect(dl.getAttribute('download')).toBe('Prao-9x16.mp4');
+  });
+
   it('sends feedback as a revise request', async () => {
-    render(<ReviewClient lang="tr" projectId="p1" versions={versions} current={2} lastJobId={null} />);
+    render(<ReviewClient lang="tr" projectId="p1" projectName="Prao" versions={versions} current={2} lastJobId={null} />);
     await userEvent.type(screen.getByRole('textbox', { name: tr.review.feedback }), 'müzik çok yüksek{Enter}');
     const sent = calls.find((c) => c.url.endsWith('/claude'))!;
     expect(sent.body).toEqual({ stage: 'revise', request: 'müzik çok yüksek' });

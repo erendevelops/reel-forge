@@ -178,3 +178,8 @@ body {
 .music-card.on { border-color: var(--brand-d); box-shadow: 0 0 0 3px rgba(62, 207, 142, 0.18); }
 .music-ic { width: 36px; height: 36px; border-radius: 10px; background: var(--soft); color: var(--brand-d); display: grid; place-items: center; flex-shrink: 0; }
 .badge-warn { background: #fef3c7; color: #92400e; }
+
+/* review: the finish card */
+.finish { border-color: var(--brand); background: linear-gradient(180deg, #ffffff 0%, #f3fbf7 100%); }
+.finish-ic { width: 44px; height: 44px; border-radius: 14px; background: var(--brand-d); color: #fff; display: grid; place-items: center; font-size: 22px; font-weight: 800; flex-shrink: 0; }
+.btn-lg { padding: 12px 20px; font-size: 14px; text-align: center; }
