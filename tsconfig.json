@@ -32,15 +32,16 @@
     ]
   },
   "include": [
-    "lib",
-    "tests",
+    ".next/types/**/*.ts",
     "app",
     "components",
+    "lib",
     "middleware.ts",
-    "next.config.ts",
     "next-env.d.ts",
+    "next.config.ts",
+    "tests",
     "vitest.config.ts",
-    ".next/types/**/*.ts"
+    ".next-dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"
