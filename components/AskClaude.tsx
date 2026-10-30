@@ -35,13 +35,16 @@ export function AskClaude({ lang, sceneId, onSend }: { lang: Language; sceneId: 
           }
         }}
       />
-      <div className="flex gap-3 font-mono text-xs">
+      <div className="flex items-center gap-3 font-mono text-xs">
         <label className="flex items-center gap-1">
           <input type="radio" checked={!whole} onChange={() => setWhole(false)} disabled={!sceneId} /> {d.askScene}
         </label>
         <label className="flex items-center gap-1">
           <input type="radio" checked={whole} onChange={() => setWhole(true)} /> {d.askAll}
         </label>
+        <button type="submit" className="btn ml-auto" disabled={!text.trim()}>
+          {d.send}
+        </button>
       </div>
     </form>
   );
