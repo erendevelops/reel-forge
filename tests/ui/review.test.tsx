@@ -29,6 +29,10 @@ beforeEach(() => {
         if (n === 2) plan.scenes[1].cards[0].params.name = 'Fooocus AI';
         return new Response(JSON.stringify({ plan, origin: versions[n - 1], renders: [{ ratio: '9:16', profile: 'final', url: `/f/v${n}.mp4` }], qa: { 'final-9x16': qaFail }, thumbs: [] }));
       }
+      if (url.endsWith('/feedback')) {
+        const asked = calls.filter((c) => c.url.endsWith('/claude')).map((c) => ({ role: 'user', text: (c.body as { request: string }).request, at: '', version: null, failed: false }));
+        return new Response(JSON.stringify({ messages: asked }));
+      }
       return new Response(JSON.stringify({ jobId: 'job-9' }), { status: 201 });
     }),
   );
@@ -66,11 +70,12 @@ describe('ReviewClient', () => {
     expect(dl.getAttribute('download')).toBe('Prao-9x16.mp4');
   });
 
-  it('sends feedback as a revise request', async () => {
+  it('sends feedback from the chat as a rebuild request and shows it in the thread', async () => {
     render(<ReviewClient lang="tr" projectId="p1" projectName="Prao" versions={versions} current={2} lastJobId={null} />);
-    await userEvent.type(screen.getByRole('textbox', { name: tr.review.feedback }), 'müzik çok yüksek');
-    await userEvent.click(screen.getByRole('button', { name: tr.review.send }));
+    await userEvent.type(screen.getByRole('textbox', { name: tr.chat.title }), 'müzik çok yüksek');
+    await userEvent.click(screen.getByRole('button', { name: tr.chat.send }));
     const sent = calls.find((c) => c.url.endsWith('/claude'))!;
-    expect(sent.body).toEqual({ stage: 'revise', request: 'müzik çok yüksek' });
+    expect(sent.body).toEqual({ stage: 'rebuild', request: 'müzik çok yüksek' });
+    await waitFor(() => expect(screen.getByText('müzik çok yüksek')).toBeTruthy());
   });
 });

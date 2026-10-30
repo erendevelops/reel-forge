@@ -7,6 +7,7 @@ import { CompareVersions, type VersionView } from '@/components/CompareVersions'
 import { JobLog } from '@/components/JobLog';
 import { PreferenceOffer } from '@/components/PreferenceOffer';
 import { QaSummary } from '@/components/QaSummary';
+import { FeedbackChat } from '@/components/FeedbackChat';
 import { Spinner } from '@/components/Spinner';
 import { postJob } from '@/components/post-job';
 import { useJob } from '@/components/use-job';
@@ -76,7 +77,6 @@ export function ReviewClient({ lang, projectId, projectName, versions, current, 
   const [views, setViews] = useState<Record<number, Loaded>>({});
   const parent = versions.find((v) => v.n === current)?.parent ?? null;
   const [pair, setPair] = useState<{ a: number; b: number }>({ a: parent ?? current, b: current });
-  const [feedback, setFeedback] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [jobId, setJobId] = useState<string | null>(lastJobId);
   const [dismissed, setDismissed] = useState<string | null>(null);
@@ -103,6 +103,17 @@ export function ReviewClient({ lang, projectId, projectName, versions, current, 
     setJobId(out.jobId);
   }
 
+  /** A feedback-chat message: Claude rebuilds the video from the whole thread; throws so the chat keeps the text. */
+  async function rebuild(request: string) {
+    setError(null);
+    const out = await postJob(`/api/projects/${projectId}/claude`, { stage: 'rebuild', request }, lang);
+    if ('error' in out) {
+      setError(out.error);
+      throw new Error(out.error);
+    }
+    setJobId(out.jobId);
+  }
+
   async function startFinal() {
     setError(null);
     const out = await postJob(`/api/projects/${projectId}/jobs`, { kind: 'render', version: current, profile: 'final' }, lang);
@@ -121,25 +132,8 @@ export function ReviewClient({ lang, projectId, projectName, versions, current, 
       </div>
       <div className="side flex flex-col gap-4">
         {cur && <QaSummary lang={lang} reports={cur.qa} onFix={revise} />}
-        {job.running ? (
-          <JobLog lang={lang} events={job.events} onResume={() => void postJob(`/api/projects/${projectId}/jobs/${jobId}/resume`, {}, lang)} />
-        ) : (
-          <form
-            className="flex flex-col gap-2"
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (!feedback.trim()) return;
-              void revise(feedback.trim());
-              setFeedback('');
-            }}
-          >
-            <span className="meta text-xs">{d.feedbackHint}</span>
-            <textarea className="card px-4 py-3" rows={3} aria-label={d.feedback} placeholder={`${d.feedback}…`} value={feedback} onChange={(e) => setFeedback(e.target.value)} />
-            <button type="submit" className="btn btn-primary" disabled={!feedback.trim()}>
-              {d.send}
-            </button>
-          </form>
-        )}
+        <FeedbackChat lang={lang} projectId={projectId} running={job.running} onSend={rebuild} />
+        {job.running && <JobLog lang={lang} events={job.events} onResume={() => void postJob(`/api/projects/${projectId}/jobs/${jobId}/resume`, {}, lang)} />}
         <Link className="meta font-mono text-xs" href={`/projects/${projectId}?view=storyboard`}>
           {d.toStoryboard}
         </Link>

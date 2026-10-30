@@ -1,7 +1,7 @@
 import type { Preferences, Project, VersionOrigin } from '@/lib/app/workspace/schema';
 import { PRESET_SKILL, replyLine } from './install';
 
-export type Stage = 'analyse' | 'plan' | 'revise' | 'music';
+export type Stage = 'analyse' | 'plan' | 'revise' | 'music' | 'rebuild';
 
 export type PromptCtx = {
   project: Project;
@@ -11,6 +11,8 @@ export type PromptCtx = {
   userDiffs?: unknown[];
   /** Plan again from scratch (the user changed the option cards or reference reels). */
   fresh?: boolean;
+  /** The feedback chat so far, oldest first, the newest user message last (rebuild stage). */
+  chat?: { role: 'user' | 'claude'; text: string }[];
 };
 
 function selectionLines(p: Project): string {
@@ -63,6 +65,21 @@ export function buildPrompt(stage: Stage, ctx: PromptCtx): string {
       project.transcriptChecked ? 'The user corrected the transcript: captions come word for word from analysis/transcript-trimmed.json (talking head) or analysis/transcript.json, never from transcript-review.json (that holds the uncorrected words).' : '',
       project.music?.file ? `Music: inputs/music/${project.music.file} ("${project.music.title}", ${project.music.license}). Align it with rf beats.` : '',
       'Then run `rf validate plan.json` and fix every error, then `rf save plan.json --request "first cut"`.',
+    ].join('\n');
+  } else if (stage === 'rebuild') {
+    const thread = (ctx.chat ?? []).map((m) => `${m.role === 'user' ? 'USER' : 'YOU'}: ${m.text}`).join('\n\n');
+    body = [
+      'Stage: rebuild. The user wants the whole video rebuilt from their feedback. The feedback chat so far, oldest first:',
+      `"""\n${thread}\n"""`,
+      'Act on the newest USER message; the earlier ones still hold unless the newest overrides them.',
+      `Rebuild plan.json from scratch: rethink the structure, footage choices, cards, animations and timing so ALL of the feedback is met. Look at the current version (\`rf project\` → latest.plan, v${latest ?? '?'}) only to see what the user disliked; do not just patch it.`,
+      selectionLines(project),
+      motion,
+      project.references.length ? 'Reference reels: read analysis/style.md and keep rebuilding their look and techniques beat for beat.' : '',
+      project.transcriptChecked ? 'Captions come word for word from the corrected transcript (analysis/transcript-trimmed.json or analysis/transcript.json).' : '',
+      project.music?.file ? `Music: inputs/music/${project.music.file}. Align it with rf beats.` : '',
+      `Then \`rf validate plan.json\`, fix every error, and \`rf save plan.json --parent ${latest ?? 1} --request "<one line on the rebuild>"\`.`,
+      'Your reply goes into the chat: one short line per point of the feedback saying what you did for it (or why you could not). No headings. If the feedback states a lasting preference, end with a line "PREFERENCE: <text>".',
     ].join('\n');
   } else {
     body = [

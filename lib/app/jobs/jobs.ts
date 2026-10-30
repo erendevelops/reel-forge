@@ -1,3 +1,4 @@
+import { appendChat, chatReply } from '@/lib/app/feedback';
 import { randomUUID } from 'node:crypto';
 import { appendFile, mkdir, readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
@@ -19,7 +20,8 @@ export type JobEvent =
   | { t: string; type: 'preference'; text: string }
   | { t: string; type: 'state'; state: JobState; detail?: string };
 
-export type ClaudeJobSpec = { kind: 'claude'; prompt: string; resumeSession?: string | null };
+/** `chat`: a feedback-chat rebuild; Claude's reply (or the failure) is added to the project's chat. */
+export type ClaudeJobSpec = { kind: 'claude'; prompt: string; resumeSession?: string | null; chat?: boolean };
 export type JobSpec = ClaudeJobSpec | ExtraJobSpec;
 /** Other job kinds register an executor; Task 6 adds `render`. */
 export type ExtraJobSpec = { kind: Exclude<JobKind, 'claude'>; [k: string]: unknown };
@@ -98,6 +100,12 @@ registerExecutor('claude', async ({ projectId, spec, emit, signal }) => {
     },
   });
   if (res.sessionId && res.sessionId !== project.claudeSession) await updateProject(projectId, { claudeSession: res.sessionId });
+  if (s.chat) {
+    const after = await listVersions(projectId);
+    const saved = after.length > before ? after.at(-1)!.n : null;
+    const text = res.ok ? chatReply(reply) : signal.aborted ? 'Durduruldu.' : (error as { message?: string } | null)?.message ?? 'failed';
+    await appendChat(projectId, { role: 'claude', text, version: saved, failed: !res.ok || saved === null });
+  }
   if (res.ok) {
     // a lasting preference Claude proposed: the app offers to save it (spec §9)
     const pref = extractPreference(reply);

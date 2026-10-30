@@ -60,12 +60,11 @@ describe('StoryboardClient', () => {
     expect(sent.body).toEqual({ parent: 1, edits: [{ op: 'card-param', scene: 'fooocus', card: 0, key: 'name', value: 'Fooocus AI' }] });
   });
 
-  it('asks Claude about the selected scene', async () => {
+  it('sends feedback chat messages as rebuild requests (Enter sends)', async () => {
     mount();
-    await userEvent.click(screen.getByText('02 · 0:06'));
-    await userEvent.type(screen.getByRole('textbox', { name: tr.storyboard.ask }), 'biraz daha uzun{Enter}');
+    await userEvent.type(screen.getByRole('textbox', { name: tr.chat.title }), 'biraz daha uzun{Enter}');
     const sent = calls.find((c) => c.url.endsWith('/claude'))!;
-    expect(sent.body).toEqual({ stage: 'revise', request: '[scene fooocus] biraz daha uzun' });
+    expect(sent.body).toEqual({ stage: 'rebuild', request: 'biraz daha uzun' });
   });
 
   it('shows the busy message when a job already runs', async () => {

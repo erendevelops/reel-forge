@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { buildPrompt } from '@/lib/app/claude/prompts';
+import { appendChat, readChat } from '@/lib/app/feedback';
 import { installSkills } from '@/lib/app/claude/install';
 import { projectDir } from '@/lib/app/workspace/paths';
 import { JobBusyError, startJob } from '@/lib/app/jobs/jobs';
@@ -9,8 +10,8 @@ import { NotFoundError, getPreferences, getProject, listVersions } from '@/lib/a
 
 type Ctx = { params: Promise<{ id: string }> };
 
-const Body = z.object({ stage: z.enum(['analyse', 'plan', 'revise', 'music']), request: z.string().max(4000).optional() }).refine((b) => b.stage !== 'revise' || !!b.request?.trim(), {
-  message: 'revise needs a request',
+const Body = z.object({ stage: z.enum(['analyse', 'plan', 'revise', 'music', 'rebuild']), request: z.string().max(8000).optional() }).refine((b) => (b.stage !== 'revise' && b.stage !== 'rebuild') || !!b.request?.trim(), {
+  message: 'revise and rebuild need a request',
   path: ['request'],
 });
 
@@ -20,9 +21,14 @@ export async function POST(req: Request, { params }: Ctx) {
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   try {
     const [project, preferences, versions] = await Promise.all([getProject(id), getPreferences(), listVersions(id)]);
-    const prompt = buildPrompt(parsed.data.stage, { project, preferences, versions, request: parsed.data.request });
+    const { stage, request } = parsed.data;
+    // the feedback chat: Claude gets the whole thread, and its reply joins it when the job ends
+    const chat = stage === 'rebuild' ? [...(await readChat(id)), { role: 'user' as const, text: request!.trim() }] : undefined;
+    const prompt = buildPrompt(stage, { project, preferences, versions, request, chat });
     await installSkills(project, preferences, projectDir(id)); // current skills and CLAUDE.md (cards, preferences) for every job
-    return NextResponse.json(await startJob(id, { kind: 'claude', prompt }), { status: 201 });
+    const job = await startJob(id, { kind: 'claude', prompt, chat: stage === 'rebuild' });
+    if (stage === 'rebuild') await appendChat(id, { role: 'user', text: request!.trim() });
+    return NextResponse.json(job, { status: 201 });
   } catch (err) {
     if (err instanceof JobBusyError) return NextResponse.json({ error: err.message }, { status: 409 });
     if (err instanceof NotFoundError) return NextResponse.json({ error: err.message }, { status: 404 });

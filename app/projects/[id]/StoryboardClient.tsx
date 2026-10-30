@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AskClaude } from '@/components/AskClaude';
+import { FeedbackChat } from '@/components/FeedbackChat';
 import { JobLog } from '@/components/JobLog';
 import { PreferenceOffer } from '@/components/PreferenceOffer';
 import { PreviewPlayer } from '@/components/PreviewPlayer';
@@ -206,7 +206,20 @@ export function StoryboardClient({
         {job.running ? (
           <JobLog lang={lang} events={job.events} onResume={() => void start(`/api/projects/${project.id}/jobs/${jobId}/resume`, {})} />
         ) : (
-          <AskClaude lang={lang} sceneId={selected || null} onSend={(request) => void start(`/api/projects/${project.id}/claude`, { stage: 'revise', request })} />
+          <FeedbackChat
+            lang={lang}
+            projectId={project.id}
+            running={job.running}
+            onSend={async (request) => {
+              setError(null);
+              const out = await postJob(`/api/projects/${project.id}/claude`, { stage: 'rebuild', request }, lang);
+              if ('error' in out) {
+                setError(out.error);
+                throw new Error(out.error);
+              }
+              setJobId(out.jobId);
+            }}
+          />
         )}
         <button type="button" className="btn btn-primary" disabled={job.running || edits.length > 0} onClick={() => void start(`/api/projects/${project.id}/jobs`, { kind: 'render', version: n, profile: 'final' })}>
           {d.approve}
