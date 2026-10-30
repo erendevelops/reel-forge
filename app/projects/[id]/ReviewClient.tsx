@@ -95,21 +95,6 @@ export function ReviewClient({ lang, projectId, projectName, versions, current, 
     }
   }, [projectId, current, pair, views]);
 
-  useEffect(() => {
-    if (!jobId || job.running) return;
-    router.refresh();
-    // a revise job hands over to the automatic draft render: follow that one (it starts a moment after this one ends)
-    const timer = setTimeout(() => {
-      void fetch(`/api/projects/${projectId}/jobs`)
-        .then((r) => (r.ok ? r.json() : []))
-        .then((jobs: { jobId: string; state: string }[]) => {
-          const next = jobs.find((j) => j.state === 'running');
-          if (next && next.jobId !== jobId) setJobId(next.jobId);
-        })
-        .catch(() => undefined);
-    }, 1500);
-    return () => clearTimeout(timer);
-  }, [jobId, job.running, router, projectId]);
 
   async function revise(request: string) {
     setError(null);
@@ -139,19 +124,21 @@ export function ReviewClient({ lang, projectId, projectName, versions, current, 
         {job.running ? (
           <JobLog lang={lang} events={job.events} onResume={() => void postJob(`/api/projects/${projectId}/jobs/${jobId}/resume`, {}, lang)} />
         ) : (
-          <input
-            className="card px-4 py-3"
-            aria-label={d.feedback}
-            placeholder={`${d.feedback}…`}
-            value={feedback}
-            onChange={(e) => setFeedback(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key !== 'Enter' || !feedback.trim()) return;
+          <form
+            className="flex flex-col gap-2"
+            onSubmit={(e) => {
               e.preventDefault();
+              if (!feedback.trim()) return;
               void revise(feedback.trim());
               setFeedback('');
             }}
-          />
+          >
+            <span className="meta text-xs">{d.feedbackHint}</span>
+            <textarea className="card px-4 py-3" rows={3} aria-label={d.feedback} placeholder={`${d.feedback}…`} value={feedback} onChange={(e) => setFeedback(e.target.value)} />
+            <button type="submit" className="btn btn-primary" disabled={!feedback.trim()}>
+              {d.send}
+            </button>
+          </form>
         )}
         <Link className="meta font-mono text-xs" href={`/projects/${projectId}?view=storyboard`}>
           {d.toStoryboard}

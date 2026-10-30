@@ -68,7 +68,8 @@ describe('ReviewClient', () => {
 
   it('sends feedback as a revise request', async () => {
     render(<ReviewClient lang="tr" projectId="p1" projectName="Prao" versions={versions} current={2} lastJobId={null} />);
-    await userEvent.type(screen.getByRole('textbox', { name: tr.review.feedback }), 'müzik çok yüksek{Enter}');
+    await userEvent.type(screen.getByRole('textbox', { name: tr.review.feedback }), 'müzik çok yüksek');
+    await userEvent.click(screen.getByRole('button', { name: tr.review.send }));
     const sent = calls.find((c) => c.url.endsWith('/claude'))!;
     expect(sent.body).toEqual({ stage: 'revise', request: 'müzik çok yüksek' });
   });

@@ -62,7 +62,7 @@ export function StoryboardClient({
   const previewSeq = useRef(0);
   const [jobId, setJobId] = useState<string | null>(lastJobId);
   const [dismissed, setDismissed] = useState<string | null>(null);
-  const job = useJob(project.id, jobId);
+  const job = useJob(project.id, jobId, edits.length === 0);
   const known = useRef(versions.at(-1)?.n ?? 0);
 
   const plan = useMemo(() => edits.reduce(applyEdit, base), [base, edits]);
@@ -89,22 +89,6 @@ export function StoryboardClient({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [versions]);
 
-  useEffect(() => {
-    if (!jobId || job.running) return;
-    router.refresh();
-    // a plan job hands over to the automatic draft render: follow that one so Approve shows it running
-    // (it starts a moment after this job's end event)
-    const timer = setTimeout(() => {
-      void fetch(`/api/projects/${project.id}/jobs`)
-        .then((r) => (r.ok ? r.json() : []))
-        .then((jobs: { jobId: string; state: string }[]) => {
-          const next = jobs.find((j) => j.state === 'running');
-          if (next && next.jobId !== jobId) setJobId(next.jobId);
-        })
-        .catch(() => undefined);
-    }, 1500);
-    return () => clearTimeout(timer);
-  }, [jobId, job.running, router]);
 
   useEffect(() => {
     const timer = setTimeout(async () => {

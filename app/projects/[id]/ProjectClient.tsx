@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { JobLog } from '@/components/JobLog';
 import { t, type Language } from '@/lib/i18n';
-import type { JobEvent } from '@/lib/app/jobs/jobs';
 import type { VersionOrigin } from '@/lib/app/workspace/schema';
 import type { Stage } from '@/lib/app/flow';
 import { postJob } from '@/components/post-job';
+import { useJob } from '@/components/use-job';
 
 export function ProjectClient({
   lang,
@@ -23,30 +23,12 @@ export function ProjectClient({
 }) {
   const d = t(lang).projects;
   const [jobId, setJobId] = useState<string | null>(lastJobId);
-  const [events, setEvents] = useState<JobEvent[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [request, setRequest] = useState('');
   const claude = (body: object) => start(body, `/api/projects/${projectId}/claude`);
   const latest = versions.at(-1)?.n ?? null;
-  const refreshed = useRef<string | null>(null);
-
-  // when a job started here finishes, reload the page so it opens the next stage (music, transcript, storyboard…)
-  useEffect(() => {
-    const last = [...events].reverse().find((e) => e.type === 'state');
-    if (jobId && jobId !== lastJobId && last?.type === 'state' && last.state === 'done' && refreshed.current !== jobId) {
-      refreshed.current = jobId;
-      window.location.reload();
-    }
-  }, [events, jobId, lastJobId]);
-
-  useEffect(() => {
-    if (!jobId) return;
-    setEvents([]);
-    const es = new EventSource(`/api/projects/${projectId}/jobs/${jobId}/events`);
-    es.onmessage = (m) => setEvents((cur) => [...cur, JSON.parse(m.data) as JobEvent]);
-    es.onerror = () => es.close();
-    return () => es.close();
-  }, [projectId, jobId]);
+  const job = useJob(projectId, jobId);
+  const events = job.events;
 
   async function start(body: object, url = `/api/projects/${projectId}/jobs`) {
     setError(null);

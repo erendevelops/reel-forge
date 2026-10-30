@@ -15,9 +15,6 @@ export function MusicClient({ lang, projectId, candidates, picked }: { lang: Lan
   const [error, setError] = useState<string | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
   const job = useJob(projectId, jobId);
-  useEffect(() => {
-    if (jobId && !job.running) router.refresh();
-  }, [jobId, job.running, router]);
 
   async function send(method: 'POST' | 'PUT', body: BodyInit, json: boolean) {
     setError(null);
