@@ -18,6 +18,7 @@
 | `sfx` | `{ file, at, volume }[]` | Sound cues (`sfx/drop_001.wav` etc. are bundled), volume 0.25–0.6 |
 | `voice` | `{ src }` | The voiceover or camera audio (path relative to the project's `inputs/`) |
 | `music` | `{ src, mediaStart, volume, fadeOut }` | Only if the music card is ticked and the user picked a track |
+| `cover` | `{ at, title, kicker?, position?, logo? }` | The cover image, **required when the cover (thumbnail) card is ticked**: the frame at `at` (timeline s) under a dark scrim with a big headline. `title` 2–6 words, the hook as a promise or curiosity gap, not the video's first line; wrap 1–2 key words in `*…*` to put them on an accent highlight. `kicker` = a short pill above ("3 araç", "YENİ"). `position` `top`/`center`/`bottom` (default bottom): put the text where the frame is empty. `logo` = asset path or `si:<slug>` (topic assets). Pick a frame that is sharp, bright and shows the subject; no text or cards are drawn from the video, only the frame |
 | `look` | `{ background, ink? }` hex | Colours of the graphics panel. **Required for app videos** (the brand's ground and ink) |
 
 ## Scenes

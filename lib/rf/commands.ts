@@ -26,11 +26,14 @@ const readJson = async (p: string) => JSON.parse(await readFile(resolveInProject
 
 /**
  * What the user ticked must show up: faceless and app videos use every ticked card type at least once, and a
- * faceless reel never runs more than 5 s on footage alone (talking heads have their own motion rule).
+ * faceless reel never runs more than 5 s on footage alone (talking heads have their own motion rule). A ticked cover
+ * needs `plan.cover` (every preset).
  */
-function useErrors(project: { preset: string; selection: { cards: string[] } | null }, plan: Plan): string[] {
-  if (project.preset === 'talking-head' || !project.selection) return [];
-  const out = unusedCards(plan, project.selection.cards).map((t) => `ticked card ${t} is never used: the user ticked it to see it, use it at least once where it fits the voiceover`);
+function useErrors(project: { preset: string; selection: { cards: string[]; thumbnail: boolean } | null }, plan: Plan): string[] {
+  if (!project.selection) return [];
+  const cover = project.selection.thumbnail && !plan.cover ? ['the cover is ticked but plan.cover is missing: add { at, title } (video-core plan-contract.md)'] : [];
+  if (project.preset === 'talking-head') return cover;
+  const out = [...cover, ...unusedCards(plan, project.selection.cards).map((t) => `ticked card ${t} is never used: the user ticked it to see it, use it at least once where it fits the voiceover`)];
   if (project.preset === 'faceless') {
     for (const g of graphicGaps(plan)) out.push(`no card on screen ${g.from}–${g.to} s (over 5 s of footage only): add a card that shows what is being said`);
   }

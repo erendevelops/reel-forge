@@ -33,6 +33,7 @@ function fakeDeps(o: { failRatio?: string; log: { ratio: string; start: number; 
       checks: [{ name: 'format', pass: true, detail: '' }],
     }),
     thumbnail: async () => undefined,
+    cover: async () => undefined,
   };
 }
 
@@ -80,6 +81,7 @@ describe('render job', () => {
       },
       qa: async () => ({ pass: true, checks: [] }),
       thumbnail: async () => undefined,
+      cover: async () => undefined,
     };
     await expect(runRenderJob(p.id, n, 'draft', () => undefined, deps)).rejects.toThrow(/boom/);
     expect(slowEnded).toBeGreaterThan(0); // still running when 9:16 failed, finished before the job settled
@@ -96,6 +98,7 @@ describe('render job', () => {
       },
       qa: async () => ({ pass: true, checks: [] }),
       thumbnail: async () => undefined,
+      cover: async () => undefined,
     };
     const ac = new AbortController();
     const started = Date.now();
@@ -109,5 +112,14 @@ describe('render job', () => {
     const { p, n } = await setup(['9:16']);
     const log: { ratio: string; start: number; end: number }[] = [];
     await expect(runRenderJob(p.id, n, 'draft', () => undefined, fakeDeps({ log, failRatio: '9:16' }))).resolves.toBeTruthy();
+  });
+  it('makes the designed cover when the plan has one, and falls back to a plain frame if it fails', async () => {
+    const p = await createProject({ name: 'Cover', mode: 'reel', preset: 'faceless', ratios: ['9:16'], lang: 'en', inputs: [] });
+    const plan = { ...fixture, ratios: ['9:16'], selection: { ...fixture.selection, thumbnail: true }, cover: { at: 1, title: 'Bunu *bilmiyordun*' } };
+    const n = await saveVersion(p.id, { plan, by: 'claude', parent: null });
+    const calls: string[] = [];
+    const deps = { ...fakeDeps({ log: [] }), cover: async (pl: { cover?: { title: string } }) => { calls.push(`cover ${pl.cover?.title}`); throw new Error('no chrome'); }, thumbnail: async () => { calls.push('grab'); } };
+    await runRenderJob(p.id, n, 'draft', () => undefined, deps as RenderDeps);
+    expect(calls).toEqual(['cover Bunu *bilmiyordun*', 'grab']);
   });
 });

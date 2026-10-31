@@ -1,11 +1,12 @@
 import os from 'node:os';
 import path from 'node:path';
-import { mkdir } from 'node:fs/promises';
+import { mkdir, readdir, rm } from 'node:fs/promises';
 import { run } from '@/lib/media/run';
 import { withSignal } from '@/lib/media/cancel';
 import { renderLayered } from '@/lib/render/layered';
 import { expectsAudio, qa, type QaReport } from '@/lib/render/qa';
-import { RATIO_SIZE } from '@/lib/compile';
+import { RATIO_SIZE, compile } from '@/lib/compile';
+import { npx } from '@/lib/media/npx';
 import { PROFILES, profilePlan, type RenderProfile } from '@/lib/render/profiles';
 import type { Plan, Ratio } from '@/lib/plan';
 import { writeJson } from '@/lib/app/workspace/files';
@@ -17,6 +18,8 @@ export interface RenderDeps {
   renderLayered: typeof renderLayered;
   qa: (file: string, expect: Parameters<typeof qa>[1]) => Promise<QaReport>;
   thumbnail: (video: string, atSec: number, out: string) => Promise<void>;
+  /** The designed cover (`plan.cover`) as a JPEG. */
+  cover: (plan: Plan, ratio: Ratio, assetsDir: string, workDir: string, out: string) => Promise<void>;
   concurrency: number;
 }
 
@@ -24,10 +27,23 @@ async function grabFrame(video: string, atSec: number, out: string): Promise<voi
   await run('ffmpeg', ['-y', '-v', 'error', '-ss', atSec.toFixed(3), '-i', video, '-frames:v', '1', '-q:v', '1', out]);
 }
 
+async function snapshotCover(plan: Plan, ratio: Ratio, assetsDir: string, workDir: string, out: string): Promise<void> {
+  await rm(workDir, { recursive: true, force: true, maxRetries: 5 });
+  await compile(plan, { outDir: workDir, assetsDir, ratio, cover: true });
+  const shots = path.join(workDir, 'shots');
+  const [cmd, a] = npx(['-y', 'hyperframes@0.8.191', 'snapshot', workDir, '--at', String(plan.cover!.at), '--no-end', '--describe', 'false', '-o', shots]);
+  await run(cmd, a, { timeoutMs: 5 * 60 * 1000 });
+  const png = (await readdir(shots)).find((f) => f.endsWith('.png'));
+  if (!png) throw new Error('cover snapshot wrote no image');
+  await run('ffmpeg', ['-y', '-v', 'error', '-i', path.join(shots, png), '-q:v', '2', out]);
+  await rm(workDir, { recursive: true, force: true, maxRetries: 5 }).catch(() => undefined);
+}
+
 export const defaultDeps = (): RenderDeps => ({
   renderLayered,
   qa,
   thumbnail: grabFrame,
+  cover: snapshotCover,
   concurrency: Math.max(1, Math.floor(os.cpus().length / 4)),
 });
 
@@ -118,7 +134,15 @@ async function renderAll(
   if (plan.selection.thumbnail) {
     const first = plan.ratios[0];
     const last = plan.scenes.at(-1);
-    await deps.thumbnail(outputs[first], (last?.start ?? 0) + 0.5, path.join(outDir, `thumbnail-${tag(first)}.jpg`));
+    const file = path.join(outDir, `thumbnail-${tag(first)}.jpg`);
+    const grab = () => deps.thumbnail(outputs[first], (last?.start ?? 0) + 0.5, file);
+    if (plan.cover) {
+      emit({ type: 'progress', step: 'cover' });
+      // a cover that fails to build never fails the render: fall back to a plain frame
+      await deps.cover(plan, first, assetsDir, path.join(outDir, `work-cover-${tag(first)}`), file).catch(grab);
+    } else {
+      await grab();
+    }
   }
   return { outputs };
 }

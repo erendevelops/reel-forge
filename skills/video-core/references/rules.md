@@ -10,7 +10,7 @@
 - **Every on-screen claim must be true to the source** (what is said, or what the product actually does). Framing lines are fine; invented facts are not.
 - **Never zoom into a face.** Crops are the widest the ratio allows (`rf crop`). Punch-ins only when ticked, and at most 2 per video.
 - **Text is UTF-8, always.** When you read or write files with Python, pass `encoding="utf-8"` (`open(path, encoding="utf-8")`, `json.dump(..., ensure_ascii=False)`); never rely on the default, which is the Windows ANSI code page and turns Turkish ı/ş/ğ into `�`. `rf validate` refuses any plan containing `�`.
-- **Always plan a thumbnail moment** when the thumbnail card is ticked: a settled, readable frame (the app grabs it).
+- **Always write `plan.cover`** when the thumbnail card is ticked ([plan-contract.md](plan-contract.md)): a sharp, settled frame plus a short headline that sells the video. The app draws the cover from it; a bare frame is not a cover.
 
 ## Defaults (preset skills refine these; learned preferences override them)
 

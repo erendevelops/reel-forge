@@ -8,7 +8,7 @@ These came from five rounds of creator feedback on a faceless reel. They are the
 4. **Calm captions:** fade-in only, newest word yellow, no bounce.
 5. **Safe margins:** UI elements ≥ 100 px from the left edge; captions around y = 1300 on 9:16; thumbnail content inside the centre 1080×1350.
 6. **Official external assets** (logos, product images) rather than crops of the footage.
-7. **Always a thumbnail** when ticked.
+7. **Always a cover** when ticked: `plan.cover` with a 2–6 word headline (one or two `*highlighted*` words), a kicker pill if it helps, text placed where the frame is empty.
 8. **Faceless:** never suggest or plan face or talking-head content for this preset.
 
 What went wrong before, so you don't repeat it:

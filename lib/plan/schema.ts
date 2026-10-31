@@ -105,6 +105,19 @@ export const PlanSchema = z.object({
   sfx: z.array(SfxCueSchema),
   voice: z.object({ src: z.string().min(1) }).optional(),
   music: MusicSchema.optional(),
+  /**
+   * The cover image (thumbnail option): the frame at `at` under a scrim with a big headline; `*word*` in the title
+   * is drawn on an accent highlight. Without it the app grabs a plain frame.
+   */
+  cover: z
+    .object({
+      at: sec,
+      title: z.string().min(1).max(80),
+      kicker: z.string().min(1).max(40).optional(),
+      position: z.enum(['top', 'center', 'bottom']).default('bottom'),
+      logo: z.string().min(1).optional(),
+    })
+    .optional(),
   /** Panel colours behind graphics (split/full-graphics). Required for app videos: the brand's own ground and ink. */
   look: z
     .object({

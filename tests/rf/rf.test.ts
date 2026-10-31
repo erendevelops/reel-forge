@@ -92,11 +92,22 @@ describe('rf', () => {
 
   it('save rejects motion gaps for talking head', async () => {
     const p = await project('talking-head');
-    await copyFile(path.join(ROOT, 'spikes/talking-head/plan.json'), path.join(projectDir(p.id), 'plan.json'));
+    const plan = JSON.parse(await readFile(path.join(ROOT, 'spikes/talking-head/plan.json'), 'utf8'));
+    await writeFile(path.join(projectDir(p.id), 'plan.json'), JSON.stringify({ ...plan, cover: { at: 1, title: 'Cover' } }));
     const r = await rf(p.id, ['save', 'plan.json']);
     expect(r.code).toBe(1);
     expect(r.json.error).toMatch(/static for more than 3 s/);
     expect(await listVersions(p.id)).toEqual([]);
+  });
+
+  it('save asks for plan.cover when the cover is ticked', async () => {
+    const p = await project();
+    const plan = JSON.parse(await readFile(path.join(ROOT, 'tests/fixtures/plan-reel-v5.json'), 'utf8'));
+    delete plan.cover;
+    await writeFile(path.join(projectDir(p.id), 'plan.json'), JSON.stringify(plan));
+    const r = await rf(p.id, ['save', 'plan.json']);
+    expect(r.code).toBe(1);
+    expect(r.json.error).toMatch(/plan.cover is missing/);
   });
 
   it("save enforces the project selection, not the plan's own copy", async () => {

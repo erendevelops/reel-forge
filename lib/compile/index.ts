@@ -8,11 +8,13 @@ import { audioDuration, layoutRegion, panelColour, renderFootage, renderLayoutMa
 import { type CompileContext, type Fragment, type Region, RATIO_SIZE, num, sz } from './types';
 import { type Logo, logoRef, logoSvgFile, resolveLogo } from '../assets/logos';
 import { repoRequire } from '../root';
+import { renderCover } from './cover';
 
 export * from './types';
 export { cardRegistry } from './cards';
 
-export type CompileOptions = { outDir: string; assetsDir: string; ratio: Ratio; overlayOnly?: boolean };
+/** `cover`: the cover image page (footage + `plan.cover` only, no cards, captions or audio) for a one-frame snapshot. */
+export type CompileOptions = { outDir: string; assetsDir: string; ratio: Ratio; overlayOnly?: boolean; cover?: boolean };
 
 const require = repoRequire;
 
@@ -150,13 +152,17 @@ export async function compile(plan: Plan, o: CompileOptions): Promise<{ indexHtm
     }
   });
   cards.sort((a, b) => a.layer - b.layer || a.seq - b.seq);
-  for (const c of cards) frags.push(cardRegistry[c.card.type].render(c.card, c.id, { ...ctx, region: c.region }));
-  // captions over a graphics-only panel get a dark outline (white on cream is unreadable)
-  const panels = plan.scenes.filter((sc) => sc.layout === 'full-graphics').map((sc) => [sc.start, sc.end] as [number, number]);
-  frags.push(renderCaptions(plan.captions, ctx, panels));
+  if (o.cover && plan.cover) {
+    frags.push(renderCover(plan.cover, ctx));
+  } else {
+    for (const c of cards) frags.push(cardRegistry[c.card.type].render(c.card, c.id, { ...ctx, region: c.region }));
+    // captions over a graphics-only panel get a dark outline (white on cream is unreadable)
+    const panels = plan.scenes.filter((sc) => sc.layout === 'full-graphics').map((sc) => [sc.start, sc.end] as [number, number]);
+    frags.push(renderCaptions(plan.captions, ctx, panels));
+  }
 
-  const sfxDur = await Promise.all(plan.sfx.map((c) => audioDuration(resolveAsset(c.file, o.assetsDir))));
-  const audio = [
+  const sfxDur = o.cover ? [] : await Promise.all(plan.sfx.map((c) => audioDuration(resolveAsset(c.file, o.assetsDir))));
+  const audio = o.cover ? [] : [
     o.overlayOnly ? '' : renderVoice(plan, ctx),
     o.overlayOnly ? '' : renderMusic(plan, ctx),
     renderSfx(plan, ctx, sfxDur),

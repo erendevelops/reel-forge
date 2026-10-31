@@ -965,5 +965,9 @@
   ],
   "voice": {
     "src": "vo.wav"
+  },
+  "cover": {
+    "at": 1,
+    "title": "5 AI tools *you need*"
   }
 }

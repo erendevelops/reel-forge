@@ -64,6 +64,15 @@ export function validatePlan(input: unknown): ValidationResult {
   if (plan.captions.style !== sel.captions) {
     errors.push(`captions: style ${plan.captions.style} does not match selected ${sel.captions}`);
   }
+  if (plan.cover) {
+    if (!sel.thumbnail) errors.push('cover: present but the cover option is not selected');
+    if (plan.cover.at >= plan.duration) errors.push(`cover.at ${plan.cover.at} is not inside the video (0–${plan.duration})`);
+    const slug = plan.cover.logo ? logoRef(plan.cover.logo) : undefined;
+    if (slug !== undefined) {
+      if (!sel.topicAssets) errors.push(`cover: logo ${plan.cover.logo} is a topic asset and requires selection.topicAssets`);
+      if (!resolveLogo(slug)) errors.push(`cover: unknown logo ${plan.cover.logo} (not in the bundled simple-icons set)`);
+    }
+  }
   if (plan.music && !sel.music) errors.push('music: present but music is not selected');
   if (plan.sfx.length > 0 && !sel.sfx) errors.push('sfx: cues present but sfx is not selected');
 
