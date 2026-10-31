@@ -7,9 +7,13 @@ import { installSkills } from '@/lib/app/claude/install';
 import { projectDir } from '@/lib/app/workspace/paths';
 import { JobBusyError, startJob } from '@/lib/app/jobs/jobs';
 import '@/lib/app/jobs/render-job'; // the auto-draft after a fresh plan needs the render executor
-import { NotFoundError, getPreferences, getProject, listVersions, updateProject } from '@/lib/app/workspace/store';
+import { NotFoundError, getPreferences, getProject, listVersions, readVersion, updateProject } from '@/lib/app/workspace/store';
 
 type Ctx = { params: Promise<{ id: string }> };
+
+/** Order-free JSON for comparing choices (key and list order don't matter). */
+const stable = (v: unknown): string =>
+  JSON.stringify(v, (_k, x) => (Array.isArray(x) ? [...x].sort() : x && typeof x === 'object' ? Object.fromEntries(Object.entries(x).sort(([a], [b]) => a.localeCompare(b))) : x));
 
 const Body = z.object({ selection: SelectionSchema, ratios: z.array(z.enum(RATIOS)).min(1), references: ProjectSchema.shape.references });
 
@@ -25,8 +29,11 @@ export async function POST(req: Request, { params }: Ctx) {
     const [versions, preferences] = await Promise.all([listVersions(id), getPreferences()]);
     await installSkills(project, preferences, projectDir(id)); // CLAUDE.md lists the new cards
     if (versions.length) {
-      // after the first plan, a real change of cards or references means a new plan built from scratch
-      const changed = JSON.stringify([before.selection, before.references]) !== JSON.stringify([project.selection, project.references]);
+      // After the first plan, cards that differ from the ones the newest plan was built with (or new reference
+      // reels) mean a new plan from scratch. Compared with the plan, not the last save: a save that met a busy job
+      // already stored the cards, and the retry must still re-plan.
+      const planned = (await readVersion(id, versions.at(-1)!.n)).plan.selection;
+      const changed = stable(planned) !== stable(project.selection) || stable(before.references) !== stable(project.references);
       if (!changed) return NextResponse.json({ jobId: null }, { status: 200 });
       const job = await startJob(id, { kind: 'claude', prompt: buildPrompt('plan', { project, preferences, versions, fresh: true }) });
       return NextResponse.json(job, { status: 201 });

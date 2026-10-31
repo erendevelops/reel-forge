@@ -60,6 +60,25 @@ describe('POST /api/projects/[id]/confirm', () => {
     expect(saved.selection?.cards).toEqual(['stamp']);
   });
 
+  it('after a plan, cards that differ from the plan re-plan from scratch, also on the retry after a busy save', async () => {
+    const { saveVersion } = await import('../../lib/app/workspace/store');
+    const { readFileSync } = await import('node:fs');
+    const p = await make();
+    const plan = JSON.parse(readFileSync('tests/fixtures/plan-reel-v5.json', 'utf8'));
+    await saveVersion(p.id, { plan, by: 'claude', parent: null, request: 'first cut' });
+    const changed = { selection: { ...plan.selection, cards: plan.selection.cards.slice(1) }, ratios: ['9:16'], references: [] };
+    busy = true;
+    expect((await call(p.id, changed)).status).toBe(409);
+    busy = false;
+    const res = await call(p.id, changed); // same cards as the busy save: still differ from the plan
+    expect(res.status).toBe(201);
+    expect(started.at(-1)!.prompt).toContain('from scratch');
+    started.length = 0;
+    // back to the plan's own cards: nothing to rebuild
+    expect((await call(p.id, { selection: plan.selection, ratios: ['9:16'], references: [] })).status).toBe(200);
+    expect(started).toHaveLength(0);
+  });
+
   it('refuses non-https references and an empty ratio list', async () => {
     const p = await make();
     const sel = defaultSelection('talking-head');
