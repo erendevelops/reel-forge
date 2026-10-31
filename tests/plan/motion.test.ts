@@ -45,7 +45,7 @@ describe('motionGaps', () => {
   });
 
   it('reports the gaps of the talking-head spike plan', async () => {
-    const raw = JSON.parse(await fs.readFile(path.resolve(__dirname, '../../spikes/talking-head/plan.json'), 'utf8'));
+    const raw = JSON.parse(await fs.readFile(path.resolve(__dirname, '../fixtures/plan-talking-head.json'), 'utf8'));
     const v = validatePlan(raw);
     expect(v.ok, v.ok ? '' : v.errors.join('\n')).toBe(true);
     if (!v.ok) return;

@@ -92,7 +92,7 @@ describe('rf', () => {
 
   it('save rejects motion gaps for talking head', async () => {
     const p = await project('talking-head');
-    const plan = JSON.parse(await readFile(path.join(ROOT, 'spikes/talking-head/plan.json'), 'utf8'));
+    const plan = JSON.parse(await readFile(path.join(ROOT, 'tests/fixtures/plan-talking-head.json'), 'utf8'));
     await writeFile(path.join(projectDir(p.id), 'plan.json'), JSON.stringify({ ...plan, cover: { at: 1, title: 'Cover' } }));
     const r = await rf(p.id, ['save', 'plan.json']);
     expect(r.code).toBe(1);
