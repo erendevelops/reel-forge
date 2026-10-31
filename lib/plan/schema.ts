@@ -115,6 +115,8 @@ export const PlanSchema = z.object({
       title: z.string().min(1).max(80),
       kicker: z.string().min(1).max(40).optional(),
       position: z.enum(['top', 'center', 'bottom']).default('bottom'),
+      /** `accent`: bold title with an accent bar and accent `*words*`; `card`: dark title on a white card; `clean`: plain white title. */
+      style: z.enum(['accent', 'card', 'clean']).default('accent'),
       logo: z.string().min(1).optional(),
     })
     .optional(),
