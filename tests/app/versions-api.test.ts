@@ -57,12 +57,12 @@ describe('user versions', () => {
     expect(await ok.json()).toEqual({ n: 3, parent: 1, branched: true });
   });
 
-  it('refuses an edited plan the project selection does not allow', async () => {
+  it('still takes edits on a version whose cards the user has since unticked', async () => {
     const id = await setup();
     await updateProject(id, { selection: { ...selection, cards: [] } });
     const res = await post(id, { parent: 1, edits: [] });
-    expect(res.status).toBe(400);
-    expect(JSON.stringify(await res.json())).toMatch(/not selected/);
+    expect(res.status).toBe(201);
+    expect((await readVersion(id, 2)).plan.selection.cards).toEqual(selection.cards);
   });
 
   it('lists the render files of a version and serves them, but nothing outside versions/ and inputs/', async () => {

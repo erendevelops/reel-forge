@@ -12,6 +12,7 @@ import {
   readVersion,
   saveVersion,
   updateProject,
+  validateForProject,
 } from '../../lib/app/workspace/store';
 import { WorkspaceCorruptError } from '../../lib/app/workspace/files';
 import { projectDir } from '../../lib/app/workspace/paths';
@@ -64,6 +65,15 @@ describe('workspace store', () => {
     const v2 = await readVersion(p.id, 2);
     expect(v2.plan.duration).toBe(32);
     expect(v2.origin.diff).toEqual({ moved: 1 });
+  });
+
+  it('validateForProject lets an existing version keep the cards it was planned with', async () => {
+    const p = await createProject(base);
+    await updateProject(p.id, { selection: { ...fixture.selection, cards: [] } });
+    expect((await validateForProject(p.id, fixture)).ok).toBe(false);
+    const r = await validateForProject(p.id, fixture, fixture.selection);
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.plan.selection.cards).toEqual(fixture.selection.cards);
   });
 
   it('saveVersion rejects an invalid plan with validator errors', async () => {

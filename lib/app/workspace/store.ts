@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { cp, mkdir, readdir, rm } from 'node:fs/promises';
 import path from 'node:path';
-import { PlanSchema, validatePlan, type Plan, type ValidationResult } from '@/lib/plan';
+import { PlanSchema, validatePlan, type Plan, type Selection, type ValidationResult } from '@/lib/plan';
 import { readJson, writeJson } from './files';
 import { projectDir, projectsDir, versionDir, workspaceDir } from './paths';
 import { createQueue } from './queue';
@@ -235,10 +235,24 @@ export function addPreference(rule: { text: string; source: string }): Promise<P
  * Validates a plan against the project's own option cards, never the copy inside the plan (Claude or a hand edit
  * could change that copy). Used by `rf validate`/`rf save`, the preview and user versions.
  */
-export async function validateForProject(id: string, plan: unknown): Promise<ValidationResult> {
+export async function validateForProject(id: string, plan: unknown, base?: Selection): Promise<ValidationResult> {
   const { selection } = await getProject(id);
   if (!selection || typeof plan !== 'object' || plan === null) return validatePlan(plan);
-  return validatePlan({ ...(plan as object), selection });
+  if (!base) return validatePlan({ ...(plan as object), selection });
+  // An existing version (preview, hand edits) may keep the cards it was planned with after the user changed the
+  // option cards: the re-plan replaces it, but until then it must still preview and take edits.
+  const union = (a: string[], b: string[]) => [...new Set([...a, ...b])];
+  const allowed = {
+    ...selection,
+    cards: union(selection.cards, base.cards),
+    layouts: union(selection.layouts, base.layouts),
+    sfx: selection.sfx || base.sfx,
+    music: selection.music || base.music,
+    punchIns: selection.punchIns || base.punchIns,
+    topicAssets: selection.topicAssets || base.topicAssets,
+  } as Selection;
+  const r = validatePlan({ ...(plan as object), selection: allowed });
+  return r.ok ? { ok: true, plan: { ...r.plan, selection: base } } : r;
 }
 
 export class PreferenceIndexError extends Error {}

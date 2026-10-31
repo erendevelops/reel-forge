@@ -16,7 +16,7 @@ export async function POST(req: Request, { params }: Ctx) {
   try {
     const base = (await readVersion(id, parent)).plan;
     const next = (edits as unknown as Edit[]).reduce(applyEdit, base);
-    const v = await validateForProject(id, next);
+    const v = await validateForProject(id, next, base.selection);
     if (!v.ok) return NextResponse.json({ error: v.errors }, { status: 400 });
     const latest = (await listVersions(id)).at(-1)?.n ?? parent;
     const n = await saveVersion(id, { plan: v.plan, by: 'user', parent, request: null, diff: diffPlans(base, v.plan) });

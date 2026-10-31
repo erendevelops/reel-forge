@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { link, mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { compile } from '@/lib/compile';
-import type { Ratio } from '@/lib/plan';
+import { SelectionSchema, type Ratio, type Selection } from '@/lib/plan';
 import { projectDir } from '@/lib/app/workspace/paths';
 import { validateForProject } from '@/lib/app/workspace/store';
 import { PLAYER_JS } from './player-script';
@@ -44,7 +44,8 @@ async function reuseMedia(root: string, tag: string, outDir: string): Promise<vo
  * overwrite a newer one. Throws the validation errors for a plan the project doesn't allow.
  */
 export async function buildPreview(id: string, plan: unknown, ratio: Ratio): Promise<{ url: string; key: string }> {
-  const r = await validateForProject(id, plan);
+  const own = (plan as { selection?: Selection } | null)?.selection;
+  const r = await validateForProject(id, plan, SelectionSchema.safeParse(own).success ? own : undefined);
   if (!r.ok) throw new Error(r.errors.join('\n'));
   const tag = ratioTag(ratio);
   const key = createHash('sha1').update(JSON.stringify(r.plan)).update(ratio).digest('hex').slice(0, 12);
