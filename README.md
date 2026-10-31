@@ -79,17 +79,24 @@ Terminal açık kaldığı sürece uygulama çalışır; kapatmak için Terminal
 
 1. **Yeni proje** → türü seç (Yüzsüz reel, Konuşan yüz, Uygulama videosu), ad ver, oranları seç (**9:16 dikey**, **16:9 yatay**, 4:5, 1:1).
 2. **Dosyaları ekle:** videolarını, ses kaydını ya da uygulamanın kod klasörünü kutuya sürükle (ya da *Dosya seç / Klasör seç*). Orijinal dosyalarına dokunulmaz, kopyası alınır.
-3. **Editini kur:** kartlardan neleri istediğini seç (altyazı stili, düzen, sayaç, liste, logo, ses efekti, müzik…). Claude **yalnızca seçtiklerini** kullanır. İstersen beğendiğin reels bağlantılarını da ekle. *Onayla ve analiz et*.
+3. **Editini kur:** kartlardan neleri istediğini seç (altyazı stili, düzen, sayaç, liste, logo, ses efekti, müzik…). Claude **yalnızca seçtiklerini** kullanır ve seçtiğin her kartı en az bir kez kullanır. İstersen beğendiğin reels bağlantılarını da ekle; Claude onları indirip izler ve görünüşünü adım adım taklit eder. *Onayla ve analiz et*.
 4. **Analiz:** Claude dosyaları inceler (birkaç dakika). Sağda ne yaptığını canlı görürsün.
 5. **Metin kontrolü** (reels): yanlış duyulan kelimeye tıkla, düzelt, *Onayla*.
 6. **Müzik** (seçtiysen): Claude 3–4 parça önerir. Dinle, birini seç, parçayı indirip kutuya bırak. Beğenmezsen *Başka öner*.
-7. **Senaryo:** *Plan oluştur*. Claude her sahneyi ve **neden** öyle yaptığını yazar, ilk taslak videoyu da hazırlar.
+7. **Senaryo:** proje sayfasındaki *Sıradaki adım* kartında **Plan oluştur**'a bas. Claude her sahneyi ve **neden** öyle yaptığını yazar, ilk taslak videoyu da hazırlar.
 8. **Düzenle:** soldan bir sahne seç; sağda önizleme var.
    - Yazıları, sayıları, zamanları, sesleri, renkleri kendin değiştir → **Kaydet**
-   - ya da Claude'a yaz: *"bu sahne biraz daha uzun olsun"*
+   - **Görüntüler:** sahnenin videosunu *Değiştir* ile başka bir klipten, istediğin saniyeden seç → *Bu kısmı kullan*
+   - Bir kartı (ör. grafik) istemiyorsan yanındaki **Kaldır**'a bas
    - Her değişiklik yeni bir **sürüm** olur, eskileri kaybolmaz.
-9. **Onayla ve render al:** son videoyu her oran için çıkarır.
-10. **İnceleme:** videoyu izle, kalite kontrollerine bak, iki sürümü yan yana karşılaştır, geri bildirim yaz.
+   - **Kartları değiştir**'den kart seçimini değiştirirsen Claude planı **baştan** kurar.
+9. **Claude ile konuş:** sağdaki sohbete her şeyi yaz (beğenmediklerin, istediklerin, referanstaki gibi olmasını istediklerin) → *Gönder ve baştan oluştur*. Claude bu sohbetteki bütün geri bildirimlere göre videoyu baştan kurar, her maddeye tek tek cevap verir ve yeni bir sürüm yapar. Senaryo ve inceleme sayfasında aynı sohbet var.
+10. **Onayla ve render al:** son videoyu her oran için çıkarır.
+11. **İnceleme:** videoyu izle, kalite kontrollerine bak, iki sürümü yan yana karşılaştır, indir.
+
+**Projeler sayfası** her projenin önizleme resmini gösterir; bir projeyi silmek için kartındaki **Sil**'e bas (Claude çalışırken silinmez).
+
+**Logo şeffaf olsun:** logo kartında arka planı `transparent` yap; çerçeve ve gölge kalkar.
 
 Claude kalıcı bir tercih fark ederse (*"liste daha sağda olsun"* gibi) saklamayı önerir. Saklanan tercihler sonraki projelerde de kullanılır; **Ayarlar**'dan düzenlenir.
 
@@ -188,17 +195,24 @@ On first launch, check the **Setup** page: every row should be ✓. Anything mis
 
 1. **New project** → pick the kind (Faceless reel, Talking head, App video), a name and the ratios (**9:16 vertical**, **16:9 horizontal**, 4:5, 1:1).
 2. **Add your files:** drag your videos, voice-over or the app's code folder onto the box (or *Pick files / Pick a folder*). Your originals are never touched; the app works on a copy.
-3. **Build your edit:** tick the cards you want (caption style, layout, counter, list, logo, sound effects, music…). Claude **only uses what you tick**. Optionally paste links to reels you like. *Confirm and analyse*.
+3. **Build your edit:** tick the cards you want (caption style, layout, counter, list, logo, sound effects, music…). Claude **only uses what you tick**, and uses every card you tick at least once. Optionally paste links to reels you like; Claude downloads and watches them and rebuilds their look beat for beat. *Confirm and analyse*.
 4. **Analysis:** Claude studies your files (a few minutes). You see what it's doing live on the right.
 5. **Transcript check** (reels): click a misheard word, fix it, *Confirm*.
 6. **Music** (if ticked): Claude suggests 3–4 tracks. Listen, pick one, download it and drop it in. Don't like them? *Suggest others*.
-7. **Storyboard:** *Make the plan*. Claude writes every scene and **why** it chose it, and renders a first draft.
+7. **Storyboard:** press **Make the plan** in the *Next step* card on the project page. Claude writes every scene and **why** it chose it, and renders a first draft.
 8. **Edit:** pick a scene on the left; the preview is on the right.
    - Change texts, numbers, timings, sounds and colours yourself → **Save**
-   - or tell Claude: *"make this scene a bit longer"*
+   - **Shots:** *Change* a scene's footage to another clip, from any second → *Use this part*
+   - Don't want a card (e.g. a chart)? Press **Remove** next to it
    - Every change becomes a new **version**; old ones are kept.
-9. **Approve & render:** makes the final video for every ratio.
-10. **Review:** watch it, see the quality checks, compare two versions side by side, give feedback.
+   - Change your ticked cards with **Change cards** and Claude plans again **from scratch**.
+9. **Talk to Claude:** write everything in the chat on the right (what you dislike, what you want, what should look like the reference) → *Send and rebuild*. Claude rebuilds the video from all the feedback in the chat, answers each point and makes a new version. The storyboard and review pages share the same chat.
+10. **Approve & render:** makes the final video for every ratio.
+11. **Review:** watch it, see the quality checks, compare two versions side by side, download.
+
+The **Projects** page shows a preview image for each project; press **Delete** on a card to delete it (not while Claude is working).
+
+**Transparent logo:** set the logo card's background to `transparent`; the frame and shadow go away.
 
 When Claude spots a lasting preference (*"move the list further right"*), it offers to keep it. Kept preferences apply to your next projects too; edit them in **Settings**.
 
