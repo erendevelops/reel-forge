@@ -24,6 +24,13 @@ function selectionLines(p: Project): string {
   ].join('\n');
 }
 
+/** Web pictures of named things need a card to show them in (logo-pop or custom-animation). */
+function webImageLine(p: Project): string {
+  const c = p.selection?.cards ?? [];
+  if (!c.includes('logo-pop') && !c.includes('custom-animation')) return '';
+  return 'When a sentence names a concrete thing the footage does not show (a product, device, object, place, app), show a real picture of it on that word: find it on the web, `rf fetch` it, `rf cutout` a photo on a background, and pop it in (video-core assets.md, "Images from the web").';
+}
+
 function preferenceLines(prefs: Preferences): string {
   return prefs.rules.length ? `Learned preferences (they override preset defaults):\n${prefs.rules.map((r) => `- ${r.text}`).join('\n')}` : '';
 }
@@ -60,6 +67,7 @@ export function buildPrompt(stage: Stage, ctx: PromptCtx): string {
         ? 'The user changed the option cards (and maybe the reference reels): build a NEW plan from scratch with the new cards. Do not copy the previous plan.json or earlier versions. If a reference reel listed here is not in analysis/refs/ yet, download and study it first and rewrite analysis/style.md (analyse skill, reference reels).'
         : '',
       selectionLines(project),
+      webImageLine(project),
       motion,
       project.references.length ? 'The user gave reference reels: read analysis/style.md first and rebuild their look and techniques beat for beat (it overrides the preset look defaults; only pacing follows the user preferences).' : '',
       project.transcriptChecked ? 'The user corrected the transcript: captions come word for word from analysis/transcript-trimmed.json (talking head) or analysis/transcript.json, never from transcript-review.json (that holds the uncorrected words).' : '',
@@ -75,6 +83,7 @@ export function buildPrompt(stage: Stage, ctx: PromptCtx): string {
       'Act on the newest USER message; the earlier ones still hold unless the newest overrides them.',
       `Rebuild plan.json from scratch: rethink the structure, footage choices, cards, animations and timing so ALL of the feedback is met. Look at the current version (\`rf project\` → latest.plan, v${latest ?? '?'}) only to see what the user disliked; do not just patch it.`,
       selectionLines(project),
+      webImageLine(project),
       motion,
       project.references.length ? 'Reference reels: read analysis/style.md and keep rebuilding their look and techniques beat for beat.' : '',
       project.transcriptChecked ? 'Captions come word for word from the corrected transcript (analysis/transcript-trimmed.json or analysis/transcript.json).' : '',

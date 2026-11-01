@@ -21,7 +21,7 @@ export const en: Dictionary = {
       checklist: { name: 'Checklist', desc: 'Each item ticks as it is said.' },
       'bar-chart': { name: 'Chart', desc: 'Bars grow to compare values.' },
       stamp: { name: 'Stamp', desc: 'A stamp slams on the punchline.' },
-      'logo-pop': { name: 'Logo', desc: 'The official logo of a named product.' },
+      'logo-pop': { name: 'Logos & images', desc: 'The logo of a named product, or a real picture from the web of what is being said.' },
       'numbered-list': { name: 'Numbered list', desc: 'A list that grows with each item.' },
       'typed-title': { name: 'Typed title', desc: 'A name typed letter by letter.' },
       'title-card': { name: 'Title card', desc: 'A big title with its logo per item.' },

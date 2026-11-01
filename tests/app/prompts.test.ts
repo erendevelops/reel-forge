@@ -33,6 +33,14 @@ describe('stage prompts', () => {
     expect(p).toContain('rf save plan.json --request "first cut"');
   });
 
+  it('plan and rebuild ask for web pictures only when a card can show them', () => {
+    const p = buildPrompt('plan', { project: project(), preferences: prefs, versions: [] });
+    expect(p).toContain('rf fetch');
+    expect(buildPrompt('rebuild', { project: project(), preferences: prefs, versions: [v(1, 'claude')], chat: [{ role: 'user', text: 'x' }] })).toContain('rf fetch');
+    const none = { ...defaultSelection('talking-head'), cards: ['checklist' as const] };
+    expect(buildPrompt('plan', { project: project({ selection: none }), preferences: prefs, versions: [] })).not.toContain('rf fetch');
+  });
+
   it('revise prompt carries parent and user diffs', () => {
     const p = buildPrompt('revise', {
       project: project(),

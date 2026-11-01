@@ -19,7 +19,7 @@ export const tr = {
       checklist: { name: 'Kontrol listesi', desc: 'Her madde söylendiğinde işaretlenir.' },
       'bar-chart': { name: 'Grafik', desc: 'Karşılaştırma için büyüyen çubuklar.' },
       stamp: { name: 'Damga', desc: 'Vurucu cümleye basılan damga.' },
-      'logo-pop': { name: 'Logo', desc: 'Adı geçen ürünün resmi logosu.' },
+      'logo-pop': { name: 'Logo ve görseller', desc: 'Adı geçen ürünün logosu ya da konuşmada geçen şeyin webden bulunan gerçek görseli.' },
       'numbered-list': { name: 'Numaralı liste', desc: 'Her yeni maddeyle büyüyen liste.' },
       'typed-title': { name: 'Yazılan başlık', desc: 'Bir isim harf harf yazılır.' },
       'title-card': { name: 'Başlık kartı', desc: 'Her madde için logolu büyük başlık.' },
