@@ -64,6 +64,7 @@ export function buildPrompt(stage: Stage, ctx: PromptCtx): string {
       project.references.length ? 'The user gave reference reels: read analysis/style.md first and rebuild their look and techniques beat for beat (it overrides the preset look defaults; only pacing follows the user preferences).' : '',
       project.transcriptChecked ? 'The user corrected the transcript: captions come word for word from analysis/transcript-trimmed.json (talking head) or analysis/transcript.json, never from transcript-review.json (that holds the uncorrected words).' : '',
       project.music?.file ? `Music: inputs/music/${project.music.file} ("${project.music.title}", ${project.music.license}). Align it with rf beats.` : '',
+      'Write plan.post too: the caption for the Instagram/TikTok post in the video’s language (a first line that makes people stop, 2–4 short lines on what the video gives them, a call to action) and 5–10 relevant hashtags without #.',
       'Then run `rf validate plan.json` and fix every error, then `rf save plan.json --request "first cut"`.',
     ].join('\n');
   } else if (stage === 'rebuild') {
@@ -78,6 +79,7 @@ export function buildPrompt(stage: Stage, ctx: PromptCtx): string {
       project.references.length ? 'Reference reels: read analysis/style.md and keep rebuilding their look and techniques beat for beat.' : '',
       project.transcriptChecked ? 'Captions come word for word from the corrected transcript (analysis/transcript-trimmed.json or analysis/transcript.json).' : '',
       project.music?.file ? `Music: inputs/music/${project.music.file}. Align it with rf beats.` : '',
+      'Write plan.post too: the caption for the Instagram/TikTok post in the video’s language (a first line that makes people stop, 2–4 short lines on what the video gives them, a call to action) and 5–10 relevant hashtags without #.',
       `Then \`rf validate plan.json\`, fix every error, and \`rf save plan.json --parent ${latest ?? 1} --request "<one line on the rebuild>"\`.`,
       'Your reply goes into the chat: one short line per point of the feedback saying what you did for it (or why you could not). No headings. If the feedback states a lasting preference, end with a line "PREFERENCE: <text>".',
     ].join('\n');

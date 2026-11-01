@@ -19,6 +19,7 @@
 | `voice` | `{ src }` | The voiceover or camera audio (path relative to the project's `inputs/`) |
 | `music` | `{ src, mediaStart, volume, fadeOut }` | Only if the music card is ticked and the user picked a track |
 | `cover` | `{ at, title, kicker?, position?, logo? }` | The cover image, **required when the cover (thumbnail) card is ticked**: the frame at `at` (timeline s) under a scrim with a bold white headline, a short accent bar above it, and 1–2 key words in accent colour via `*…*` (style `accent`, the default; `card` and `clean` only if the user asks). `title` = one plain sentence of what the video gives the viewer (e.g. "Edit your videos with Claude"), not the video's first line, no clickbait. No `kicker` unless the user asks, never a filler one like "YENİ". `position` `top`/`center`/`bottom` (default bottom; a learned preference overrides it): put the text where the frame is empty. `logo` = asset path or `si:<slug>` (topic assets). Pick a frame that is sharp, bright and shows the subject; no text or cards are drawn from the video, only the frame |
+| `post` | `{ caption, hashtags }` | The post text the user copies into Instagram/TikTok, in the video's language. `caption`: a first line that makes people stop scrolling, 2–4 short lines on what the video gives them, a call to action (save, follow, comment). `hashtags`: 5–10 relevant words without `#`. Always write it |
 | `look` | `{ background, ink? }` hex | Colours of the graphics panel. **Required for app videos** (the brand's ground and ink) |
 
 ## Scenes

@@ -18,6 +18,21 @@ Product screenshots, sample outputs and banners come from the product's own repo
 with their source in `analysis/assets.json`. Prefer an image that shows a *result* (generated images, before/after)
 over one that shows text.
 
+### Images from the web for what is being said
+
+When a sentence names a concrete thing the footage doesn't show (a product, device, object, place, person, app
+screen), show a real picture of it on that word instead of leaving footage alone:
+
+1. Find it: WebSearch, then take the image from the official site or press kit, or Wikimedia Commons. Open the page
+   with WebFetch and use the **direct** image URL (`.png`/`.jpg`/`.webp`), the largest one offered.
+2. `rf fetch <url> --name <short-name> --license "<licence or 'official press kit'>"` → `ext/<short-name>.<ext>`.
+3. A photo of an object or person on a background: `rf cutout ext/<short-name>.jpg` → `ext/<short-name>-cut.png`
+   (transparent, border cropped). Skip it for logos with their own transparency, screenshots and full scenes.
+4. Show it: a `logo-pop` with `"bg": "transparent"` (`img: "ext/<short-name>-cut.png"`) popping in on the word, or
+   inside a `custom-animation` (`<img src="ext/…">`) for a slide, float or stack. Animate it in, never just appear.
+5. Never use stock-photo watermarks, AI-generated look-alikes, or images whose licence forbids reuse. If
+   `rf cutout` fails (rembg not installed), use the image uncut in a framed card instead.
+
 ## Writing a `custom-animation` (your own scene)
 
 Most beats of a talking-head or app video are your own scenes. A `custom-animation` card is HTML/SVG + CSS plus a

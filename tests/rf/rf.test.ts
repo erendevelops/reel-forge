@@ -100,6 +100,31 @@ describe('rf', () => {
     expect(await listVersions(p.id)).toEqual([]);
   });
 
+  it('fetch saves a web image under inputs/ext and logs its source; refuses a page that is not an image', async () => {
+    const { createServer } = await import('node:http');
+    const png = Buffer.from('89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4890000000d4944415478da63f8ffff3f0005fe02fea7d6a4c50000000049454e44ae426082', 'hex');
+    const server = createServer((req, res) => {
+      if (req.url === '/shot.png') res.writeHead(200, { 'content-type': 'image/png' }).end(png);
+      else res.writeHead(200, { 'content-type': 'text/html' }).end('<html></html>');
+    });
+    await new Promise<void>((r) => server.listen(0, '127.0.0.1', r));
+    const base = `http://127.0.0.1:${(server.address() as { port: number }).port}`;
+    try {
+      const p = await project();
+      const ok = await rf(p.id, ['fetch', `${base}/shot.png`, '--name', 'iPhone 17', '--license', 'press kit']);
+      expect(ok.code).toBe(0);
+      expect(ok.json.file).toBe('ext/iphone-17.png');
+      expect(await readFile(path.join(projectDir(p.id), 'inputs/ext/iphone-17.png'))).toEqual(png);
+      const log = JSON.parse(await readFile(path.join(projectDir(p.id), 'analysis/assets.json'), 'utf8'));
+      expect(log[0]).toMatchObject({ file: 'ext/iphone-17.png', url: `${base}/shot.png`, license: 'press kit' });
+      const page = await rf(p.id, ['fetch', `${base}/page`]);
+      expect(page.code).toBe(1);
+      expect(page.json.error).toMatch(/not an image: text\/html/);
+    } finally {
+      server.close();
+    }
+  });
+
   it('save asks for plan.cover when the cover is ticked', async () => {
     const p = await project();
     const plan = JSON.parse(await readFile(path.join(ROOT, 'tests/fixtures/plan-reel-v5.json'), 'utf8'));

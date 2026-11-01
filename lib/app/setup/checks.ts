@@ -5,8 +5,9 @@ import { checkAvailability } from '@/lib/app/claude/availability';
 import { run } from '@/lib/media/run';
 import { npx } from '@/lib/media/npx';
 
-export type CheckId = 'node' | 'claude' | 'ffmpeg' | 'python' | 'whisper' | 'mediapipe' | 'face-model' | 'chrome';
-export type Check = { id: CheckId; ok: boolean; detail: string; fix: string | null };
+export type CheckId = 'node' | 'claude' | 'ffmpeg' | 'python' | 'whisper' | 'mediapipe' | 'face-model' | 'chrome' | 'rembg';
+/** `optional`: the app works without it (a missing one is a hint, not an error). */
+export type Check = { id: CheckId; ok: boolean; detail: string; fix: string | null; optional?: boolean };
 
 export const FACE_MODEL_URL =
   'https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite';
@@ -22,6 +23,7 @@ const FIX: Record<Exclude<CheckId, 'face-model'>, string> = {
   whisper: 'python -m pip install --user faster-whisper numpy',
   mediapipe: 'python -m pip install --user mediapipe',
   chrome: 'npx hyperframes@0.8.191 browser install',
+  rembg: 'python -m pip install --user "rembg[cpu]"',
 };
 
 async function tryRun(cmd: string, args: string[]): Promise<string | null> {
@@ -61,7 +63,7 @@ export async function checkPython(lang: Language): Promise<Check> {
   return { id: 'python', ok, detail: out ? `Python ${out}${ok ? '' : ` — ${t(lang).setup.tooOld}`}` : t(lang).setup.missing, fix: ok ? null : FIX.python };
 }
 
-async function checkImport(id: 'whisper' | 'mediapipe', mod: string, lang: Language): Promise<Check> {
+async function checkImport(id: 'whisper' | 'mediapipe' | 'rembg', mod: string, lang: Language): Promise<Check> {
   const code = `import sys; print(sys.executable)\ntry:\n    import ${mod}; print("OK", getattr(${mod}, "__version__", ""))\nexcept Exception as e:\n    print("ERR", type(e).__name__, e)`;
   const out = await python(['-c', code]);
   const lines = (out ?? '').split('\n').map((l) => l.trim());
@@ -94,6 +96,8 @@ export async function runChecks(o: { lang: Language; claudeBinary: string; faceM
     checkImport('mediapipe', 'mediapipe', o.lang),
     checkFaceModel(o.faceModel ?? FACE_MODEL_PATH, o.lang),
     checkChrome(o.lang),
+    // background removal for web images (rf cutout)
+    checkImport('rembg', 'rembg', o.lang).then((c) => ({ ...c, optional: true })),
   ]);
 }
 

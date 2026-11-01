@@ -22,11 +22,11 @@ export function SetupList({
       {checks.map((c) => (
         <div key={c.id} className="card flex items-center gap-4 px-5 py-4">
           <span
-            aria-label={c.ok ? 'ok' : 'fail'}
+            aria-label={c.ok ? 'ok' : c.optional ? 'optional' : 'fail'}
             className="grid h-7 w-7 place-items-center rounded-lg text-white"
-            style={{ background: c.ok ? 'var(--brand-d)' : '#e5484d' }}
+            style={{ background: c.ok ? 'var(--brand-d)' : c.optional ? '#b8b2a6' : '#e5484d' }}
           >
-            {c.ok ? '✓' : '!'}
+            {c.ok ? '✓' : c.optional ? '–' : '!'}
           </span>
           <div className="flex-1">
             <div className="font-semibold">{d.checks[c.id]}</div>

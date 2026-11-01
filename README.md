@@ -54,6 +54,12 @@ python -m pip install --user faster-whisper numpy mediapipe
 
 (macOS'ta `python` yerine `python3` yaz.)
 
+İsteğe bağlı: Claude'un webden bulduğu görsellerin arka planını silebilmesi için:
+
+```bash
+python -m pip install --user "rembg[cpu]"
+```
+
 **Projeyi indir:** GitHub sayfasında yeşil **Code** düğmesi → **Download ZIP** → zip'i bir klasöre çıkar.
 Terminal'de o klasöre geç ve bağımlılıkları kur:
 
@@ -92,7 +98,9 @@ Terminal açık kaldığı sürece uygulama çalışır; kapatmak için Terminal
    - **Kartları değiştir**'den kart seçimini değiştirirsen Claude planı **baştan** kurar.
 9. **Claude ile konuş:** sağdaki sohbete her şeyi yaz (beğenmediklerin, istediklerin, referanstaki gibi olmasını istediklerin) → *Gönder ve baştan oluştur*. Claude bu sohbetteki bütün geri bildirimlere göre videoyu baştan kurar, her maddeye tek tek cevap verir ve yeni bir sürüm yapar. Senaryo ve inceleme sayfasında aynı sohbet var.
 10. **Onayla ve render al:** son videoyu her oran için çıkarır.
-11. **İnceleme:** videoyu izle, kalite kontrollerine bak, iki sürümü yan yana karşılaştır, indir.
+11. **İnceleme:** videoyu izle, kalite kontrollerine bak, iki sürümü yan yana karşılaştır, indir. Claude'un yazdığı **paylaşım metnini** (açıklama + hashtag'ler) tek tıkla kopyala.
+
+Claude, konuşmada geçen ama görüntüde olmayan şeylerin (ürün, cihaz, yer…) gerçek görsellerini webden bulur, gerekirse arka planını siler ve o kelimede gösterir.
 
 **Projeler sayfası** her projenin önizleme resmini gösterir; bir projeyi silmek için kartındaki **Sil**'e bas (Claude çalışırken silinmez).
 
@@ -170,6 +178,12 @@ python -m pip install --user faster-whisper numpy mediapipe
 
 (On macOS type `python3` instead of `python`.)
 
+Optional: so Claude can remove the background of images it finds on the web:
+
+```bash
+python -m pip install --user "rembg[cpu]"
+```
+
 **Get the project:** on the GitHub page, green **Code** button → **Download ZIP** → unzip it into a folder.
 In Terminal, go to that folder and install its parts:
 
@@ -208,7 +222,9 @@ On first launch, check the **Setup** page: every row should be ✓. Anything mis
    - Change your ticked cards with **Change cards** and Claude plans again **from scratch**.
 9. **Talk to Claude:** write everything in the chat on the right (what you dislike, what you want, what should look like the reference) → *Send and rebuild*. Claude rebuilds the video from all the feedback in the chat, answers each point and makes a new version. The storyboard and review pages share the same chat.
 10. **Approve & render:** makes the final video for every ratio.
-11. **Review:** watch it, see the quality checks, compare two versions side by side, download.
+11. **Review:** watch it, see the quality checks, compare two versions side by side, download. Copy the **post text** Claude wrote (caption + hashtags) in one click.
+
+Claude finds real pictures on the web of things that are said but not shown (a product, device, place…), removes their background when needed and shows them on that word.
 
 The **Projects** page shows a preview image for each project; press **Delete** on a card to delete it (not while Claude is working).
 

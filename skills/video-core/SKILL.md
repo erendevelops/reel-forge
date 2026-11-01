@@ -40,6 +40,8 @@ your own ffmpeg or Python, unless a preset skill tells you to.
 | `rf facetrack <video> <out.json>` | Face boxes over time |
 | `rf crop <track.json> --ratio <r>` | The widest crop window for the ratio that keeps the face in frame |
 | `rf logo <name>` | The official logo of a named product, written into `assets/si/` (or `{found:false}`) |
+| `rf fetch <image url> [--name x] [--license "…"]` | A web image into `inputs/ext/` (plan path `ext/x.png`), source logged in `analysis/assets.json` |
+| `rf cutout ext/<image> [--out ext/x-cut.png]` | The image with its background removed and border cropped (transparent PNG) |
 | `rf beats <audio>` | Tempo, beat times and the drop of a music track |
 | `rf validate <plan.json>` | Every contract and selection error in the plan |
 | `rf preview <plan.json> --at <s,s,…> [--ratio <r>]` | Stills of the plan at those times (`analysis/preview/contact-sheet.jpg`). Look at your scenes before saving |

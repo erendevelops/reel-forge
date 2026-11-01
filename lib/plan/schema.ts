@@ -120,6 +120,13 @@ export const PlanSchema = z.object({
       logo: z.string().min(1).optional(),
     })
     .optional(),
+  /** The post text for sharing (Instagram/TikTok): the caption and hashtags without `#`. Shown on the review page. */
+  post: z
+    .object({
+      caption: z.string().min(1).max(2200),
+      hashtags: z.array(z.string().regex(/^#?[\p{L}\p{N}_]+$/u, 'a hashtag is one word')).max(15).default([]),
+    })
+    .optional(),
   /** Panel colours behind graphics (split/full-graphics). Required for app videos: the brand's own ground and ink. */
   look: z
     .object({

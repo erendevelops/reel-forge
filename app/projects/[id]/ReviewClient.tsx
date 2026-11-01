@@ -8,6 +8,7 @@ import { JobLog } from '@/components/JobLog';
 import { PreferenceOffer } from '@/components/PreferenceOffer';
 import { QaSummary } from '@/components/QaSummary';
 import { FeedbackChat } from '@/components/FeedbackChat';
+import { PostCaption } from '@/components/PostCaption';
 import { Spinner } from '@/components/Spinner';
 import { postJob } from '@/components/post-job';
 import { useJob } from '@/components/use-job';
@@ -66,6 +67,7 @@ function FinishCard({ lang, name, view, busy, onFinal }: { lang: Language; name:
           + {d.newProject}
         </Link>
       </div>
+      {view.plan.post && <PostCaption lang={lang} post={view.plan.post} />}
     </section>
   );
 }

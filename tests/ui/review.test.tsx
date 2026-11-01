@@ -27,6 +27,7 @@ beforeEach(() => {
         const n = Number(m[1]);
         const plan = v5();
         if (n === 2) plan.scenes[1].cards[0].params.name = 'Fooocus AI';
+        if (n === 2) plan.post = { caption: 'Bunu kaydet', hashtags: ['ai', '#reels'] };
         return new Response(JSON.stringify({ plan, origin: versions[n - 1], renders: [{ ratio: '9:16', profile: 'final', url: `/f/v${n}.mp4` }], qa: { 'final-9x16': qaFail }, thumbs: [] }));
       }
       if (url.endsWith('/feedback')) {
@@ -77,5 +78,13 @@ describe('ReviewClient', () => {
     const sent = calls.find((c) => c.url.endsWith('/claude'))!;
     expect(sent.body).toEqual({ stage: 'rebuild', request: 'müzik çok yüksek' });
     await waitFor(() => expect(screen.getByText('müzik çok yüksek')).toBeTruthy());
+  });
+  it('shows the post text with hashtags and copies it', async () => {
+    const writeText = vi.fn(async () => undefined);
+    Object.assign(navigator, { clipboard: { writeText } });
+    render(<ReviewClient lang="tr" projectId="p1" projectName="Prao" versions={versions} current={2} lastJobId={null} />);
+    await waitFor(() => expect(screen.getByText(tr.review.postTitle)).toBeTruthy());
+    await userEvent.click(screen.getByRole('button', { name: tr.review.copy }));
+    expect(writeText).toHaveBeenCalledWith('Bunu kaydet\n\n#ai #reels');
   });
 });

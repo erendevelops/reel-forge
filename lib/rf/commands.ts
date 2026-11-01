@@ -40,6 +40,8 @@ function useErrors(project: { preset: string; selection: { cards: string[]; thum
   return out;
 }
 
+const IMAGE_TYPES: Record<string, string> = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp', 'image/svg+xml': 'svg', 'image/gif': 'gif' };
+
 function need(v: string | undefined, what: string): string {
   if (!v) throw new Error(`missing ${what}`);
   return v;
@@ -195,6 +197,47 @@ export const COMMANDS: Record<string, Command> = {
     await mkdir(path.dirname(full), { recursive: true });
     await writeFile(full, logoSvgFile(logo));
     return { found: true, slug: logo.slug, title: logo.title, hex: logo.hex, file: file.split(path.sep).join('/') };
+  },
+
+  /**
+   * A web image for the video: downloaded into `inputs/ext/` (plan path `ext/<file>`) with its source recorded in
+   * `analysis/assets.json`. Only images (by content type), at most 15 MB.
+   */
+  async fetch(args) {
+    const { pos, flags } = parseArgs(args);
+    const url = new URL(need(pos[0], '<url>'));
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') throw new Error('only http(s) urls');
+    const res = await fetch(url, { headers: { 'user-agent': 'Mozilla/5.0 (Reelforge)' }, signal: AbortSignal.timeout(60_000) });
+    if (!res.ok) throw new Error(`download failed: HTTP ${res.status}`);
+    const type = (res.headers.get('content-type') ?? '').split(';')[0].trim();
+    const ext = IMAGE_TYPES[type];
+    if (!ext) throw new Error(`not an image: ${type || 'unknown type'} (find the direct image url)`);
+    const bytes = Buffer.from(await res.arrayBuffer());
+    if (bytes.length > 15 * 1024 * 1024) throw new Error('image over 15 MB');
+    const base = (flags.name ?? path.basename(url.pathname).replace(/\.[a-z0-9]+$/i, '')).toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-|-$/g, '') || 'image';
+    const rel = `ext/${base}.${ext}`;
+    const full = resolveInProject(path.join('inputs', rel));
+    await mkdir(path.dirname(full), { recursive: true });
+    await writeFile(full, bytes);
+    const log = resolveInProject(path.join('analysis', 'assets.json'));
+    const prev = await readFile(log, 'utf8').then((s) => JSON.parse(s) as unknown[]).catch(() => []);
+    const entry = { file: rel, url: url.href, license: flags.license ?? null, at: new Date().toISOString() };
+    await mkdir(path.dirname(log), { recursive: true });
+    await writeFile(log, JSON.stringify([...(Array.isArray(prev) ? prev : []), entry], null, 2));
+    return { file: rel, bytes: bytes.length };
+  },
+
+  /** The image's background removed (rembg) and the empty border cropped: `ext/<name>-cut.png`. */
+  async cutout(args) {
+    const { pos, flags } = parseArgs(args);
+    const rel = need(pos[0], '<ext/image>').replace(/^inputs\//, '');
+    const out = flags.out ?? rel.replace(/\.[a-z0-9]+$/i, '') + '-cut.png';
+    const src = resolveInProject(path.join('inputs', rel));
+    const dst = resolveInProject(path.join('inputs', out));
+    await python([repoPath('tools', 'cutout.py'), src, dst]).catch((e) => {
+      throw new Error(`background removal failed (needs: python -m pip install --user "rembg[cpu]"): ${e instanceof Error ? e.message : e}`);
+    });
+    return { file: out };
   },
 
   async beats(args) {
