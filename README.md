@@ -85,7 +85,7 @@ Terminal açık kaldığı sürece uygulama çalışır; kapatmak için Terminal
 
 1. **Yeni proje** → türü seç (Yüzsüz reel, Konuşan yüz, Uygulama videosu), ad ver, oranları seç (**9:16 dikey**, **16:9 yatay**, 4:5, 1:1).
 2. **Dosyaları ekle:** videolarını, ses kaydını ya da uygulamanın kod klasörünü kutuya sürükle (ya da *Dosya seç / Klasör seç*). Orijinal dosyalarına dokunulmaz, kopyası alınır.
-3. **Editini kur:** kartlardan neleri istediğini seç (altyazı stili, düzen, sayaç, liste, logo, ses efekti, müzik…). Claude **yalnızca seçtiklerini** kullanır ve seçtiğin her kartı en az bir kez kullanır. İstersen beğendiğin reels bağlantılarını da ekle; Claude onları indirip izler ve görünüşünü adım adım taklit eder. *Onayla ve analiz et*.
+3. **Editini kur:** kartlardan neleri istediğini seç (altyazı stili, düzen, sayaç, liste, logo ve görseller, ses efekti, müzik…). Claude **yalnızca seçtiklerini** kullanır ve seçtiğin her kartı en az bir kez kullanır. İstersen beğendiğin reels bağlantılarını da ekle; Claude onları indirip izler ve görünüşünü adım adım taklit eder. *Onayla ve analiz et*.
 4. **Analiz:** Claude dosyaları inceler (birkaç dakika). Sağda ne yaptığını canlı görürsün.
 5. **Metin kontrolü** (reels): yanlış duyulan kelimeye tıkla, düzelt, *Onayla*.
 6. **Müzik** (seçtiysen): Claude 3–4 parça önerir. Dinle, birini seç, parçayı indirip kutuya bırak. Beğenmezsen *Başka öner*.
@@ -100,11 +100,11 @@ Terminal açık kaldığı sürece uygulama çalışır; kapatmak için Terminal
 10. **Onayla ve render al:** son videoyu her oran için çıkarır.
 11. **İnceleme:** videoyu izle, kalite kontrollerine bak, iki sürümü yan yana karşılaştır, indir. Claude'un yazdığı **paylaşım metnini** (açıklama + hashtag'ler) tek tıkla kopyala.
 
-Claude, konuşmada geçen ama görüntüde olmayan şeylerin (ürün, cihaz, yer…) gerçek görsellerini webden bulur, gerekirse arka planını siler ve o kelimede gösterir.
+**Logo ve görseller** ya da **Özel sahneler** kartı seçiliyse Claude, konuşmada geçen ama görüntüde olmayan şeylerin (ürün, cihaz, yer…) gerçek görsellerini webden bulur, gerekirse arka planını siler ve o kelimede gösterir.
 
 **Projeler sayfası** her projenin önizleme resmini gösterir; bir projeyi silmek için kartındaki **Sil**'e bas (Claude çalışırken silinmez).
 
-**Logo şeffaf olsun:** logo kartında arka planı `transparent` yap; çerçeve ve gölge kalkar.
+**Logo şeffaf olsun:** Logo ve görseller kartında arka planı `transparent` yap; çerçeve ve gölge kalkar.
 
 Claude kalıcı bir tercih fark ederse (*"liste daha sağda olsun"* gibi) saklamayı önerir. Saklanan tercihler sonraki projelerde de kullanılır; **Ayarlar**'dan düzenlenir.
 
@@ -209,7 +209,7 @@ On first launch, check the **Setup** page: every row should be ✓. Anything mis
 
 1. **New project** → pick the kind (Faceless reel, Talking head, App video), a name and the ratios (**9:16 vertical**, **16:9 horizontal**, 4:5, 1:1).
 2. **Add your files:** drag your videos, voice-over or the app's code folder onto the box (or *Pick files / Pick a folder*). Your originals are never touched; the app works on a copy.
-3. **Build your edit:** tick the cards you want (caption style, layout, counter, list, logo, sound effects, music…). Claude **only uses what you tick**, and uses every card you tick at least once. Optionally paste links to reels you like; Claude downloads and watches them and rebuilds their look beat for beat. *Confirm and analyse*.
+3. **Build your edit:** tick the cards you want (caption style, layout, counter, list, logos & images, sound effects, music…). Claude **only uses what you tick**, and uses every card you tick at least once. Optionally paste links to reels you like; Claude downloads and watches them and rebuilds their look beat for beat. *Confirm and analyse*.
 4. **Analysis:** Claude studies your files (a few minutes). You see what it's doing live on the right.
 5. **Transcript check** (reels): click a misheard word, fix it, *Confirm*.
 6. **Music** (if ticked): Claude suggests 3–4 tracks. Listen, pick one, download it and drop it in. Don't like them? *Suggest others*.
@@ -224,11 +224,11 @@ On first launch, check the **Setup** page: every row should be ✓. Anything mis
 10. **Approve & render:** makes the final video for every ratio.
 11. **Review:** watch it, see the quality checks, compare two versions side by side, download. Copy the **post text** Claude wrote (caption + hashtags) in one click.
 
-Claude finds real pictures on the web of things that are said but not shown (a product, device, place…), removes their background when needed and shows them on that word.
+With the **Logos & images** or **Custom scenes** card ticked, Claude finds real pictures on the web of things that are said but not shown (a product, device, place…), removes their background when needed and shows them on that word.
 
 The **Projects** page shows a preview image for each project; press **Delete** on a card to delete it (not while Claude is working).
 
-**Transparent logo:** set the logo card's background to `transparent`; the frame and shadow go away.
+**Transparent logo:** set the Logos & images card's background to `transparent`; the frame and shadow go away.
 
 When Claude spots a lasting preference (*"move the list further right"*), it offers to keep it. Kept preferences apply to your next projects too; edit them in **Settings**.
 
