@@ -3,8 +3,21 @@
 ## 1. Beats before scenes (`analysis/beats.md`)
 
 Go through `analysis/transcript-trimmed.json` (with `analysis/topics.json`) sentence by sentence. For each sentence write one line: the time, what
-is said, and **what you will draw** using the table in [../../video-core/references/look.md](../../video-core/references/look.md)
-§2 ("names an amount → a value card counting up, then …"). Rules for the list:
+is said, **the treatment** and **what you will draw** using the table in [../../video-core/references/look.md](../../video-core/references/look.md)
+§2 ("names an amount → a value card counting up, then …") and the interaction vocabulary in
+[../../video-core/references/motion.md](../../video-core/references/motion.md):
+
+| Time | Line | Treatment | What the shape does, on which words | Why |
+|---|---|---|---|---|
+| 4.2–9.8 | "I opened Claude and asked it…" | cutaway (full-graphics) | a pill "Claude" → clicked on "asked" → grows into a chat card, the prompt types | a process to *see* |
+| 9.8–12.1 | "honestly I was sceptical" | nothing (full-face) | – | personal line |
+
+**The treatment is the most important call; make it per line and say why** (motion.md, "How much of the frame"):
+cutaway for things to see (3–10 s, then the face back, ≥2 s of face between cutaways, never in the hook's first
+second or on personal lines), panel (`split`) when the graphic can run long beside the face, nothing for personal
+lines. Density: about 4–7 graphics per minute; the user's preferences or direction can make it lighter or heavier.
+
+Rules for the list:
 
 - A drawing is an object with information: a value, rows, bars, flags, a rule, a window, a metaphor. Never the sentence as text.
 - Consecutive beats differ in kind (count → list → stamp → metaphor → comparison …). If two sentences are about the same thing, the second **transforms** the first scene (adds rows, recounts, strikes through) instead of starting a new card of the same kind.
@@ -22,7 +35,7 @@ and use its variables in every scene.
 ## 3. Scenes
 
 - One scene per beat group (usually 3–10 s). Layout per the beat list; switch layouts on sentence boundaries.
-- Graphics are mostly `custom-animation` scene scripts ([../../video-core/references/assets.md](../../video-core/references/assets.md)). A split scene's region is the top half (1080×960 on 9:16); `full-graphics` is the whole frame.
+- Graphics are mostly `custom-animation` scene scripts ([../../video-core/references/assets.md](../../video-core/references/assets.md)) built with the `mo` kit: one shape that morphs through the line's states, a cursor that clicks on the spoken word, content swapped with a blur, the camera pushing in ([motion.md](../../video-core/references/motion.md)). A split scene's region is the top half (1080×960 on 9:16); `full-graphics` is the whole frame.
 - A scene card lives for the whole scene and keeps building; put every visible beat time in `beats`.
 - Built-in templates (`rolling-number`, `checklist`, `stamp`, `bar-chart`, `typed-title`, `logo-pop`) are fine for a single beat, but at most twice each and never in two scenes in a row. `follow-outro` closes the video.
 - Every time on screen sits on its word (±0.1 s of the word start in the trimmed transcript).

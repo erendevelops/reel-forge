@@ -59,8 +59,9 @@ your own ffmpeg or Python, unless a preset skill tells you to.
 - [references/plan-contract.md](references/plan-contract.md): every field of `plan.json`, with a full example.
 - [references/rules.md](references/rules.md): hard rules, defaults, preferences.
 - [references/look.md](references/look.md): **read before planning a talking-head or app video.** One design kit per video, a new specific graphic per beat, watching references.
+- [references/motion.md](references/motion.md): **read before writing any `custom-animation` scene.** One shape that never cuts, springs, content swaps, cursor, camera: the motion language and the `mo` kit that does it.
 - [references/cards.md](references/cards.md): every card type, when to use it, timing and sound.
-- [references/sfx.md](references/sfx.md): the 248 bundled sounds by action, and the variety rules.
+- [references/sfx.md](references/sfx.md): the ~290 bundled sounds by action, and the variety rules.
 - [references/assets.md](references/assets.md): logos, external images, and writing a `custom-animation` scene script.
 - [references/music.md](references/music.md): suggesting music and aligning to its beats.
 - [references/qa.md](references/qa.md): what the app checks, and the one check you do yourself.

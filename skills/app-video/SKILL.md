@@ -17,7 +17,7 @@ brand tokens, real copy, the user flow) and, if music is ticked, `analysis/music
 ## Plan
 
 Follow [references/plan.md](references/plan.md) for the storyboard (`analysis/storyboard.md`), then
-[references/compose.md](references/compose.md) to turn it into `plan.json`. Tone presets are in [references/tones.md](references/tones.md).
+[references/compose.md](references/compose.md) to turn it into `plan.json`. Pick a structure from [references/styles.md](references/styles.md) (`showcase`, `demo`, `hype`, `one-take`) and a tone from [references/tones.md](references/tones.md). Every scene moves by [../video-core/references/motion.md](../video-core/references/motion.md).
 Gate: `rf validate plan.json` returns no errors, then `rf save plan.json --request "first cut"`.
 
 ## Revise

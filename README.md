@@ -122,6 +122,8 @@ Claude kalıcı bir tercih fark ederse (*"liste daha sağda olsun"* gibi) saklam
 
 © 2026 **erendevelops**. Ücretsiz kullanabilir, değiştirebilir ve paylaşabilirsin. Değiştirilmiş sürümlerde erendevelops adı korunmalı; değiştirilmiş sürümler üzerinde **hak iddia etmek yasaktır**. Ayrıntılar: [LICENSE](LICENSE).
 
+Hareket dili, uygulama videosu stilleri ve ses kütüphanesinin bir kısmı Bart'ın [motion-graphics](https://github.com/Barty-Bart/motion-graphics) skill'lerinden uyarlandı (MIT; sesler CC0).
+
 ---
 
 <a id="english"></a>
@@ -245,3 +247,5 @@ When Claude spots a lasting preference (*"move the list further right"*), it off
 ## License
 
 © 2026 **erendevelops**. Free to use, modify and share. Modified versions must keep the erendevelops credit, and **claiming rights over modified versions is forbidden**. Details: [LICENSE](LICENSE).
+
+The motion language, the app-video styles and part of the sound library are adapted from Bart's [motion-graphics](https://github.com/Barty-Bart/motion-graphics) skills (MIT; sounds CC0).

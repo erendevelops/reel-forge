@@ -9,7 +9,10 @@
 
 ## Rebuilt UI = scene scripts in the app's own design
 
-Each product moment is a `custom-animation` scene with a script ([../../video-core/references/assets.md](../../video-core/references/assets.md)).
+Each product moment is a `custom-animation` scene with a script ([../../video-core/references/assets.md](../../video-core/references/assets.md)),
+moving by [../../video-core/references/motion.md](../../video-core/references/motion.md): the component is one shape
+that morphs between its states (`mo.shape`), the cursor clicks on the beat (`mo.cursor` + `mo.press`), content swaps
+with a blur (`mo.swap`), the camera pushes into what matters (`mo.camera`).
 **Fidelity first:** before writing a scene, open the component it rebuilds (the add sheet, the list row, the budget
 card…) and copy its real values: background and border colours, radius, padding, font sizes and weights, icon SVG
 paths, the exact strings, the number format. Then scale the whole component up uniformly so it reads on video (a

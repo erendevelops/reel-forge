@@ -2,6 +2,7 @@ import type { Card } from '../../plan';
 import { FragmentParams, SCRIPT_ARGS, checkFragment, jsString, namespaceFragment } from '../../plan/fragment';
 import { type CardTemplate, type CompileContext, esc, num, regionOf } from '../types';
 import { regionClip, talkingCss } from './talking';
+import { MOTION_KIT_JS } from './motion-kit';
 
 /**
  * The scene script's world (runs inside the page's main script, after `const tl` exists):
@@ -10,7 +11,7 @@ import { regionClip, talkingCss } from './talking';
  *   timeline is reachable.
  * - `$`/`$$`: query inside the card; `stage`: the card's stage element; `W`/`H`: its size; `D`: card duration.
  * - `rand()`: seeded random (same plan, same frames). `count()`/`type()`: number count-up and typing as per-frame
- *   `textContent` sets (seekable, no callbacks). `kit`: the plan's look tokens.
+ *   `textContent` sets (seekable, no callbacks). `kit`: the plan's look tokens. `mo`: the motion kit (motion-kit.ts).
  * The stage is reset to its authored html on every run (HyperFrames re-runs body scripts after fonts load).
  */
 function scriptRuntime(script: string, id: string, card: Card, ctx: CompileContext, seed: number): string {
@@ -44,10 +45,11 @@ function scriptRuntime(script: string, id: string, card: Card, ctx: CompileConte
     const chars = Array.from(text), step = 1 / (cps || 18);
     for (let i = 0; i <= chars.length; i++) T.set(t, { textContent: chars.slice(0, i).join('') }, at + i * step);
   };
+  ${MOTION_KIT_JS}
   try {
     (function (${SCRIPT_ARGS.join(', ')}) {
 ${script}
-    })(T, $, $$, stage, W, H, D, rand, count, type, kit);
+    })(T, $, $$, stage, W, H, D, rand, count, type, kit, mo);
   } catch (e) { console.error(${jsString(`custom-animation ${id}:`)}, e); }
 })();`;
 }

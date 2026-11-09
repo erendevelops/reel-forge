@@ -385,7 +385,7 @@ export function checkScript(src: string): string[] {
 }
 
 /** Names a scene script sees (see `scriptRuntime`). */
-export const SCRIPT_ARGS = ['tl', '$', '$$', 'stage', 'W', 'H', 'D', 'rand', 'count', 'type', 'kit'] as const;
+export const SCRIPT_ARGS = ['tl', '$', '$$', 'stage', 'W', 'H', 'D', 'rand', 'count', 'type', 'kit', 'mo'] as const;
 
 /** All rule violations of a `custom-animation` fragment (`duration`: the card's length in seconds, if known). */
 export function checkFragment(params: unknown, duration?: number): string[] {

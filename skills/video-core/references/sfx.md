@@ -1,6 +1,6 @@
 # Sound effects
 
-248 bundled CC0 sounds. A plan references them by their **full path** `sfx/<family>/<file>` (e.g.
+About 290 bundled CC0 sounds. A plan references them by their **full path** `sfx/<family>/<file>` (e.g.
 `sfx/impact/impactSoft_medium_001.ogg`; `sfx/casino/card-slide-3.ogg`, never `sfx/card-slide-3.ogg`). Ranges like
 `card-slide-1.ogg … card-slide-8.ogg` mean every file in between, in the same folder. The app resolves them, nothing to
 copy; `rf validate` names any path that doesn't exist. **Sound only what is visibly happening, and match the sound to the gesture**:
@@ -30,6 +30,14 @@ twice per video (keypresses excepted). Every family below has several files: rot
 | Wrong / error / crossed out | `sfx/interface/error_005.ogg`, `error_006.ogg` | 0.4 |
 | Glitch / AI / tech moment | `sfx/interface/glitch_002.ogg`, `glitch_004.ogg` (tiny accents only) | 0.35 |
 | Pack / box opens, reveal of many | `sfx/casino/cards-pack-open-1.ogg`, `cards-pack-open-2.ogg` | 0.4 |
+| Something appears / pops in (a shape, a toast, a chip) | `sfx/kit/pop.ogg`, `sfx/pop/fs-824189-pop-in-sfx.ogg`, `fs-447910-plop.ogg`, `fs527522.ogg`, `fs323738.ogg`, `fs202230.ogg` | 0.35–0.45 |
+| Cursor click on a pill / button (motion scenes) | `sfx/kit/click.ogg`, `sfx/click/fs788933.ogg`, `sfx/pop/fs-467951-ui-button-click.ogg` | 0.45–0.55 |
+| Hover / tiny UI change, a highlight moving | `sfx/kit/tick.ogg`, `sfx/tick/fs528561.ogg`, `fs384187.ogg`, `fs721514.ogg` (very quiet) | 0.2–0.3 |
+| Success / done / notification | `sfx/ding/fs-571513-soft-notifications-bell-ding-d.ogg`, `fs-634690-lil-pip.ogg`, `fs-349504-triangle-open-04.ogg` | 0.35–0.45 |
+| Build-up into a reveal | `sfx/kit/riser.ogg`, `sfx/riser/fs867126.ogg`, `fs-685256-riser-sound-effect-short-wav.ogg` — it must **end** on the hit (start = hit − its length) | 0.3–0.4 |
+| The one big reveal of the video | `sfx/kit/impact.ogg`, `sfx/impact/fs524817.ogg`, `fs745291.ogg`; trailer scale only for `cinematic`: `fs-177242-cinematic-impact.ogg`, `fs-222517-dramatic-hit.ogg` | 0.45–0.55 |
+| A long typing run (instead of one key per character) | `sfx/typing/fs-447909-keyboard-typing.ogg`, `fs-323432-typing.ogg` (one cue at the start, quiet), `fs-416777-digital-typing-wav.ogg` for a digital readout | 0.25–0.35 |
+| Error / tech / rewind | `sfx/glitch/fs-144546-touchs-wav.ogg`, `fs-402451-fast-forward.ogg` (short accents) | 0.3 |
 
 `sfx/casino/` and `sfx/ui/` files are bright: keep them short, quiet and isolated. `sfx/impact/` is warm and safe for repeats.
 `assets/sfx/sfx-analysis.json` (repo) has per-file brightness if you need to choose finely.
@@ -39,4 +47,6 @@ twice per video (keypresses excepted). Every family below has several files: rot
 - Fire the sound at the **start** of a press/slide and at the **landing** of a drop/stamp/reveal.
 - One sonic palette per video: pick 4–6 families that fit the look (a paper/illustration video leans wood and soft impacts; a fintech UI leans chips and clicks) and stay within them.
 - Density follows the picture: a typing run is many soft keys; a reveal is one sound. Never two cues within 0.08 s unless one is a keypress.
-- Nothing louder than the voice or the music's peaks.
+- Nothing louder than the voice or the music's peaks. Priority: voice > sound effects > music.
+- Motion scenes: a sound per state change, not per frame: the click on the press, a pop when the shape lands in its new state, a tick when a highlight moves, a ding on the confirmation. A morph that lands on a word gets its sound on that word.
+- Long files (4–6 s risers, impacts with tails) are fine: they are cut by the next scene; keep the volume low.

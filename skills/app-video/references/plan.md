@@ -4,6 +4,8 @@ Write `analysis/storyboard.md` (the app shows it to the user) before any `plan.j
 
 ## Shape
 
+The style in `product.json.rubric.style` ([styles.md](styles.md)) sets the structure. For `showcase` (the default):
+
 ```
 Hook (≤3 s) → Reveal (2–4 s) → 2–3 product moments (entry → action → result, 4–5 s each) → Punchline (≈3 s) → Outro (≈3 s)
 ```

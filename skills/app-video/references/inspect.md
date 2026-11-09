@@ -25,7 +25,7 @@ The repo is in `inputs/` (often a copied project folder). Screenshots may be nex
   "oneLine": "<what the app does, in one sentence>",
   "rubric": {
     "what": "…", "strongestClaim": "…", "visualHook": "…", "showFromUI": ["<screen or component>", "…"],
-    "length": 23, "tone": { "preset": "app-store", "direction": "Apple-keynote product film" },
+    "length": 23, "style": "showcase", "tone": { "preset": "app-store", "direction": "Apple-keynote product film" },
     "audio": "warm minimal bed; UI clicks only where something is pressed",
     "shareCaption": "…",
     "flow": ["<entry>", "<key action>", "<result>"]

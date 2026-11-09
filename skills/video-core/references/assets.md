@@ -56,6 +56,7 @@ Most beats of a talking-head or app video are your own scenes. A `custom-animati
 | `rand()` | seeded random 0–1 (same every render): jitter, scatter, confetti |
 | `kit` | the look tokens as values (`kit.accent`) |
 | `gsap.utils` | GSAP's helpers (`interpolate`, `clamp`, `mapRange`, …) |
+| `mo` | the motion kit: springs, one shape that morphs, blur swaps, cursor, camera, indicator, icons. **See [motion.md](motion.md); prefer it to hand-written tweens** |
 
   Not allowed (scenes are rendered by seeking frame by frame): `Date`, `Math.random`, timers, `onUpdate`/`onComplete` callbacks, the global `gsap.to`, `window`/`document.querySelector` (stay inside the card), network. `rf validate` reports each one.
 - `beats`: card-relative times of the visible beats inside the scene (a row lands, a tick, a stamp). `rf gaps` counts them, so a 10 s scene that keeps building is not a "static" stretch.
