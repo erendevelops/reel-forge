@@ -37,7 +37,7 @@ and use its variables in every scene.
 - One scene per beat group (usually 3–10 s). Layout per the beat list; switch layouts on sentence boundaries.
 - Graphics are mostly `custom-animation` scene scripts ([../../video-core/references/assets.md](../../video-core/references/assets.md)) built with the `mo` kit: one shape that morphs through the line's states, a cursor that clicks on the spoken word, content swapped with a blur, the camera pushing in ([motion.md](../../video-core/references/motion.md)). A split scene's region is the top half (1080×960 on 9:16); `full-graphics` is the whole frame.
 - A scene card lives for the whole scene and keeps building; put every visible beat time in `beats`.
-- Built-in templates (`rolling-number`, `checklist`, `stamp`, `bar-chart`, `typed-title`, `logo-pop`) are fine for a single beat, but at most twice each and never in two scenes in a row. `follow-outro` closes the video.
+- Built-in templates (`rolling-number`, `checklist`, `stamp`, `bar-chart`, `typed-title`, `logo-pop`) are fine for a single beat, but at most twice each (a `stamp` once per video) and never in two scenes in a row. `follow-outro` closes the video.
 - Every time on screen sits on its word (±0.1 s of the word start in the trimmed transcript).
 
 ## 4. Footage
@@ -50,8 +50,8 @@ and use its variables in every scene.
 ## 5. Sound
 
 One sound per visible action, matched to the gesture ([../../video-core/references/sfx.md](../../video-core/references/sfx.md)):
-keys for typing, card slides for rows, chips for numbers, soft impacts for layout changes, a punch for stamps, a click
-for the follow button. Pick 4–6 families for the whole video and rotate files inside them.
+one typing cue for typed text, pops for rows and cards, ticks for checks, a ding on the payoff, an impact for the one
+stamp, a click for the follow button. Lead with the families the prompt names for this project and rotate files.
 
 ## 6. Before saving
 

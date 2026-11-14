@@ -23,6 +23,8 @@ export const ProjectSchema = z.object({
   music: MusicPickSchema.nullable().default(null),
   /** Reference reels the user pasted (spec §11 screen 3); https only. */
   references: z.array(z.string().url().regex(/^https:\/\//, 'must be an https URL')).max(5).default([]),
+  /** The user's own direction before anything is cut: which clips, which parts, in what order and when. */
+  brief: z.string().max(4000).default(''),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

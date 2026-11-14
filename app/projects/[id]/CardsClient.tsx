@@ -27,6 +27,7 @@ export function CardsClient({ lang, project, selection, after }: { lang: Languag
         selection={selection}
         ratios={project.ratios}
         references={project.references}
+        brief={project.brief}
         onConfirm={confirm}
         confirmLabel={after ? t(lang).cards.save : undefined}
         showRatios={!!after}

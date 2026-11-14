@@ -31,6 +31,43 @@ function webImageLine(p: Project): string {
   return 'When a sentence names a concrete thing the footage does not show (a product, device, object, place, app), show a real picture of it on that word: find it on the web, `rf fetch` it, `rf cutout` a photo on a background, and pop it in (video-core assets.md, "Images from the web").';
 }
 
+/** The user's own direction from the cards screen: it decides the footage before Claude's judgement does. */
+function briefLine(p: Project): string {
+  if (!p.brief?.trim()) return '';
+  return [
+    "The user's direction for this video, verbatim. Follow it exactly: which clips and which parts of them to use (timestamps are in the input video's own time), in what order and when; it overrides your own picks, the preset defaults and the learned preferences. If something in it is impossible (a file or moment that does not exist), do the closest thing and say so in your reply.",
+    `"""${p.brief.trim()}"""`,
+  ].join('\n');
+}
+
+/** Motion and sound flavours: each project gets one, so videos stop looking and sounding alike. */
+const FLAVOURS = [
+  'snappy: shapes pop in on the `pop` spring, pops and clicks lead the sound, tight cuts',
+  'soft: blur-dissolve swaps and the `soft` spring, quiet ticks and dings, no impacts except the payoff',
+  'camera-led: the camera pushes into each state (`mo.camera`), risers into reveals, one impact per chapter',
+  'mask and slide: content wipes in behind masks (clip-path) and slides on the `fast` spring, clicks and plops',
+  'typographic: big words build letter by letter or line by line, typing loops and ticks, a ding on the punchline',
+  'tactile: cursor-driven presses, drags and toggles carry every change, clicks on each press, pops on each landing',
+];
+const SOUND_FAMILIES = ['pop', 'click', 'tick', 'ding', 'riser', 'impact', 'typing', 'glitch'];
+
+function hash(s: string): number {
+  let h = 2166136261;
+  for (const ch of s) h = Math.imul(h ^ ch.charCodeAt(0), 16777619) >>> 0;
+  return h;
+}
+
+/** Deterministic per project (and per rebuild): a flavour and the sound families to lead with. */
+export function varietyLine(p: Project, salt = 0): string {
+  const h = hash(`${p.id}:${salt}`);
+  const flavour = FLAVOURS[h % FLAVOURS.length];
+  const fams = [...SOUND_FAMILIES].sort((a, b) => hash(`${p.id}:${salt}:${a}`) - hash(`${p.id}:${salt}:${b}`)).slice(0, 4);
+  return [
+    `Make this video look and sound different from your previous ones. Motion flavour for this project: ${flavour}.`,
+    `Lead the sound with the ${fams.join(', ')} families (video-core sfx.md) and rotate files inside each; never the same file within three cues. Vary how each graphic enters (pop, mask wipe, blur-in, slide, camera push, type-on): no two graphics in a row enter the same way, and a stamp at most once per video.`,
+  ].join('\n');
+}
+
 function preferenceLines(prefs: Preferences): string {
   return prefs.rules.length ? `Learned preferences (they override preset defaults):\n${prefs.rules.map((r) => `- ${r.text}`).join('\n')}` : '';
 }
@@ -51,8 +88,9 @@ export function buildPrompt(stage: Stage, ctx: PromptCtx): string {
   if (stage === 'analyse') {
     body = [
       `Stage: analyse. Inventory inputs/, run the ${skill} analysis steps with rf and write the results under analysis/.`,
+      briefLine(project),
       project.selection?.music ? 'Music is on: write analysis/music-candidates.json (3–4 royalty-free tracks).' : '',
-      project.references.length ? `Reference reels: ${project.references.join(' ')}. Download each with yt-dlp into analysis/refs/ and watch them densely (video-core look.md §5).` : '',
+      project.references.length ? `Reference reels: ${project.references.join(' ')}. Download each with \`python -m yt_dlp\` into analysis/refs/ (the module form works even when the yt-dlp command is not on PATH; if it is missing, \`python -m pip install --user -U yt-dlp\`) and watch them densely (video-core look.md §5).` : '',
       'Do not write a plan yet. End with a short summary of what you found.',
     ].join('\n');
   } else if (stage === 'music') {
@@ -66,8 +104,10 @@ export function buildPrompt(stage: Stage, ctx: PromptCtx): string {
       ctx.fresh
         ? 'The user changed the option cards (and maybe the reference reels): build a NEW plan from scratch with the new cards. Do not copy the previous plan.json or earlier versions. If a reference reel listed here is not in analysis/refs/ yet, download and study it first and rewrite analysis/style.md (analyse skill, reference reels).'
         : '',
+      briefLine(project),
       selectionLines(project),
       webImageLine(project),
+      varietyLine(project, ctx.versions.length),
       motion,
       project.references.length ? 'The user gave reference reels: read analysis/style.md first and rebuild their look and techniques beat for beat (it overrides the preset look defaults; only pacing follows the user preferences).' : '',
       project.transcriptChecked ? 'The user corrected the transcript: captions come word for word from analysis/transcript-trimmed.json (talking head) or analysis/transcript.json, never from transcript-review.json (that holds the uncorrected words).' : '',
@@ -82,8 +122,10 @@ export function buildPrompt(stage: Stage, ctx: PromptCtx): string {
       `"""\n${thread}\n"""`,
       'Act on the newest USER message; the earlier ones still hold unless the newest overrides them.',
       `Rebuild plan.json from scratch: rethink the structure, footage choices, cards, animations and timing so ALL of the feedback is met. Look at the current version (\`rf project\` → latest.plan, v${latest ?? '?'}) only to see what the user disliked; do not just patch it.`,
+      briefLine(project),
       selectionLines(project),
       webImageLine(project),
+      varietyLine(project, ctx.versions.length),
       motion,
       project.references.length ? 'Reference reels: read analysis/style.md and keep rebuilding their look and techniques beat for beat.' : '',
       project.transcriptChecked ? 'Captions come word for word from the corrected transcript (analysis/transcript-trimmed.json or analysis/transcript.json).' : '',
@@ -96,6 +138,7 @@ export function buildPrompt(stage: Stage, ctx: PromptCtx): string {
     body = [
       `Stage: revise. Apply this request to version v${latest ?? '?'}, verbatim from the user:`,
       `"""${ctx.request ?? ''}"""`,
+      briefLine(project),
       diffs.length ? `The user also edited the plan by hand since your last version; treat these as preferences:\n${JSON.stringify(diffs)}` : '',
       selectionLines(project),
       motion,

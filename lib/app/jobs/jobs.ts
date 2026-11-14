@@ -1,6 +1,7 @@
 import { appendChat, chatReply } from '@/lib/app/feedback';
 import { randomUUID } from 'node:crypto';
 import { appendFile, mkdir, readFile, readdir } from 'node:fs/promises';
+import { existsSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { DEFAULT_ALLOWED_TOOLS, runClaude } from '@/lib/app/claude/run';
 import type { ClaudeEvent } from '@/lib/app/claude/events';
@@ -91,7 +92,7 @@ registerExecutor('claude', async ({ projectId, spec, emit, signal }) => {
       // Claude writes small Python helpers; on Windows open() defaults to the ANSI code page and garbles Turkish text.
       PYTHONUTF8: '1',
       PYTHONIOENCODING: 'utf-8',
-      [pathKey]: `${projectDir(projectId)}${sep}${process.env[pathKey] ?? ''}`,
+      [pathKey]: [projectDir(projectId), ...pythonUserScripts(), process.env[pathKey] ?? ''].join(sep),
     },
     onEvent: (event) => {
       if (event.kind === 'error') error = event;
@@ -242,4 +243,18 @@ export async function cancelJob(projectId: string, jobId: string): Promise<void>
   const ended = new Promise<void>((resolve) => job.listeners.add((e) => isTerminal(e) && resolve()));
   job.abort.abort();
   await ended;
+}
+
+/**
+ * `pip install --user` puts tools like yt-dlp.exe in %APPDATA%\Python\Python3xx\Scripts, which Windows often leaves
+ * off PATH: the module imports fine but the command is "not found" in Claude's shell. Add those folders for jobs.
+ */
+function pythonUserScripts(): string[] {
+  const base = process.platform === 'win32' && process.env.APPDATA ? path.join(process.env.APPDATA, 'Python') : null;
+  if (!base || !existsSync(base)) return [];
+  try {
+    return readdirSync(base).map((d) => path.join(base, d, 'Scripts')).filter((d) => existsSync(d));
+  } catch {
+    return [];
+  }
 }

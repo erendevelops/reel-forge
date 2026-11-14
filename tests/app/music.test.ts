@@ -78,7 +78,7 @@ describe('music API', () => {
   });
 
   it('the music stage asks Claude for different tracks', () => {
-    const project = { id: 'p', name: 'P', mode: 'app' as const, preset: 'app-video' as const, ratios: ['16:9' as const], lang: 'tr' as const, selection: defaultSelection('app-video'), claudeSession: null, cardsConfirmed: true, transcriptChecked: false, music: null, references: [], createdAt: '', updatedAt: '' };
+    const project = { id: 'p', name: 'P', mode: 'app' as const, preset: 'app-video' as const, ratios: ['16:9' as const], lang: 'tr' as const, selection: defaultSelection('app-video'), claudeSession: null, cardsConfirmed: true, transcriptChecked: false, music: null, references: [], brief: '', createdAt: '', updatedAt: '' };
     const prompt = buildPrompt('music', { project, preferences: { rules: [] }, versions: [] });
     expect(prompt).toContain('analysis/music-candidates.json');
     expect(prompt).toMatch(/different/);

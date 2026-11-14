@@ -13,9 +13,9 @@ describe('variety rules', () => {
         scene('a', 0, [{ type: 'logo-pop', start: 0, end: 2, params: { img: 'si:youtube' } }, { type: 'typed-title', start: 0, end: 2, params: { text: 'Fear of the camera' } }], 'the big reason is fear of the camera'),
         scene('b', 3, [{ type: 'logo-pop', start: 3, end: 5, params: { img: 'si:youtube' } }]),
       ],
-      [{ file: 'sfx/drop_001.wav', at: 0, volume: 1 }, { file: 'sfx/drop_001.wav', at: 1, volume: 1 }, { file: 'sfx/drop_001.wav', at: 4, volume: 1 }],
+      [{ file: 'sfx/kit/pop.ogg', at: 0, volume: 1 }, { file: 'sfx/kit/pop.ogg', at: 1, volume: 1 }, { file: 'sfx/kit/pop.ogg', at: 4, volume: 1 }],
     ));
-    expect(errs.join('\n')).toMatch(/plays twice in a row/);
+    expect(errs.join('\n')).toMatch(/plays again too soon/);
     expect(errs.join('\n')).toMatch(/used 3 times/);
     expect(errs.join('\n')).toMatch(/logo si:youtube appears 2 times/);
     expect(errs.join('\n')).toMatch(/both use a logo-pop/);
@@ -32,9 +32,12 @@ describe('variety rules', () => {
     expect(errs.join('\n')).not.toMatch(/logo/);
   });
 
-  it('allows keyboard typing runs and varied plans; exempts faceless B-roll reels', () => {
-    const typing = [1, 2, 3, 4].map((i) => ({ file: 'sfx/keyboard/keypress-001.wav', at: i / 10, volume: 1 }));
-    expect(checkVariety(plan([scene('a', 0, [{ type: 'stamp', start: 0, end: 2, params: { text: 'KALKTI' } }], 'kural kalktı')], typing))).toEqual([]);
+  it('allows a sound again after three other cues, and one stamp; a second stamp is refused in every format', () => {
+    const files = ['sfx/kit/pop.ogg', 'sfx/kit/click.ogg', 'sfx/kit/tick.ogg', 'sfx/ding/fs-634690-lil-pip.ogg', 'sfx/kit/pop.ogg'];
+    const sfx = files.map((file, i) => ({ file, at: i, volume: 1 }));
+    const stamp = (start: number) => ({ type: 'stamp' as const, start, end: start + 2, params: { text: 'KALKTI' } });
+    expect(checkVariety(plan([scene('a', 0, [stamp(0)], 'kural kalktı')], sfx))).toEqual([]);
+    expect(checkVariety(plan([scene('a', 0, [stamp(0)], '', 'broll'), scene('b', 3, [stamp(3)], '', 'broll')])).join(' ')).toMatch(/stamp is used 2 times/);
     const list = { type: 'numbered-list' as const, start: 0, end: 2, params: { items: [] } };
     expect(checkVariety(plan([scene('a', 0, [list], '', 'broll'), scene('b', 3, [list], '', 'broll'), scene('c', 6, [list], '', 'broll')]))).toEqual([]);
   });

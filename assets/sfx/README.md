@@ -1,11 +1,8 @@
 # Bundled sound effects
 
-All CC0 (public domain), no attribution required.
+All CC0 (public domain). The earlier game-style packs (Kenney, keyboard keypresses) were removed; older plans that
+still point at them simply play without those cues.
 
-- `casino/`, `impact/`, `interface/`, `ui/` and the root `*.wav`: [Kenney](https://kenney.nl/) audio packs.
-- `keyboard/keypress-*.wav`: [Keyboard Soundpack #1](https://opengameart.org/content/keyboard-soundpack-1-typing-and-single-keystrokes) by unicae_games.
-
-`sfx-analysis.json`: per-file brightness / high-frequency risk (from the /brag skill's analysis).
 The skills' catalog is `skills/video-core/references/sfx.md`.
 
 ## From Bart's motion-graphics sound kit (CC0)

@@ -85,7 +85,7 @@ Terminal açık kaldığı sürece uygulama çalışır; kapatmak için Terminal
 
 1. **Yeni proje** → türü seç (Yüzsüz reel, Konuşan yüz, Uygulama videosu), ad ver, oranları seç (**9:16 dikey**, **16:9 yatay**, 4:5, 1:1).
 2. **Dosyaları ekle:** videolarını, ses kaydını ya da uygulamanın kod klasörünü kutuya sürükle (ya da *Dosya seç / Klasör seç*). Orijinal dosyalarına dokunulmaz, kopyası alınır.
-3. **Editini kur:** kartlardan neleri istediğini seç (altyazı stili, düzen, sayaç, liste, logo ve görseller, ses efekti, müzik…). Claude **yalnızca seçtiklerini** kullanır ve seçtiğin her kartı en az bir kez kullanır. İstersen beğendiğin reels bağlantılarını da ekle; Claude onları indirip izler ve görünüşünü adım adım taklit eder. *Onayla ve analiz et*.
+3. **Editini kur:** kartlardan neleri istediğini seç (altyazı stili, düzen, sayaç, liste, logo ve görseller, ses efekti, müzik…). Claude **yalnızca seçtiklerini** kullanır ve seçtiğin her kartı en az bir kez kullanır. **Klipler için yönlendirme** kutusuna, Claude daha hiçbir şeyi kesmeden ne istediğini yaz: hangi klip, hangi kısmı (ör. *2. videonun 0:12–0:18'i*), hangi sırayla ve ne zaman. Claude bunu kendi seçimlerinin ve tercihlerinin önünde tutar. İstersen beğendiğin reels bağlantılarını da ekle; Claude onları indirip izler ve görünüşünü adım adım taklit eder (bunun için yt-dlp gerekir; Kurulum sayfasında isteğe bağlı satır olarak görünür). *Onayla ve analiz et*.
 4. **Analiz:** Claude dosyaları inceler (birkaç dakika). Sağda ne yaptığını canlı görürsün.
 5. **Metin kontrolü** (reels): yanlış duyulan kelimeye tıkla, düzelt, *Onayla*.
 6. **Müzik** (seçtiysen): Claude 3–4 parça önerir. Dinle, birini seç, parçayı indirip kutuya bırak. Beğenmezsen *Başka öner*.
@@ -211,7 +211,7 @@ On first launch, check the **Setup** page: every row should be ✓. Anything mis
 
 1. **New project** → pick the kind (Faceless reel, Talking head, App video), a name and the ratios (**9:16 vertical**, **16:9 horizontal**, 4:5, 1:1).
 2. **Add your files:** drag your videos, voice-over or the app's code folder onto the box (or *Pick files / Pick a folder*). Your originals are never touched; the app works on a copy.
-3. **Build your edit:** tick the cards you want (caption style, layout, counter, list, logos & images, sound effects, music…). Claude **only uses what you tick**, and uses every card you tick at least once. Optionally paste links to reels you like; Claude downloads and watches them and rebuilds their look beat for beat. *Confirm and analyse*.
+3. **Build your edit:** tick the cards you want (caption style, layout, counter, list, logos & images, sound effects, music…). Claude **only uses what you tick**, and uses every card you tick at least once. In **Direction for the clips**, tell Claude what you want before it cuts anything: which clip, which part (e.g. *0:12–0:18 of the second video*), in what order and when. Claude puts this ahead of its own picks and your preferences. Optionally paste links to reels you like; Claude downloads and watches them and rebuilds their look beat for beat (this needs yt-dlp, shown as an optional row on the Setup page). *Confirm and analyse*.
 4. **Analysis:** Claude studies your files (a few minutes). You see what it's doing live on the right.
 5. **Transcript check** (reels): click a misheard word, fix it, *Confirm*.
 6. **Music** (if ticked): Claude suggests 3–4 tracks. Listen, pick one, download it and drop it in. Don't like them? *Suggest others*.

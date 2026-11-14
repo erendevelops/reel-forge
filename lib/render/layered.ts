@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { run } from '../media/run';
 import { probe } from '../media/probe';
-import { resolveAsset } from '../media/assets';
+import { resolveAsset, withLiveSfx } from '../media/assets';
 import { TV_BT709_TAGS } from '../media/color';
 import { finishLoudness } from '../media/prepare';
 import { compile, RATIO_SIZE } from '../compile';
@@ -134,7 +134,8 @@ async function buildBase(plan: Plan, o: LayeredOpts, w: number, h: number, out: 
 }
 
 /** Voice + music + SFX mixed by ffmpeg from the plan (levels from the cues), exactly plan.duration long. */
-async function buildAudio(plan: Plan, o: LayeredOpts, out: string): Promise<void> {
+async function buildAudio(input: Plan, o: LayeredOpts, out: string): Promise<void> {
+  const plan = withLiveSfx(input, o.assetsDir);
   const D = n(plan.duration);
   const args = ['-y', '-v', 'error', '-f', 'lavfi', '-i', `anullsrc=r=48000:cl=stereo:d=${D}`];
   const parts: string[] = [];

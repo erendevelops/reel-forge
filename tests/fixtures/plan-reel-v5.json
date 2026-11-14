@@ -893,72 +893,72 @@
   },
   "sfx": [
     {
-      "file": "sfx/drop_001.wav",
+      "file": "sfx/pop/fs527522.ogg",
       "at": 0.68,
       "volume": 0.45
     },
     {
-      "file": "sfx/drop_002.wav",
+      "file": "sfx/pop/fs323738.ogg",
       "at": 1.02,
       "volume": 0.45
     },
     {
-      "file": "sfx/drop_003.wav",
+      "file": "sfx/pop/fs202230.ogg",
       "at": 1.28,
       "volume": 0.45
     },
     {
-      "file": "sfx/drop_004.wav",
+      "file": "sfx/pop/fs-447910-plop.ogg",
       "at": 2.02,
       "volume": 0.45
     },
     {
-      "file": "sfx/maximize_006.wav",
+      "file": "sfx/ding/fs-634690-lil-pip.ogg",
       "at": 6.6,
       "volume": 0.3
     },
     {
-      "file": "sfx/maximize_006.wav",
+      "file": "sfx/ding/fs-634690-lil-pip.ogg",
       "at": 11.08,
       "volume": 0.3
     },
     {
-      "file": "sfx/maximize_006.wav",
+      "file": "sfx/ding/fs-634690-lil-pip.ogg",
       "at": 14.68,
       "volume": 0.3
     },
     {
-      "file": "sfx/maximize_006.wav",
+      "file": "sfx/ding/fs-634690-lil-pip.ogg",
       "at": 18.6,
       "volume": 0.3
     },
     {
-      "file": "sfx/maximize_006.wav",
+      "file": "sfx/ding/fs-634690-lil-pip.ogg",
       "at": 23.54,
       "volume": 0.3
     },
     {
-      "file": "sfx/pluck_002.wav",
+      "file": "sfx/kit/tick.ogg",
       "at": 7.4667,
       "volume": 0.35
     },
     {
-      "file": "sfx/pluck_002.wav",
+      "file": "sfx/kit/tick.ogg",
       "at": 11.9167,
       "volume": 0.35
     },
     {
-      "file": "sfx/pluck_002.wav",
+      "file": "sfx/kit/tick.ogg",
       "at": 15.4667,
       "volume": 0.35
     },
     {
-      "file": "sfx/pluck_002.wav",
+      "file": "sfx/kit/tick.ogg",
       "at": 19.4667,
       "volume": 0.35
     },
     {
-      "file": "sfx/pluck_002.wav",
+      "file": "sfx/kit/tick.ogg",
       "at": 24.4667,
       "volume": 0.35
     }

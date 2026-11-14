@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { normAsset, resolveAsset } from '../media/assets';
+import { normAsset, resolveAsset, withLiveSfx } from '../media/assets';
 import type { Card, CardType, Plan, Ratio } from '../plan';
 import { cardRegistry } from './cards';
 import { renderCaptions } from './captions';
@@ -101,7 +101,8 @@ function kitVars(plan: Plan, ctx: CompileContext): string {
 }
 
 /** Compiles a plan into a HyperFrames project at `outDir` (index.html + assets/). Deterministic. */
-export async function compile(plan: Plan, o: CompileOptions): Promise<{ indexHtml: string }> {
+export async function compile(input: Plan, o: CompileOptions): Promise<{ indexHtml: string }> {
+  const plan = withLiveSfx(input, o.assetsDir);
   const [width, height] = RATIO_SIZE[o.ratio];
   const used = new Set<string>();
   const logos = new Map<string, Logo>();

@@ -8,7 +8,7 @@ import type { Preset } from '@/lib/app/workspace/schema';
 import { GROUPS, isOn, tilesFor, toggle } from '@/lib/app/cards/catalogue';
 import { PREVIEWS } from './card-previews';
 
-export type CardsChoice = { selection: Selection; ratios: Ratio[]; references: string[] };
+export type CardsChoice = { selection: Selection; ratios: Ratio[]; references: string[]; brief: string };
 
 const ORDER: Ratio[] = ['9:16', '4:5', '1:1', '16:9'];
 
@@ -19,6 +19,7 @@ export function OptionCards({
   selection,
   ratios,
   references,
+  brief = '',
   onConfirm,
   confirmLabel,
   showRatios = false,
@@ -28,6 +29,7 @@ export function OptionCards({
   selection: Selection;
   ratios: Ratio[];
   references: string[];
+  brief?: string;
   onConfirm: (c: CardsChoice) => void;
   confirmLabel?: string;
   /** Ratios are picked when the project is created; only the later "change cards" screen offers them again. */
@@ -37,6 +39,7 @@ export function OptionCards({
   const [sel, setSel] = useState(selection);
   const [rs, setRs] = useState<Ratio[]>(ratios);
   const [refs, setRefs] = useState(references.join('\n'));
+  const [direction, setDirection] = useState(brief);
   const tiles = tilesFor(preset);
   const count = tiles.filter((x) => isOn(sel, x)).length;
 
@@ -84,6 +87,8 @@ export function OptionCards({
           </div>
         </>
       )}
+      <label className="oc-group" htmlFor="oc-brief">{d.brief}</label>
+      <textarea id="oc-brief" className="card px-4 py-3 text-sm" rows={4} placeholder={d.briefHint} value={direction} onChange={(e) => setDirection(e.target.value)} />
       <label className="oc-group" htmlFor="oc-refs">{d.references}</label>
       <textarea id="oc-refs" className="card px-4 py-3 font-mono text-sm" rows={2} value={refs} onChange={(e) => setRefs(e.target.value)} />
       <div className="pt-4">
@@ -91,7 +96,7 @@ export function OptionCards({
           type="button"
           className="btn btn-primary"
           disabled={rs.length === 0}
-          onClick={() => onConfirm({ selection: sel, ratios: rs, references: refs.split('\n').map((x) => x.trim()).filter(Boolean) })}
+          onClick={() => onConfirm({ selection: sel, ratios: rs, references: refs.split('\n').map((x) => x.trim()).filter(Boolean), brief: direction.trim() })}
         >
           {confirmLabel ?? d.confirm}
         </button>

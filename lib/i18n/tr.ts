@@ -33,6 +33,8 @@ export const tr = {
     },
     ratios: 'Oranlar',
     references: 'Referans videolar (her satıra bir https bağlantısı)',
+    brief: 'Klipler için yönlendirme (isteğe bağlı)',
+    briefHint: 'Kesmeye başlamadan önce Claude ne yapsın? Örn: "Girişte 2. videonun 0:12–0:18 arasını kullan, sonra ekran kaydına geç. 3. videoyu hiç kullanma. Ürün adını söylediğim yerde logo çıksın."',
     confirm: 'Onayla ve analiz et',
     save: 'Kaydet',
     change: 'Kartları değiştir',
@@ -75,6 +77,7 @@ export const tr = {
       'face-model': 'Yüz algılama modeli',
       chrome: 'Chrome (render için)',
       rembg: 'Arka plan silme (isteğe bağlı: webden bulunan görseller için)',
+      ytdlp: 'yt-dlp (isteğe bağlı: referans videoları indirmek için)',
     },
   },
   projects: {

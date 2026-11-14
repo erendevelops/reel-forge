@@ -5,7 +5,7 @@ import type { Project, VersionOrigin } from '../../lib/app/workspace/schema';
 
 const project = (over: Partial<Project> = {}): Project => ({
   id: 'p-abc123', name: 'P', mode: 'reel', preset: 'talking-head', ratios: ['9:16'], lang: 'en',
-  selection: defaultSelection('talking-head'), claudeSession: null, cardsConfirmed: true, transcriptChecked: false, music: null, references: [], createdAt: '', updatedAt: '', ...over,
+  selection: defaultSelection('talking-head'), claudeSession: null, cardsConfirmed: true, transcriptChecked: false, music: null, references: [], brief: '', createdAt: '', updatedAt: '', ...over,
 });
 const prefs = { rules: [{ text: 'calm 2–4 s shots', addedAt: '', source: 'v2' }] };
 const v = (n: number, by: 'claude' | 'user', diff: unknown = null): VersionOrigin => ({ n, by, parent: n > 1 ? n - 1 : null, request: null, diff, createdAt: '' });
@@ -54,6 +54,22 @@ describe('stage prompts', () => {
     expect(p).toContain('Fooocus part a bit longer');
     expect(p).toContain('caption 3');
     expect(p).toContain('s02');
+  });
+
+  it("puts the user's clip direction in every stage before Claude cuts anything", () => {
+    const brief = 'Open with 0:12–0:18 of the second video; skip the third.';
+    for (const stage of ['analyse', 'plan', 'rebuild', 'revise'] as const) {
+      expect(buildPrompt(stage, { project: project({ brief }), preferences: prefs, versions: [v(1, 'claude')], request: 'x', chat: [] }), stage).toContain(brief);
+    }
+    expect(buildPrompt('plan', { project: project(), preferences: prefs, versions: [] })).not.toContain("user's direction");
+  });
+
+  it('gives each project its own motion and sound flavour, and refreshes it on a new version', () => {
+    const line = (id: string, n: number) => buildPrompt('plan', { project: project({ id }), preferences: prefs, versions: Array.from({ length: n }, (_, i) => v(i + 1, 'claude')) });
+    expect(line('a-1', 0)).toMatch(/Motion flavour for this project/);
+    const flavours = new Set(['a-1', 'b-2', 'c-3', 'd-4', 'e-5', 'f-6'].map((id) => /flavour for this project: (\w[\w -]*):/.exec(line(id, 0))?.[1]));
+    expect(flavours.size).toBeGreaterThan(1);
+    expect(line('a-1', 0)).toBe(line('a-1', 0));
   });
 
   it('prompts end with the reply language', () => {

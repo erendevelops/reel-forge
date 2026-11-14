@@ -15,7 +15,7 @@
 | `selection` | object | The user's option cards. Copy it from `rf project`, never change it |
 | `scenes` | array | Contiguous: the first starts at 0, each starts where the previous ends |
 | `captions` | `{ style, groups }` | `groups`: `{ words: [[word, startSec], …], end }`. Each group ends when the next starts |
-| `sfx` | `{ file, at, volume }[]` | Sound cues (`sfx/drop_001.wav` etc. are bundled), volume 0.25–0.6 |
+| `sfx` | `{ file, at, volume }[]` | Sound cues (`sfx/kit/pop.ogg` etc. are bundled, video-core sfx.md), volume 0.25–0.6 |
 | `voice` | `{ src }` | The voiceover or camera audio (path relative to the project's `inputs/`) |
 | `music` | `{ src, mediaStart, volume, fadeOut }` | Only if the music card is ticked and the user picked a track |
 | `cover` | `{ at, title, kicker?, position?, logo? }` | The cover image, **required when the cover (thumbnail) card is ticked**: the frame at `at` (timeline s) under a scrim with a bold white headline, a short accent bar above it, and 1–2 key words in accent colour via `*…*` (style `accent`, the default; `card` and `clean` only if the user asks). `title` = one plain sentence of what the video gives the viewer (e.g. "Edit your videos with Claude"), not the video's first line, no clickbait. No `kicker` unless the user asks, never a filler one like "YENİ". `position` `top`/`center`/`bottom` (default bottom; a learned preference overrides it): put the text where the frame is empty. `logo` = asset path or `si:<slug>` (topic assets). Pick a frame that is sharp, bright and shows the subject; no text or cards are drawn from the video, only the frame |
@@ -59,7 +59,7 @@ Everything is in **seconds** (floats). Frames only exist at render time.
     { "words": [["Five", 0.1], ["free", 0.4], ["AI", 0.7], ["tools", 0.9]], "end": 3 },
     { "words": [["First,", 3.1], ["Fooocus.", 3.4]], "end": 6 }
   ] },
-  "sfx": [{ "file": "sfx/maximize_006.wav", "at": 3.4, "volume": 0.3 }],
+  "sfx": [{ "file": "sfx/ding/fs-634690-lil-pip.ogg", "at": 3.4, "volume": 0.3 }],
   "voice": { "src": "public/vo.wav" }
 }
 ```

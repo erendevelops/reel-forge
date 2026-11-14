@@ -17,7 +17,7 @@ A big tool/topic name with its logo tile and a yellow number badge. Use it when 
 Fooocus"). It sits 260 px above centre.
 Params: `{ "n": 1, "name": "Fooocus", "logo": "ext/fooocus_1.png", "logoFit": "cover", "logoPosition": "25% 20%" }`.
 `logoFit: "contain"` insets a mark on the dark tile (e.g. the OpenAI glyph).
-Sound: `sfx/maximize_006.wav` at 0.30.
+Sound: a ding (`sfx/ding/…`) at 0.30.
 
 ### `numbered-list`
 
@@ -26,7 +26,7 @@ start is already there; one at or after it slides in at `at`. Land each item as 
 minus 2 frames).
 Params: `{ "items": [{ "n": 1, "name": "Fooocus", "logo": "ext/fooocus_1.png", "at": 7.4667 }], "highlight": "latest" }`.
 Use `"none"` for the closing scene (all white).
-Sound: `sfx/pluck_002.wav` at 0.35 on each landing.
+Sound: a different tick or pop on each landing (`sfx/tick/…`, `sfx/pop/…`) at 0.3–0.35.
 
 ### `logo-pop`
 
@@ -35,44 +35,44 @@ Params: `{ "img": "ext/upscayl_banner.jpg", "left": 560, "top": 270, "width": 47
 `left`/`top` are the card's **top-left corner**, not its centre: `left: 540` puts the left edge in the middle and the
 card sits to the right. **To centre a card horizontally, leave `left` out.** (Centre by hand: `left = 540 − width / 2`.)
 Logos use `"fit": "contain"` and `"bg": "#121417"`; `"bg": "transparent"` shows just the logo (no tile, no border).
-Sound: `sfx/drop_001.wav` … `drop_004.wav` at 0.45, varied.
+Sound: a different pop each (`sfx/kit/pop.ogg`, `sfx/pop/…`) at 0.4.
 
 ### `rolling-number`
 
 Digits roll like a slot machine to the number being said (money, counts, percentages).
 Params: `{ "from": 0, "to": 1000000, "locale": "tr-TR", "suffix": " ₺" }`.
-Sound: `casino/chip-lay-*` at 0.45 on landing.
+Sound: a quiet `sfx/typing/fs-416777-digital-typing-wav.ogg` as it counts, a ding or pop on landing at 0.4.
 
 ### `checklist`
 
 Rows that tick as each item is said ("Google ✓ Meta ✓ Unity ✓").
 Params: `{ "items": [{ "label": "Google", "at": 15.9 }, { "label": "Meta", "at": 16.4 }] }`. Each `at` sits on the spoken word.
-Sound: a different soft tick per row (`ui/rollover2.ogg`, `interface/click_003.ogg`, `pluck_002.wav`, `impact/impactGlass_light_00*`) at 0.35–0.45.
+Sound: a different soft tick per row (`sfx/kit/tick.ogg`, `sfx/tick/…`) at 0.25–0.35.
 
 ### `bar-chart`
 
 Two or three bars growing to compare values ("%50 vs %70").
 Params: `{ "bars": [{ "label": "Diğer", "value": 50 }, { "label": "Hedef ülke", "value": 70 }] }`.
-Sound: `casino/chips-stack-*` at 0.4 as the bars grow.
+Sound: one pop as the bars start, a tick on the highlighted bar, at 0.35.
 
 ### `stamp`
 
 A punchline badge slammed onto the card ("%70 GERİ", "FREE").
 Params: `{ "text": "%70 GERİ" }`.
-Sound: `impact/impactPunch_medium_*` or `impact/impactPlate_medium_*` at 0.5 on the slam.
+Sound: `sfx/kit/impact.ogg` or `sfx/impact/fs524817.ogg` at 0.5 on the slam. **Once per video**: `rf validate` refuses a second stamp.
 
 ### `typed-title`
 
 A name or term typed character by character, with a cursor ("Dijital Ürün Tanıtım Desteği").
 Params: `{ "text": "Dijital Ürün Tanıtım Desteği", "label": "RESMİ ADI" }`.
-Sound: `keyboard/keypress-*` per character (a different file each, thin out on long text) at 0.4.
+Sound: one quiet typing cue at the start (`sfx/typing/…`) at 0.3.
 Never type the line being spoken (captions show it); type a name, a term or a value the speaker refers to.
 
 ### `follow-outro`
 
 The animated "Follow → Following" button at the end. The handle must be the creator's real handle.
 Params: `{ "handle": "@erendevelops" }`.
-Sound: `sfx/drop_002.wav` at 0.45 on the press.
+Sound: a click (`sfx/kit/click.ogg`, `sfx/click/…`) at 0.45 on the press.
 
 ### `custom-animation`
 

@@ -15,7 +15,7 @@ type Ctx = { params: Promise<{ id: string }> };
 const stable = (v: unknown): string =>
   JSON.stringify(v, (_k, x) => (Array.isArray(x) ? [...x].sort() : x && typeof x === 'object' ? Object.fromEntries(Object.entries(x).sort(([a], [b]) => a.localeCompare(b))) : x));
 
-const Body = z.object({ selection: SelectionSchema, ratios: z.array(z.enum(RATIOS)).min(1), references: ProjectSchema.shape.references });
+const Body = z.object({ selection: SelectionSchema, ratios: z.array(z.enum(RATIOS)).min(1), references: ProjectSchema.shape.references, brief: ProjectSchema.shape.brief });
 
 /** "Confirm and analyse": stores the option cards (with ratios and reference reels) and starts the analyse job. */
 export async function POST(req: Request, { params }: Ctx) {
@@ -33,7 +33,7 @@ export async function POST(req: Request, { params }: Ctx) {
       // reels) mean a new plan from scratch. Compared with the plan, not the last save: a save that met a busy job
       // already stored the cards, and the retry must still re-plan.
       const planned = (await readVersion(id, versions.at(-1)!.n)).plan.selection;
-      const changed = stable(planned) !== stable(project.selection) || stable(before.references) !== stable(project.references);
+      const changed = stable(planned) !== stable(project.selection) || stable(before.references) !== stable(project.references) || before.brief !== project.brief;
       if (!changed) return NextResponse.json({ jobId: null }, { status: 200 });
       const job = await startJob(id, { kind: 'claude', prompt: buildPrompt('plan', { project, preferences, versions, fresh: true }) });
       return NextResponse.json(job, { status: 201 });

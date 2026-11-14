@@ -92,7 +92,7 @@ describe('compile', () => {
   });
 
   it('copies referenced assets and gsap', async () => {
-    for (const f of ['s01.mp4', 'vo.wav', 'ext/openai.png', 'ext/fooocus.png', 'sfx/pluck_002.wav', 'gsap.min.js']) {
+    for (const f of ['s01.mp4', 'vo.wav', 'ext/openai.png', 'ext/fooocus.png', 'sfx/kit/tick.ogg', 'gsap.min.js']) {
       await expect(fs.stat(path.join(outDir, 'assets', f))).resolves.toBeTruthy();
     }
     expect(html).toContain('<script src="assets/gsap.min.js"></script>');

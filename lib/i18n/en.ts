@@ -35,6 +35,8 @@ export const en: Dictionary = {
     },
     ratios: 'Ratios',
     references: 'Reference reels (one https link per line)',
+    brief: 'Direction for the clips (optional)',
+    briefHint: 'What should Claude do before it cuts anything? E.g. "Open with 0:12–0:18 of the second video, then the screen recording. Skip the third video. Show the logo when I say the product name."',
     confirm: 'Confirm and analyse',
     save: 'Save',
     change: 'Change cards',
@@ -77,6 +79,7 @@ export const en: Dictionary = {
       'face-model': 'Face detection model',
       chrome: 'Chrome (for rendering)',
       rembg: 'Background removal (optional: for images found on the web)',
+      ytdlp: 'yt-dlp (optional: to download reference reels)',
     },
   },
   projects: {

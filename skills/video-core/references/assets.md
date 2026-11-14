@@ -74,7 +74,7 @@ Most beats of a talking-head or app video are your own scenes. A `custom-animati
 }
 ```
 
-Sounds for it: `casino/card-slide-2.ogg` at 0, `casino/chips-stack-2.ogg` at 0.2, `casino/card-slide-5.ogg` at 1.7, `impact/impactPunch_medium_001.ogg` at 3.0 (card times + the card start).
+Sounds for it: `sfx/kit/pop.ogg` at 0, `sfx/typing/fs-416777-digital-typing-wav.ogg` at 0.2, `sfx/pop/fs527522.ogg` at 1.7, `sfx/kit/impact.ogg` at 3.0 (card times + the card start).
 
 ### Example: rows that join a list and tick on their words
 
