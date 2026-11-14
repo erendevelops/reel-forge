@@ -55,7 +55,15 @@ export const LogoPopParams = z.object({
   bg: z.union([HexColor, z.literal('transparent')]).optional(),
 });
 
+/**
+ * Where a talking-head card sits: `y` is the card's vertical centre as a fraction of the frame height (0.1 near the
+ * top, 0.5 the middle, 0.9 near the bottom). Left out, the card sits in its layout's default region (on `full-face`
+ * that is the band under the captions, from 78 % of the height down).
+ */
+export const Placement = { y: z.number().min(0.05).max(0.95).optional() };
+
 export const RollingNumberParams = z.object({
+  ...Placement,
   from: z.number().finite(),
   to: z.number().finite(),
   locale: z.enum(['tr-TR', 'en-US']),
@@ -63,19 +71,21 @@ export const RollingNumberParams = z.object({
 });
 
 export const ChecklistParams = z.object({
+  ...Placement,
   /** `at`: timeline time the tick pops; before the card start = already ticked. */
   items: z.array(z.object({ label: z.string().min(1), at: t })).min(1),
 });
 
-export const StampParams = z.object({ text: z.string().min(1) });
+export const StampParams = z.object({ text: z.string().min(1), ...Placement });
 
 export const BarChartParams = z.object({
+  ...Placement,
   bars: z.array(z.object({ label: z.string().min(1), value: z.number().finite().nonnegative() })).min(1),
 });
 
-export const TypedTitleParams = z.object({ text: z.string().min(1), label: z.string().min(1).optional() });
+export const TypedTitleParams = z.object({ text: z.string().min(1), label: z.string().min(1).optional(), ...Placement });
 
-export const FollowOutroParams = z.object({ handle: z.string().min(1) });
+export const FollowOutroParams = z.object({ handle: z.string().min(1), ...Placement });
 
 export const CARD_PARAMS: Record<CardType, z.ZodTypeAny> = {
   'title-card': TitleCardParams,

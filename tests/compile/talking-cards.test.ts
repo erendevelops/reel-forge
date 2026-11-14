@@ -130,6 +130,19 @@ describe('talking-head cards', () => {
     expect(tl).toMatch(/tl\.fromTo\("#outro-stamp-1 \.st-stamp", \{ scale: 2, opacity: 0, rotation: -12 \}, \{ scale: 1, opacity: 1, rotation: -12, /);
   });
 
+  it('a stamp or the follow badge moves to params.y; unknown params are refused instead of ignored', () => {
+    const full = { ...ctx, region: { x: 0, y: Math.round(0.78 * 1920), w: 1080, h: 1920 - Math.round(0.78 * 1920) } };
+    const low = cardRegistry['stamp'].render({ type: 'stamp', start: 0, end: 1, params: { text: 'SON 3 GÜN' } }, 's', full).html;
+    const high = cardRegistry['stamp'].render({ type: 'stamp', start: 0, end: 1, params: { text: 'SON 3 GÜN', y: 0.25 } }, 's', full).html;
+    expect(low).toContain('top: 1498px');
+    expect(high).toMatch(/top: 269(\.\d+)?px/); // centred at 25 % of 1920, band 422 px tall
+    const plan = talkingPlan();
+    plan.scenes[0].cards.push({ type: 'stamp', start: 0.5, end: 1, params: { text: 'X', top: 200 } });
+    const v = validatePlan(plan);
+    expect(v.ok).toBe(false);
+    if (!v.ok) expect(v.errors.join('\n')).toMatch(/params\.top is not a stamp param/);
+  });
+
   it('bar-chart grows bars proportional to value', () => {
     expect(tl).toMatch(/#outro-bar-chart-1-b1 \.bc-fill/);
     expect(html).toMatch(/id="outro-bar-chart-1-b2"[\s\S]*?height: 100%/);

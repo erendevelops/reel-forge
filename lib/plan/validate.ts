@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { PlanSchema, type Card, type Plan } from './schema';
 import { checkFragment } from './fragment';
 import { CARD_PARAMS } from './card-params';
@@ -98,8 +99,14 @@ export function validatePlan(input: unknown): ValidationResult {
       }
       // custom-animation params are reported by checkFragment above
       if (card.type !== 'custom-animation') {
-        const p = CARD_PARAMS[card.type].safeParse(card.params);
+        const schema = CARD_PARAMS[card.type];
+        const p = schema.safeParse(card.params);
         if (!p.success) for (const i of p.error.issues) errors.push(`${at}: params.${i.path.join('.')}: ${i.message}`);
+        // an unknown param would be silently ignored by the renderer (e.g. a made-up position): say so instead
+        if (schema instanceof z.ZodObject && card.params && typeof card.params === 'object') {
+          const known = Object.keys(schema.shape);
+          for (const k of Object.keys(card.params)) if (!known.includes(k)) errors.push(`${at}: params.${k} is not a ${card.type} param (it would do nothing); known: ${known.join(', ')}`);
+        }
       }
       // `at` before the card start = already landed/ticked (a carried-over list); after its end it would never show
       if (card.type === 'numbered-list' || card.type === 'checklist') {

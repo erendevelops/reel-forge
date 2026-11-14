@@ -13,9 +13,22 @@ export const CARD = 'var(--card, #FFFFFF)';
 const IN = { duration: 0.5, ease: 'expo.out' };
 const OUT = 0.2;
 
+/**
+ * The card's region: the layout's, or, with `params.y`, a full-width band centred at that height (as tall as the
+ * layout's region, at most 30 % of the frame) so a stamp or the follow badge can sit anywhere.
+ */
+export function placed(card: Card, ctx: CompileContext) {
+  const r = regionOf(ctx);
+  const y = (card.params as { y?: unknown }).y;
+  if (typeof y !== 'number') return r;
+  const h = Math.min(r.h, 0.3 * ctx.height);
+  const top = Math.min(Math.max(0, y * ctx.height - h / 2), ctx.height - h);
+  return { x: 0, y: top, w: ctx.width, h };
+}
+
 /** The card's clip, covering its graphics region; `inner` is centred in it. */
 export function regionClip(id: string, card: Card, ctx: CompileContext, cls: string, inner: string): string {
-  const r = regionOf(ctx);
+  const r = placed(card, ctx);
   const style = `left: ${num(r.x)}px; top: ${num(r.y)}px; width: ${num(r.w)}px; height: ${num(r.h)}px;`;
   return clipDiv(id, card.start, card.end, `talking ${cls}`, inner, style);
 }

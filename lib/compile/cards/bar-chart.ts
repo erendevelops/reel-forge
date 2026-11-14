@@ -1,7 +1,7 @@
 import type { Card } from '../../plan';
 import { BarChartParams } from '../../plan/card-params';
-import { type CardTemplate, type CompileContext, esc, num, regionOf, sz, tlFromTo } from '../types';
-import { INK, MUTED, cardInOut, regionClip, talkingCss } from './talking';
+import { type CardTemplate, type CompileContext, esc, num, sz, tlFromTo } from '../types';
+import { INK, MUTED, cardInOut, placed, regionClip, talkingCss } from './talking';
 
 const Params = BarChartParams;
 
@@ -16,7 +16,7 @@ export const barChart: CardTemplate = {
   render(card: Card, id: string, ctx: CompileContext) {
     const p = Params.parse(card.params);
     const max = Math.max(...p.bars.map((b) => b.value)) || 1;
-    const r = regionOf(ctx);
+    const r = placed(card, ctx);
     const trackH = Math.min(sz(ctx, 520), r.h * 0.45);
     const barW = Math.min(sz(ctx, 150), (r.w * 0.7) / p.bars.length - sz(ctx, 24));
     const tl = cardInOut(`#${id} .tk-card`, card, ctx);

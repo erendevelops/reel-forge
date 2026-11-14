@@ -37,6 +37,14 @@ card sits to the right. **To centre a card horizontally, leave `left` out.** (Ce
 Logos use `"fit": "contain"` and `"bg": "#121417"`; `"bg": "transparent"` shows just the logo (no tile, no border).
 Sound: a different pop each (`sfx/kit/pop.ogg`, `sfx/pop/…`) at 0.4.
 
+### Where the talking-head cards sit
+
+`rolling-number`, `checklist`, `bar-chart`, `stamp`, `typed-title` and `follow-outro` take an optional **`y`**: the
+card's vertical centre as a fraction of the frame height (`0.15` near the top, `0.5` the middle, `0.85` near the
+bottom). Without it the card sits in its layout's region: on `full-face` that is the band under the captions (from
+78 % of the height down), on `split` the top half. When the user asks to move a card up or down, set `y`; never
+invent another param (`rf validate` refuses unknown params). Keep it clear of the captions and the face.
+
 ### `rolling-number`
 
 Digits roll like a slot machine to the number being said (money, counts, percentages).
@@ -58,7 +66,7 @@ Sound: one pop as the bars start, a tick on the highlighted bar, at 0.35.
 ### `stamp`
 
 A punchline badge slammed onto the card ("%70 GERİ", "FREE").
-Params: `{ "text": "%70 GERİ" }`.
+Params: `{ "text": "%70 GERİ" }`, optionally `"y": 0.3` to place it higher.
 Sound: `sfx/kit/impact.ogg` or `sfx/impact/fs524817.ogg` at 0.5 on the slam. **Once per video**: `rf validate` refuses a second stamp.
 
 ### `typed-title`
@@ -71,7 +79,7 @@ Never type the line being spoken (captions show it); type a name, a term or a va
 ### `follow-outro`
 
 The animated "Follow → Following" button at the end. The handle must be the creator's real handle.
-Params: `{ "handle": "@erendevelops" }`.
+Params: `{ "handle": "@erendevelops" }`, optionally `"y": 0.5` to centre it.
 Sound: a click (`sfx/kit/click.ogg`, `sfx/click/…`) at 0.45 on the press.
 
 ### `custom-animation`
