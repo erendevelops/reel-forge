@@ -26,7 +26,7 @@ start is already there; one at or after it slides in at `at`. Land each item as 
 minus 2 frames).
 Params: `{ "items": [{ "n": 1, "name": "Fooocus", "logo": "ext/fooocus_1.png", "at": 7.4667 }], "highlight": "latest" }`.
 Use `"none"` for the closing scene (all white).
-Sound: a different tick or pop on each landing (`sfx/tick/…`, `sfx/pop/…`) at 0.3–0.35.
+Sound: the video's one tick on each landing, at 0.25–0.3 (or none).
 
 ### `logo-pop`
 
@@ -35,7 +35,7 @@ Params: `{ "img": "ext/upscayl_banner.jpg", "left": 560, "top": 270, "width": 47
 `left`/`top` are the card's **top-left corner**, not its centre: `left: 540` puts the left edge in the middle and the
 card sits to the right. **To centre a card horizontally, leave `left` out.** (Centre by hand: `left = 540 − width / 2`.)
 Logos use `"fit": "contain"` and `"bg": "#121417"`; `"bg": "transparent"` shows just the logo (no tile, no border).
-Sound: a different pop each (`sfx/kit/pop.ogg`, `sfx/pop/…`) at 0.4.
+Sound: the video's one pop, at 0.35.
 
 ### Where the talking-head cards sit
 
@@ -55,7 +55,7 @@ Sound: a quiet `sfx/typing/fs-416777-digital-typing-wav.ogg` as it counts, a din
 
 Rows that tick as each item is said ("Google ✓ Meta ✓ Unity ✓").
 Params: `{ "items": [{ "label": "Google", "at": 15.9 }, { "label": "Meta", "at": 16.4 }] }`. Each `at` sits on the spoken word.
-Sound: a different soft tick per row (`sfx/kit/tick.ogg`, `sfx/tick/…`) at 0.25–0.35.
+Sound: the video's one soft tick per row, at 0.25–0.3.
 
 ### `bar-chart`
 
@@ -88,4 +88,4 @@ Your own scene: value cards that count, lists that build and tick, comparisons, 
 illustrated metaphors, app windows, rebuilt app screens acting. You write it with a scene script ([assets.md](assets.md)).
 It needs **topic assets** ticked. This is the main tool for talking-head and app videos.
 Params: `{ "html": "…", "css": "…", "script": "…", "beats": [ … ], "label": "…" }`.
-Sound: one per visible action, matched to the gesture ([sfx.md](sfx.md)).
+Sound: only the moments that matter, from the video's small palette ([sfx.md](sfx.md)).

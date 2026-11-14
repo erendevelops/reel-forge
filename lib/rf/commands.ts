@@ -12,6 +12,7 @@ import { cropPath, faceTrack, type FaceTrack } from '@/lib/talking/reframe';
 import { planTrims, remapTimes, renderTrimmedTake, type Segment } from '@/lib/talking/trim';
 import { repoPath } from '@/lib/root';
 import { BUNDLED_ASSETS, resolveAsset } from '@/lib/media/assets';
+import { shotFlashes } from '@/lib/media/flashes';
 import { readdirSync } from 'node:fs';
 import { getPreferences, getProject, listVersions, readVersion, saveVersion, validateForProject } from '@/lib/app/workspace/store';
 import { parseArgs, projectId, resolveInProject } from './context';
@@ -278,6 +279,13 @@ export const COMMANDS: Record<string, Command> = {
     return { stills: files };
   },
 
+  /** Shots whose cut catches a split-second different picture at an edge (checked on the footage). */
+  async flashes(args) {
+    const r = validatePlan(await readJson(need(args[0], 'plan.json')));
+    if (!r.ok) throw new Error(r.errors.join('\n'));
+    return { flashes: await shotFlashes(r.plan, resolveInProject('inputs')) };
+  },
+
   async gaps(args) {
     const r = validatePlan(await readJson(need(args[0], 'plan.json')));
     if (!r.ok) throw new Error(r.errors.join('\n'));
@@ -298,6 +306,8 @@ export const COMMANDS: Record<string, Command> = {
         throw new Error(`static for more than 3 s at: ${gaps.map((g) => `${g.from}–${g.to}`).join(', ')}. Add a visual change in each.`);
       }
     }
+    const flashes = await shotFlashes(r.plan, resolveInProject('inputs'));
+    if (flashes.length) throw new Error(`a shot flashes another picture for a split second (the viewer sees a glitch); move its in/out point:\n${flashes.join('\n')}`);
     // captions always carry the user's corrections, whichever transcript file the plan was written from
     let captionsFixed = 0;
     if (project.transcriptChecked) {

@@ -39,7 +39,7 @@ besides footage: **never more than 5 s without a card.** `rf validate` checks bo
 - **Hook:** logo pop-ins (`logo-pop`) on the first words naming what's coming, scattered in the upper half around the subject. They leave at the first cut.
 - **Items:** a `title-card` from the tool-name word to just before the next phrase (about 0.9 s), numbered 1…N, with the tool's official logo ([../../video-core/references/assets.md](../../video-core/references/assets.md)).
 - **List:** a `numbered-list` card per scene. Each item lands as its title card leaves (title end − 2 frames). The current item is yellow; at the CTA they all turn white (`highlight: "none"`).
-- **Sounds:** a pop per hook card, a ding on each title card, a tick on each list landing, rotating files ([../../video-core/references/cards.md](../../video-core/references/cards.md)).
+- **Sounds:** a pop per hook card, a ding on each title card, a tick on each list landing, the same file for the same gesture all video ([../../video-core/references/cards.md](../../video-core/references/cards.md)).
 
 ## Captions
 

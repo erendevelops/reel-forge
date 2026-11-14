@@ -7,16 +7,16 @@ const scene = (id: string, start: number, cards: Plan['scenes'][number]['cards']
 const plan = (scenes: Plan['scenes'], sfx: Plan['sfx'] = []) => ({ scenes, sfx }) as unknown as Plan;
 
 describe('variety rules', () => {
-  it('flags repeated sounds, logos, back-to-back templates and restated lines', () => {
+  it('flags a sound palette over 5 files and cues on top of each other, logos, back-to-back templates and restated lines', () => {
     const errs = checkVariety(plan(
       [
         scene('a', 0, [{ type: 'logo-pop', start: 0, end: 2, params: { img: 'si:youtube' } }, { type: 'typed-title', start: 0, end: 2, params: { text: 'Fear of the camera' } }], 'the big reason is fear of the camera'),
         scene('b', 3, [{ type: 'logo-pop', start: 3, end: 5, params: { img: 'si:youtube' } }]),
       ],
-      [{ file: 'sfx/kit/pop.ogg', at: 0, volume: 1 }, { file: 'sfx/kit/pop.ogg', at: 1, volume: 1 }, { file: 'sfx/kit/pop.ogg', at: 4, volume: 1 }],
+      ['kit/pop', 'kit/click', 'kit/tick', 'kit/impact', 'kit/riser', 'pop/fs527522'].map((f, i) => ({ file: `sfx/${f}.ogg`, at: i === 5 ? 4.05 : i, volume: 1 })),
     ));
-    expect(errs.join('\n')).toMatch(/plays again too soon/);
-    expect(errs.join('\n')).toMatch(/used 3 times/);
+    expect(errs.join('\n')).toMatch(/6 different sound files/);
+    expect(errs.join('\n')).toMatch(/two cues at 4s and 4.05s/);
     expect(errs.join('\n')).toMatch(/logo si:youtube appears 2 times/);
     expect(errs.join('\n')).toMatch(/both use a logo-pop/);
     expect(errs.join('\n')).toMatch(/restates the spoken line/);
@@ -32,8 +32,8 @@ describe('variety rules', () => {
     expect(errs.join('\n')).not.toMatch(/logo/);
   });
 
-  it('allows a sound again after three other cues, and one stamp; a second stamp is refused in every format', () => {
-    const files = ['sfx/kit/pop.ogg', 'sfx/kit/click.ogg', 'sfx/kit/tick.ogg', 'sfx/ding/fs-634690-lil-pip.ogg', 'sfx/kit/pop.ogg'];
+  it('the same sound for the same gesture is fine, and one stamp; a second stamp is refused in every format', () => {
+    const files = ['sfx/kit/tick.ogg', 'sfx/kit/tick.ogg', 'sfx/kit/tick.ogg', 'sfx/kit/click.ogg', 'sfx/kit/tick.ogg'];
     const sfx = files.map((file, i) => ({ file, at: i, volume: 1 }));
     const stamp = (start: number) => ({ type: 'stamp' as const, start, end: start + 2, params: { text: 'KALKTI' } });
     expect(checkVariety(plan([scene('a', 0, [stamp(0)], 'kural kalktı')], sfx))).toEqual([]);

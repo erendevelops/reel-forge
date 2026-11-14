@@ -64,12 +64,14 @@ describe('stage prompts', () => {
     expect(buildPrompt('plan', { project: project(), preferences: prefs, versions: [] })).not.toContain("user's direction");
   });
 
-  it('gives each project its own motion and sound flavour, and refreshes it on a new version', () => {
+  it('gives each project its own motion flavour (stable across its versions) and asks for a small, consistent sound palette', () => {
     const line = (id: string, n: number) => buildPrompt('plan', { project: project({ id }), preferences: prefs, versions: Array.from({ length: n }, (_, i) => v(i + 1, 'claude')) });
-    expect(line('a-1', 0)).toMatch(/Motion flavour for this project/);
-    const flavours = new Set(['a-1', 'b-2', 'c-3', 'd-4', 'e-5', 'f-6'].map((id) => /flavour for this project: (\w[\w -]*):/.exec(line(id, 0))?.[1]));
+    const flavour = (s: string) => /\(custom-animation\): (\w[\w -]*):/.exec(s)?.[1];
+    const flavours = new Set(['a-1', 'b-2', 'c-3', 'd-4', 'e-5', 'f-6'].map((id) => flavour(line(id, 0))));
     expect(flavours.size).toBeGreaterThan(1);
-    expect(line('a-1', 0)).toBe(line('a-1', 0));
+    expect(flavour(line('a-1', 0))).toBe(flavour(line('a-1', 3)));
+    expect(line('a-1', 0)).toMatch(/same gesture the same sound/);
+    expect(line('a-1', 0)).not.toMatch(/rotate files/);
   });
 
   it('prompts end with the reply language', () => {

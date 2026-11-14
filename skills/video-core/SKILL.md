@@ -46,6 +46,7 @@ your own ffmpeg or Python, unless a preset skill tells you to.
 | `rf validate <plan.json>` | Every contract and selection error in the plan |
 | `rf preview <plan.json> --at <s,s,…> [--ratio <r>]` | Stills of the plan at those times (`analysis/preview/contact-sheet.jpg`). Look at your scenes before saving |
 | `rf gaps <plan.json>` | Stretches longer than 3 s with nothing visual happening |
+| `rf flashes <plan.json>` | Shots whose in/out point catches a split-second different picture (a monitor switching, a camera bump); `rf save` refuses them, so pick cut points away from changes on screen |
 | `rf save <plan.json> [--parent <n>] [--request <text>]` | Validates and stores a new version. The app then renders a draft |
 
 ## Hard limits
@@ -61,7 +62,7 @@ your own ffmpeg or Python, unless a preset skill tells you to.
 - [references/look.md](references/look.md): **read before planning a talking-head or app video.** One design kit per video, a new specific graphic per beat, watching references.
 - [references/motion.md](references/motion.md): **read before writing any `custom-animation` scene.** One shape that never cuts, springs, content swaps, cursor, camera: the motion language and the `mo` kit that does it.
 - [references/cards.md](references/cards.md): every card type, when to use it, timing and sound.
-- [references/sfx.md](references/sfx.md): the ~40 bundled sounds by action, and the variety rules.
+- [references/sfx.md](references/sfx.md): the ~30 bundled sounds by action, and the small-palette rules.
 - [references/assets.md](references/assets.md): logos, external images, and writing a `custom-animation` scene script.
 - [references/music.md](references/music.md): suggesting music and aligning to its beats.
 - [references/qa.md](references/qa.md): what the app checks, and the one check you do yourself.

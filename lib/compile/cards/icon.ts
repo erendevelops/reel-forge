@@ -14,7 +14,8 @@ export function toolIcon(
   framing: { logoFit?: LogoFit; logoPosition?: string } = {},
 ): string {
   const style = `width: ${num(size)}px; height: ${num(size)}px; border-radius: ${num(size * 0.22)}px;`;
-  if (!logo) return `<div class="tool-icon" style="${style}"></div>`;
+  // no logo, no tile: an empty black square next to a row reads as a broken image
+  if (!logo) return '';
   const fit = framing.logoFit ?? 'cover';
   const img =
     fit === 'contain'

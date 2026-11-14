@@ -3,7 +3,8 @@ import type { Card, Plan } from './schema';
 /**
  * Variety rules (spec §6 "Unique, not repetitive"): creators rejected drafts where the same logo, card, animation and
  * sound kept coming back. Graphics carry new information and every beat looks and sounds different.
- * - the same sound file never plays within three cues of itself, and at most twice per video;
+ * - sounds are the opposite: a palette of at most 5 files, the same sound for the same gesture, no two cues within
+ *   0.15 s (every format);
  * - a stamp appears once per video (every format: a second slam is a gimmick);
  * - a topic logo appears once per video;
  * - a built-in card template is never used in two scenes in a row, nor more than twice per video;
@@ -12,22 +13,21 @@ import type { Card, Plan } from './schema';
  * Faceless B-roll reels (every scene `broll`) are exempt: their running list and title cards carry over by design
  * (an accepted faceless format).
  */
+export const MAX_SOUNDS = 5;
+
 export function checkVariety(plan: Plan): string[] {
   const errors: string[] = [];
   const stamps = plan.scenes.filter((s) => s.cards.some((c) => c.type === 'stamp')).map((s) => s.id);
   const stampCount = plan.scenes.reduce((n, s) => n + s.cards.filter((c) => c.type === 'stamp').length, 0);
   if (stampCount > 1) errors.push(`stamp is used ${stampCount} times (scenes ${stamps.join(', ')}); a stamp appears once per video, keep the strongest one`);
-  if (plan.scenes.every((s) => s.layout === 'broll')) return errors;
-
-  // sounds
+  // sounds (every format): a small, consistent palette; rotating files made videos sound random and goofy
   const cues = [...plan.sfx].sort((a, b) => a.at - b.at);
-  const uses = new Map<string, number>();
+  const files = new Set(cues.map((c) => c.file));
+  if (files.size > MAX_SOUNDS) errors.push(`sfx: ${files.size} different sound files; use a palette of at most ${MAX_SOUNDS} and give the same gesture the same sound (video-core sfx.md)`);
   cues.forEach((c, i) => {
-    uses.set(c.file, (uses.get(c.file) ?? 0) + 1);
-    const prev = cues.slice(Math.max(0, i - 3), i).find((p) => p.file === c.file);
-    if (prev) errors.push(`sfx: ${c.file} plays again too soon (at ${prev.at}s and ${c.at}s); pick another sound for the second action`);
+    if (i > 0 && c.at - cues[i - 1].at < 0.15) errors.push(`sfx: two cues at ${cues[i - 1].at}s and ${c.at}s; keep the one that matters`);
   });
-  for (const [file, n] of uses) if (n > 2) errors.push(`sfx: ${file} is used ${n} times; at most 2 per video (the catalog has several files per action)`);
+  if (plan.scenes.every((s) => s.layout === 'broll')) return errors;
 
   // logos
   const logos = new Map<string, string[]>();

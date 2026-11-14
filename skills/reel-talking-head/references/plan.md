@@ -51,7 +51,7 @@ and use its variables in every scene.
 
 One sound per visible action, matched to the gesture ([../../video-core/references/sfx.md](../../video-core/references/sfx.md)):
 one typing cue for typed text, pops for rows and cards, ticks for checks, a ding on the payoff, an impact for the one
-stamp, a click for the follow button. Lead with the families the prompt names for this project and rotate files.
+stamp, a click for the follow button. Few and quiet: a palette of 3–5 files, the same sound for the same gesture.
 
 ## 6. Before saving
 

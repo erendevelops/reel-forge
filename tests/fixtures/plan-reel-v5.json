@@ -893,22 +893,22 @@
   },
   "sfx": [
     {
-      "file": "sfx/pop/fs527522.ogg",
+      "file": "sfx/kit/pop.ogg",
       "at": 0.68,
       "volume": 0.45
     },
     {
-      "file": "sfx/pop/fs323738.ogg",
+      "file": "sfx/kit/pop.ogg",
       "at": 1.02,
       "volume": 0.45
     },
     {
-      "file": "sfx/pop/fs202230.ogg",
+      "file": "sfx/kit/pop.ogg",
       "at": 1.28,
       "volume": 0.45
     },
     {
-      "file": "sfx/pop/fs-447910-plop.ogg",
+      "file": "sfx/kit/pop.ogg",
       "at": 2.02,
       "volume": 0.45
     },

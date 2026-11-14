@@ -1230,37 +1230,37 @@
       "volume": 0.45
     },
     {
-      "file": "sfx/pop/fs527522.ogg",
+      "file": "sfx/kit/pop.ogg",
       "at": 23.78,
       "volume": 0.45
     },
     {
-      "file": "sfx/ding/fs-634690-lil-pip.ogg",
+      "file": "sfx/kit/click.ogg",
       "at": 25.72,
       "volume": 0.45
     },
     {
-      "file": "sfx/pop/fs323738.ogg",
+      "file": "sfx/kit/tick.ogg",
       "at": 34.42,
       "volume": 0.45
     },
     {
-      "file": "sfx/tick/fs528561.ogg",
+      "file": "sfx/kit/pop.ogg",
       "at": 38.16,
       "volume": 0.45
     },
     {
-      "file": "sfx/pop/fs202230.ogg",
+      "file": "sfx/kit/click.ogg",
       "at": 43.3,
       "volume": 0.45
     },
     {
-      "file": "sfx/kit/impact.ogg",
+      "file": "sfx/kit/tick.ogg",
       "at": 52.1,
       "volume": 0.45
     },
     {
-      "file": "sfx/click/fs788933.ogg",
+      "file": "sfx/kit/pop.ogg",
       "at": 52.95,
       "volume": 0.45
     }

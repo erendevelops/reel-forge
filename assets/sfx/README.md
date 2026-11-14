@@ -13,7 +13,6 @@ Picked from [Barty-Bart/motion-graphics](https://github.com/Barty-Bart/motion-gr
 |---|---|---|
 | `sfx/pop/fs-447910-plop.ogg` | https://freesound.org/people/Breviceps/sounds/447910/ | Breviceps via Freesound (CC0; credit optional) |
 | `sfx/pop/fs-467951-ui-button-click.ogg` | https://freesound.org/people/benzix2/sounds/467951/ | benzix2 via Freesound (CC0; credit optional) |
-| `sfx/pop/fs-258269-mouth-pop.ogg` | https://freesound.org/people/jcallison/sounds/258269/ | jcallison via Freesound (CC0; credit optional) |
 | `sfx/pop/fs-514833-user-interface-menu-sounds-wav.ogg` | https://freesound.org/people/oussamaben/sounds/514833/ | oussamaben via Freesound (CC0; credit optional) |
 | `sfx/pop/fs-824189-pop-in-sfx.ogg` | https://freesound.org/people/Sadiquecat/sounds/824189/ | Sadiquecat via Freesound (CC0; credit optional) |
 | `sfx/typing/fs-323432-typing.ogg` | https://freesound.org/people/Alivvie/sounds/323432/ | Alivvie via Freesound (CC0; credit optional) |
@@ -22,19 +21,10 @@ Picked from [Barty-Bart/motion-graphics](https://github.com/Barty-Bart/motion-gr
 | `sfx/typing/fs-511418-data-reveal-sound.ogg` | https://freesound.org/people/Sky_Motion/sounds/511418/ | Sky_Motion via Freesound (CC0; credit optional) |
 | `sfx/typing/fs-447909-keyboard-typing.ogg` | https://freesound.org/people/Breviceps/sounds/447909/ | Breviceps via Freesound (CC0; credit optional) |
 | `sfx/riser/fs-685256-riser-sound-effect-short-wav.ogg` | https://freesound.org/people/syntheffects/sounds/685256/ | syntheffects via Freesound (CC0; credit optional) |
-| `sfx/riser/fs-396161-scary-hits-risers-001.ogg` | https://freesound.org/people/Xinematix/sounds/396161/ | Xinematix via Freesound (CC0; credit optional) |
-| `sfx/riser/fs-396160-scary-hits-risers-002.ogg` | https://freesound.org/people/Xinematix/sounds/396160/ | Xinematix via Freesound (CC0; credit optional) |
-| `sfx/riser/fs-174363-rewind.ogg` | https://freesound.org/people/kasa90/sounds/174363/ | kasa90 via Freesound (CC0; credit optional) |
 | `sfx/riser/fs-464250-echo-chromatic-riser-wav.ogg` | https://freesound.org/people/DylanTheFish/sounds/464250/ | DylanTheFish via Freesound (CC0; credit optional) |
-| `sfx/impact/fs-177242-cinematic-impact.ogg` | https://freesound.org/people/deleted_user_3277771/sounds/177242/ | deleted_user_3277771 via Freesound (CC0; credit optional) |
-| `sfx/impact/fs-222517-dramatic-hit.ogg` | https://freesound.org/people/qubodup/sounds/222517/ | qubodup via Freesound (CC0; credit optional) |
-| `sfx/impact/fs-347561-micheal-bay-hit.ogg` | https://freesound.org/people/Kinoton/sounds/347561/ | Kinoton via Freesound (CC0; credit optional) |
 | `sfx/ding/fs-349504-triangle-open-04.ogg` | https://freesound.org/people/cabled_mess/sounds/349504/ | cabled_mess via Freesound (CC0; credit optional) |
 | `sfx/ding/fs-634690-lil-pip.ogg` | https://freesound.org/people/adh.dreaming/sounds/634690/ | adh.dreaming via Freesound (CC0; credit optional) |
 | `sfx/ding/fs-571513-soft-notifications-bell-ding-d.ogg` | https://freesound.org/people/LegitCheese/sounds/571513/ | LegitCheese via Freesound (CC0; credit optional) |
-| `sfx/glitch/fs-402451-fast-forward.ogg` | https://freesound.org/people/plasterbrain/sounds/402451/ | plasterbrain via Freesound (CC0; credit optional) |
-| `sfx/glitch/fs-339521-vhs-rewind-forward-and-eject.ogg` | https://freesound.org/people/lucaslima/sounds/339521/ | lucaslima via Freesound (CC0; credit optional) |
-| `sfx/glitch/fs-144546-touchs-wav.ogg` | https://freesound.org/people/garogourou/sounds/144546/ | garogourou via Freesound (CC0; credit optional) |
 | `sfx/click/fs788933.ogg` | https://freesound.org/people/Mediasaur/sounds/788933/ | Mediasaur via Freesound (CC0; credit given voluntarily) |
 | `sfx/pop/fs527522.ogg` | https://freesound.org/people/Narjara/sounds/527522/ | Narjara via Freesound (CC0; credit given voluntarily) |
 | `sfx/pop/fs323738.ogg` | https://freesound.org/people/Reitanna/sounds/323738/ | Reitanna via Freesound (CC0; credit given voluntarily) |
